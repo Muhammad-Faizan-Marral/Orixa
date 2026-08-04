@@ -1,4 +1,5 @@
-import { relations } from "drizzle-orm/relations";
+import { relations } from "drizzle-orm";
+
 import {
   authUsers,
   profiles,
@@ -11,21 +12,22 @@ import {
   uploads,
   aiRequests,
   contactMessages,
-} from "./schema";
+} from "./index";
 
 export const profilesRelations = relations(profiles, ({ one, many }) => ({
-  authUsers: one(authUsers, {
+  user: one(authUsers, {
     fields: [profiles.userId],
     references: [authUsers.id],
   }),
+
   portfolios: many(portfolios),
   socialLinks: many(socialLinks),
-  settings: many(settings),
+  settings: one(settings),
   uploads: many(uploads),
 }));
 
-export const authUsersRelations = relations(authUsers, ({ many }) => ({
-  profiles: many(profiles),
+export const authUsersRelations = relations(authUsers, ({ one }) => ({
+  profile: one(profiles),
 }));
 
 export const portfoliosRelations = relations(portfolios, ({ one, many }) => ({
@@ -33,10 +35,15 @@ export const portfoliosRelations = relations(portfolios, ({ one, many }) => ({
     fields: [portfolios.profileId],
     references: [profiles.id],
   }),
-  portfolioData: many(portfolioData),
+
+  portfolioData: one(portfolioData),
+
   portfolioViews: many(portfolioViews),
+
   portfolioVersions: many(portfolioVersions),
+
   aiRequests: many(aiRequests),
+
   contactMessages: many(contactMessages),
 }));
 

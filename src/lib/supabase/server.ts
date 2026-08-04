@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
-export async function createClient(p0: string, p1: string, p0: { auth: { autoRefreshToken: boolean; presistSection: boolean; }; }) {
+export async function createClient() {
   const cookieStore = await cookies();
 
   return createServerClient(
@@ -17,9 +17,11 @@ export async function createClient(p0: string, p1: string, p0: { auth: { autoRef
             cookiesToSet.forEach(({ name, value, options }) => {
               cookieStore.set(name, value, options);
             });
-          } catch {}
+          } catch {
+            // Ignore if called from Server Components
+          }
         },
       },
-    },
+    }
   );
 }

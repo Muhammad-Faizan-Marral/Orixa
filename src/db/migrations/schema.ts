@@ -16,6 +16,7 @@ import {
   numeric,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
+import { authUsers } from "drizzle-orm/supabase";
 
 export const profiles = pgTable(
   "profiles",
@@ -38,7 +39,7 @@ export const profiles = pgTable(
   (table) => [
     foreignKey({
       columns: [table.userId],
-      foreignColumns: [users.id],
+      foreignColumns: [authUsers.id],
       name: "profiles_user_id_fkey",
     }).onDelete("cascade"),
     unique("profiles_user_id_key").on(table.userId),
@@ -493,3 +494,5 @@ export const contactMessages = pgTable(
     ),
   ],
 );
+export { authUsers };
+
