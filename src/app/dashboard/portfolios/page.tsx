@@ -6,7 +6,7 @@ import { portfolioService } from "@/services/portfolio/portfolio.service";
 
 export default async function PortfoliosPage() {
   const user = await requireUser();
-  const profile = await requireProfile(user.id);
+  const profile = await requireProfile();
 
   const portfolios = await portfolioService.getUserPortfolios(
     profile.id,

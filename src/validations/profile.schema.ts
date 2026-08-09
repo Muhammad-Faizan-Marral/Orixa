@@ -24,5 +24,19 @@ export const createProfileSchema = z.object({
 
   avatarUrl: z.string().url().optional().or(z.literal("")),
 });
+export const updateProfileSchema = z.object({
+  username: usernameSchema,
 
+  fullName: z.string().trim().max(100).optional().or(z.literal("")),
+
+  headline: z.string().trim().max(150).optional().or(z.literal("")),
+
+  bio: z.string().trim().max(1000).optional().or(z.literal("")),
+
+  location: z.string().trim().max(100).optional().or(z.literal("")),
+
+  avatarUrl: z.string().url().optional().or(z.literal("")),
+});
+
+export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 export type CreateProfileInput = z.infer<typeof createProfileSchema>;

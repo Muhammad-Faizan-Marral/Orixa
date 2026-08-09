@@ -11,29 +11,23 @@ type PortfolioPageProps = {
   }>;
 };
 
-export default async function PortfolioPage({
-  params,
-}: PortfolioPageProps) {
+export default async function PortfolioPage({ params }: PortfolioPageProps) {
   const user = await requireUser();
-  const profile = await requireProfile(user.id);
+  const profile = await requireProfile();
 
   const { portfolioId } = await params;
+  const result = await portfolioService.getPortfolioWithData(
+    portfolioId,
+    profile.id,
+  );
 
-  const portfolio =
-    await portfolioService.getPortfolio(portfolioId);
-
-  if (
-    !portfolio ||
-    portfolio.profileId !== profile.id
-  ) {
+  if (!result) {
     notFound();
   }
-
+  const { portfolio, data } = result;
   return (
     <main>
-      <Link href="/dashboard/portfolios">
-        ← Portfolios
-      </Link>
+      <Link href="/dashboard/portfolios">← Portfolios</Link>
 
       <h1>{portfolio.title}</h1>
 
@@ -41,9 +35,7 @@ export default async function PortfolioPage({
 
       <p>Status: {portfolio.status}</p>
 
-      <Link
-        href={`/dashboard/portfolios/${portfolio.id}/edit`}
-      >
+      <Link href={`/dashboard/portfolios/${portfolio.id}/edit`}>
         Edit Portfolio
       </Link>
     </main>
