@@ -37,6 +37,37 @@ export const createPortfolioSchema = z.object({
   theme: z.string().trim().max(50).optional().or(z.literal("")),
 });
 
+export const updatePortfolioSchema = z.object({
+  portfolioId: z.string().uuid("Invalid portfolio ID"),
 
+  title: z
+    .string()
+    .trim()
+    .min(2, "Title must be at least 2 characters")
+    .max(100, "Title must be at most 100 characters"),
+
+  slug: portfolioSlugSchema,
+
+  headline: z
+    .string()
+    .trim()
+    .max(160, "Headline must be at most 160 characters")
+    .optional()
+    .or(z.literal("")),
+
+  about: z
+    .string()
+    .trim()
+    .max(5000, "About must be at most 5000 characters")
+    .optional()
+    .or(z.literal("")),
+
+  theme: z
+    .string()
+    .trim()
+    .max(50, "Theme must be at most 50 characters")
+    .default("minimal"),
+});
 
 export type CreatePortfolioInput = z.infer<typeof createPortfolioSchema>;
+export type UpdatePortfolioInput = z.infer<typeof updatePortfolioSchema>;

@@ -3,13 +3,13 @@ import {
   createPortfolioSchema,
   portfolioSlugSchema,
   type CreatePortfolioInput,
+  type UpdatePortfolioInput,
 } from "@/validations/portfolio.schema";
 
 export class PortfolioService {
+  
   async getUserPortfolios(profileId: string) {
-    return portfolioRepository.findByProfileId(
-      profileId,
-    );
+    return portfolioRepository.findByProfileId(profileId);
   }
 
   async getPortfolio(id: string) {
@@ -26,12 +26,22 @@ export class PortfolioService {
     );
   }
 
+  async getPortfolioWithData(
+    id: string,
+    profileId: string,
+  ) {
+    return portfolioRepository.findWithData(
+      id,
+      profileId,
+    );
+  }
+
   async isSlugAvailable(
     profileId: string,
     slug: string,
+    excludePortfolioId?: string,
   ) {
-    const parsedSlug =
-      portfolioSlugSchema.parse(slug);
+    const parsedSlug = portfolioSlugSchema.parse(slug);
 
     const existing =
       await portfolioRepository.findByProfileAndSlug(
@@ -39,15 +49,25 @@ export class PortfolioService {
         parsedSlug,
       );
 
-    return existing === null;
+    if (!existing) {
+      return true;
+    }
+
+    if (
+      excludePortfolioId &&
+      existing.id === excludePortfolioId
+    ) {
+      return true;
+    }
+
+    return false;
   }
 
   async createPortfolio(
     profileId: string,
     input: CreatePortfolioInput,
   ) {
-    const data =
-      createPortfolioSchema.parse(input);
+    const data = createPortfolioSchema.parse(input);
 
     const existing =
       await portfolioRepository.findByProfileAndSlug(
@@ -76,40 +96,103 @@ export class PortfolioService {
   async updatePortfolio(
     id: string,
     profileId: string,
-    input: {
-      title?: string;
-      slug?: string;
-    },
+    input: UpdatePortfolioInput,
   ) {
-    const data = {
-      ...input,
-      ...(input.slug
-        ? {
-            slug: portfolioSlugSchema.parse(
-              input.slug,
-            ),
-          }
-        : {}),
-    };
+    const portfolio =
+      await portfolioRepository.findByIdAndProfileId(
+        id,
+        profileId,
+      );
 
-    if (data.slug) {
-      const existing =
-        await portfolioRepository.findByProfileAndSlug(
-          profileId,
-          data.slug,
-        );
+    if (!portfolio) {
+      throw new Error("Portfolio not found.");
+    }
 
-      if (existing && existing.id !== id) {
-        throw new Error(
-          "This portfolio slug is already in use.",
-        );
-      }
+    const slug = portfolioSlugSchema.parse(input.slug);
+
+    const slugAvailable =
+      await this.isSlugAvailable(
+        profileId,
+        slug,
+        id,
+      );
+
+    if (!slugAvailable) {
+      throw new Error(
+        "This portfolio slug is already in use.",
+      );
     }
 
     return portfolioRepository.update(
       id,
       profileId,
-      data,
+      {
+        title: input.title,
+        slug,
+        headline: input.headline,
+        about: input.about,
+        theme: input.theme,
+      },
+    );
+  }
+
+  async publishPortfolio(
+    id: string,
+    profileId: string,
+  ) {
+    const portfolio =
+      await portfolioRepository.findByIdAndProfileId(
+        id,
+        profileId,
+      );
+
+    if (!portfolio) {
+      throw new Error("Portfolio not found.");
+    }
+
+    if (portfolio.status === "archived") {
+      throw new Error(
+        "Archived portfolio cannot be published.",
+      );
+    }
+
+    if (portfolio.status === "published") {
+      return portfolio;
+    }
+
+    return portfolioRepository.updateStatus(
+      id,
+      profileId,
+      "published",
+      new Date().toISOString(),
+    );
+  }
+
+  async unpublishPortfolio(
+    id: string,
+    profileId: string,
+  ) {
+    const portfolio =
+      await portfolioRepository.findByIdAndProfileId(
+        id,
+        profileId,
+      );
+
+    if (!portfolio) {
+      throw new Error("Portfolio not found.");
+    }
+
+    if (portfolio.status !== "published") {
+      throw new Error(
+        "Portfolio is not currently published.",
+      );
+    }
+
+    return portfolioRepository.updateStatus(
+      id,
+      profileId,
+      "draft",
+      null,
     );
   }
 
@@ -131,21 +214,42 @@ export class PortfolioService {
       return portfolio;
     }
 
-    return portfolioRepository.archive(
+    return portfolioRepository.updateStatus(
       id,
       profileId,
+      "archived",
+      null,
     );
   }
-  async getPortfolioWithData(
-  id: string,
-  profileId: string,
-) {
-  return portfolioRepository.findWithData(
-    id,
-    profileId,
-  );
-}
+
+  async restorePortfolio(
+    id: string,
+    profileId: string,
+  ) {
+    const portfolio =
+      await portfolioRepository.findByIdAndProfileId(
+        id,
+        profileId,
+      );
+
+    if (!portfolio) {
+      throw new Error("Portfolio not found.");
+    }
+
+    if (portfolio.status !== "archived") {
+      throw new Error(
+        "Only archived portfolios can be restored.",
+      );
+    }
+
+    return portfolioRepository.updateStatus(
+      id,
+      profileId,
+      "draft",
+      null,
+    );
+  }
+
 }
 
-export const portfolioService =
-  new PortfolioService();
+export const portfolioService =  new PortfolioService();

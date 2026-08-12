@@ -2,6 +2,10 @@ import { and, desc, eq } from "drizzle-orm";
 
 import { db } from "@/db";
 import { portfolioData, portfolios } from "@/db/schema";
+import type {
+  CreatePortfolioInput,
+  UpdatePortfolioInput,
+} from "@/validations/portfolio.schema";
 
 export class PortfolioRepository {
   async findById(id: string) {
@@ -44,16 +48,7 @@ export class PortfolioRepository {
     return portfolio ?? null;
   }
 
-  async create(
-    profileId: string,
-    data: {
-      title: string;
-      slug: string;
-      headline?: string;
-      about?: string;
-      theme?: string;
-    },
-  ) {
+  async create(profileId: string, data: CreatePortfolioInput) {
     return db.transaction(async (tx) => {
       const [portfolio] = await tx
         .insert(portfolios)
@@ -61,6 +56,8 @@ export class PortfolioRepository {
           profileId,
           title: data.title,
           slug: data.slug,
+          status: "draft",
+          currentVersion: 1,
         })
         .returning();
 
@@ -80,33 +77,61 @@ export class PortfolioRepository {
   }
 
   async update(
-    id: string,
+    portfolioId: string,
     profileId: string,
-    data: {
-      title?: string;
-      slug?: string;
-    },
+    data: Omit<UpdatePortfolioInput, "portfolioId">,
   ) {
     const [portfolio] = await db
       .update(portfolios)
       .set({
-        ...data,
+        title: data.title,
+        slug: data.slug,
         updatedAt: new Date().toISOString(),
       })
-      .where(and(eq(portfolios.id, id), eq(portfolios.profileId, profileId)))
+      .where(
+        and(
+          eq(portfolios.id, portfolioId),
+          eq(portfolios.profileId, profileId),
+        ),
+      )
       .returning();
 
-    return portfolio ?? null;
+    if (!portfolio) {
+      return null;
+    }
+
+    await db
+      .update(portfolioData)
+      .set({
+        headline: data.headline || null,
+        about: data.about || null,
+        theme: data.theme || "minimal",
+        updatedAt: new Date().toISOString(),
+      })
+      .where(eq(portfolioData.portfolioId, portfolioId));
+
+    return portfolio;
   }
 
-  async archive(id: string, profileId: string) {
+  async updateStatus(
+    portfolioId: string,
+    profileId: string,
+    status: "draft" | "published" | "archived",
+    publishedAt?: string | null,
+  ) {
     const [portfolio] = await db
       .update(portfolios)
       .set({
-        status: "archived",
+        status,
+        publishedAt: publishedAt !== undefined ? publishedAt : undefined,
         updatedAt: new Date().toISOString(),
       })
-      .where(and(eq(portfolios.id, id), eq(portfolios.profileId, profileId)))
+      .where(
+        and(
+          eq(portfolios.id, portfolioId),
+          eq(portfolios.profileId, profileId),
+        ),
+      )
       .returning();
 
     return portfolio ?? null;
