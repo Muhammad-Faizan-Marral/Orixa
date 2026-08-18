@@ -66,4 +66,30 @@ export type PortfolioDataInput = {
   seo: Record<string, unknown>;
 };
 
+export type PortfolioComponentSelection = {
+  showHero: boolean;
+  showAbout: boolean;
+  showSkills: boolean;
+  showExperience: boolean;
+  showProjects: boolean;
+  showEducation: boolean;
+  showCertificates: boolean;
+  showContact: boolean;
+};
+
+export type PortfolioDesignPreferences = {
+  layout: "standard" | "wide" | "centered";
+  accentColor: string;
+  fontFamily: string;
+  borderRadius: "none" | "small" | "medium" | "large";
+  cardStyle: "flat" | "bordered" | "elevated";
+};
+export type PortfolioSEO = {
+  title: string;
+  description: string;
+  keywords: string[];
+  ogImage: string;
+  canonicalUrl: string;
+  noIndex: boolean;
+};
 export type PortfolioFormValues = CreatePortfolioInput;

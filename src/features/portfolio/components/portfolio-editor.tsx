@@ -106,6 +106,49 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
   const [animations, setAnimations] = useState(data?.animations ?? true);
 
   const [message, setMessage] = useState("");
+  const [componentSelection, setComponentSelection] = useState({
+    showHero: data?.componentSelection?.showHero !== false,
+
+    showAbout: data?.componentSelection?.showAbout !== false,
+
+    showSkills: data?.componentSelection?.showSkills !== false,
+
+    showExperience: data?.componentSelection?.showExperience !== false,
+
+    showProjects: data?.componentSelection?.showProjects !== false,
+
+    showEducation: data?.componentSelection?.showEducation !== false,
+
+    showCertificates: data?.componentSelection?.showCertificates !== false,
+
+    showContact: data?.componentSelection?.showContact !== false,
+  });
+
+  const [designPreferences, setDesignPreferences] = useState({
+    layout: data?.designPreferences?.layout ?? "standard",
+
+    accentColor: data?.designPreferences?.accentColor ?? "#000000",
+
+    fontFamily: data?.designPreferences?.fontFamily ?? "Inter",
+
+    borderRadius: data?.designPreferences?.borderRadius ?? "medium",
+
+    cardStyle: data?.designPreferences?.cardStyle ?? "bordered",
+  });
+
+  const [seo, setSeo] = useState({
+    title: data?.seo?.title ?? portfolio.title,
+
+    description: data?.seo?.description ?? "",
+
+    keywords: data?.seo?.keywords ?? [],
+
+    ogImage: data?.seo?.ogImage ?? "",
+
+    canonicalUrl: data?.seo?.canonicalUrl ?? "",
+
+    noIndex: data?.seo?.noIndex ?? false,
+  });
 
   function updateProject(
     id: string,
@@ -281,19 +324,24 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
     startTransition(async () => {
       const result = await updatePortfolioData({
         portfolioId: portfolio.id,
+
         headline,
         about,
+
         projects,
         experience,
         skills,
         education,
         certificates,
+
         resumeUrl,
+
         theme,
         animations,
-        componentSelection: data?.componentSelection ?? {},
-        designPreferences: data?.designPreferences ?? {},
-        seo: data?.seo ?? {},
+
+        componentSelection,
+        designPreferences,
+        seo,
       });
 
       if (!result.success) {
@@ -305,7 +353,32 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
       setMessage("Portfolio saved successfully.");
     });
   }
+  function toggleComponent(component: keyof typeof componentSelection) {
+    setComponentSelection((current) => ({
+      ...current,
+      [component]: !current[component],
+    }));
+  }
 
+  function updateDesignPreference(
+    field: keyof typeof designPreferences,
+    value: string,
+  ) {
+    setDesignPreferences((current) => ({
+      ...current,
+      [field]: value,
+    }));
+  }
+
+  function updateSEO(
+    field: keyof typeof seo,
+    value: string | boolean | string[],
+  ) {
+    setSeo((current) => ({
+      ...current,
+      [field]: value,
+    }));
+  }
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       {/* BASIC CONTENT */}
@@ -776,6 +849,47 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
         />
       </section>
 
+      {/* Compnents Selection */}
+      <section className="space-y-5 rounded border p-5">
+        <div>
+          <h2 className="text-lg font-semibold">Portfolio Sections</h2>
+
+          <p className="text-sm text-gray-500">
+            Choose which sections should appear on your public portfolio.
+          </p>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          {[
+            ["showHero", "Hero"],
+            ["showAbout", "About"],
+            ["showSkills", "Skills"],
+            ["showExperience", "Experience"],
+            ["showProjects", "Projects"],
+            ["showEducation", "Education"],
+            ["showCertificates", "Certificates"],
+            ["showContact", "Contact"],
+          ].map(([key, label]) => (
+            <label
+              key={key}
+              className="flex items-center justify-between rounded border p-3"
+            >
+              <span className="text-sm">{label}</span>
+
+              <input
+                type="checkbox"
+                checked={
+                  componentSelection[key as keyof typeof componentSelection]
+                }
+                onChange={() =>
+                  toggleComponent(key as keyof typeof componentSelection)
+                }
+              />
+            </label>
+          ))}
+        </div>
+      </section>
+
       {/* APPEARANCE */}
 
       <section className="space-y-4 rounded border p-5">
@@ -801,6 +915,255 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
           />
           Enable animations
         </label>
+      </section>
+
+      {/* Design Prefrence */}
+      <section className="space-y-5 rounded border p-5">
+        <div>
+          <h2 className="text-lg font-semibold">Design Preferences</h2>
+
+          <p className="text-sm text-gray-500">
+            Customize the visual style of your portfolio.
+          </p>
+        </div>
+
+        <div className="grid gap-5 sm:grid-cols-2">
+          <div>
+            <label className="mb-1 block text-sm font-medium">Layout</label>
+
+            <select
+              value={designPreferences.layout}
+              onChange={(event) =>
+                updateDesignPreference("layout", event.target.value)
+              }
+              className="w-full rounded border px-3 py-2"
+            >
+              <option value="standard">Standard</option>
+
+              <option value="wide">Wide</option>
+
+              <option value="centered">Centered</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium">Font</label>
+
+            <select
+              value={designPreferences.fontFamily}
+              onChange={(event) =>
+                updateDesignPreference("fontFamily", event.target.value)
+              }
+              className="w-full rounded border px-3 py-2"
+            >
+              <option value="Inter">Inter</option>
+
+              <option value="Geist">Geist</option>
+
+              <option value="Roboto">Roboto</option>
+
+              <option value="Poppins">Poppins</option>
+
+              <option value="Playfair Display">Playfair Display</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium">
+              Border Radius
+            </label>
+
+            <select
+              value={designPreferences.borderRadius}
+              onChange={(event) =>
+                updateDesignPreference("borderRadius", event.target.value)
+              }
+              className="w-full rounded border px-3 py-2"
+            >
+              <option value="none">None</option>
+
+              <option value="small">Small</option>
+
+              <option value="medium">Medium</option>
+
+              <option value="large">Large</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium">Card Style</label>
+
+            <select
+              value={designPreferences.cardStyle}
+              onChange={(event) =>
+                updateDesignPreference("cardStyle", event.target.value)
+              }
+              className="w-full rounded border px-3 py-2"
+            >
+              <option value="flat">Flat</option>
+
+              <option value="bordered">Bordered</option>
+
+              <option value="elevated">Elevated</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium">
+              Accent Color
+            </label>
+
+            <div className="flex gap-3">
+              <input
+                type="color"
+                value={designPreferences.accentColor}
+                onChange={(event) =>
+                  updateDesignPreference("accentColor", event.target.value)
+                }
+                className="h-10 w-14 rounded border"
+              />
+
+              <input
+                value={designPreferences.accentColor}
+                onChange={(event) =>
+                  updateDesignPreference("accentColor", event.target.value)
+                }
+                className="flex-1 rounded border px-3 py-2"
+                placeholder="#000000"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+      {/* SEO UI */}
+      <section className="space-y-5 rounded border p-5">
+        <div>
+          <h2 className="text-lg font-semibold">SEO</h2>
+
+          <p className="text-sm text-gray-500">
+            Configure how your public portfolio appears in search engines and
+            social previews.
+          </p>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label
+              htmlFor="seo-title"
+              className="mb-1 block text-sm font-medium"
+            >
+              SEO Title
+            </label>
+
+            <input
+              id="seo-title"
+              value={seo.title}
+              maxLength={70}
+              onChange={(event) => updateSEO("title", event.target.value)}
+              placeholder="Faizan — Full Stack Developer"
+              className="w-full rounded border px-3 py-2"
+            />
+
+            <p className="mt-1 text-xs text-gray-500">{seo.title.length}/70</p>
+          </div>
+
+          <div>
+            <label
+              htmlFor="seo-description"
+              className="mb-1 block text-sm font-medium"
+            >
+              Meta Description
+            </label>
+
+            <textarea
+              id="seo-description"
+              value={seo.description}
+              maxLength={160}
+              onChange={(event) => updateSEO("description", event.target.value)}
+              rows={4}
+              placeholder="A short description of your portfolio..."
+              className="w-full rounded border px-3 py-2"
+            />
+
+            <p className="mt-1 text-xs text-gray-500">
+              {seo.description.length}/160
+            </p>
+          </div>
+
+          <div>
+            <label
+              htmlFor="seo-keywords"
+              className="mb-1 block text-sm font-medium"
+            >
+              Keywords
+            </label>
+
+            <input
+              id="seo-keywords"
+              value={seo.keywords.join(", ")}
+              onChange={(event) =>
+                updateSEO(
+                  "keywords",
+                  event.target.value
+                    .split(",")
+                    .map((item) => item.trim())
+                    .filter(Boolean),
+                )
+              }
+              placeholder="Next.js, React, TypeScript, Full Stack Developer"
+              className="w-full rounded border px-3 py-2"
+            />
+
+            <p className="mt-1 text-xs text-gray-500">
+              Separate keywords with commas.
+            </p>
+          </div>
+
+          <div>
+            <label
+              htmlFor="og-image"
+              className="mb-1 block text-sm font-medium"
+            >
+              Social Preview Image URL
+            </label>
+
+            <input
+              id="og-image"
+              value={seo.ogImage}
+              onChange={(event) => updateSEO("ogImage", event.target.value)}
+              placeholder="https://..."
+              className="w-full rounded border px-3 py-2"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="canonical-url"
+              className="mb-1 block text-sm font-medium"
+            >
+              Canonical URL
+            </label>
+
+            <input
+              id="canonical-url"
+              value={seo.canonicalUrl}
+              onChange={(event) =>
+                updateSEO("canonicalUrl", event.target.value)
+              }
+              placeholder="https://example.com/faizan"
+              className="w-full rounded border px-3 py-2"
+            />
+          </div>
+
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={seo.noIndex}
+              onChange={(event) => updateSEO("noIndex", event.target.checked)}
+            />
+            Prevent search engines from indexing this portfolio
+          </label>
+        </div>
       </section>
 
       {/* SAVE */}
