@@ -155,6 +155,56 @@ export class PortfolioRepository {
       data: data ?? null,
     };
   }
+
+  async updateData(
+    portfolioId: string,
+    profileId: string,
+    data: {
+      headline?: string | null;
+      about?: string | null;
+      projects?: unknown[];
+      experience?: unknown[];
+      skills?: unknown[];
+      education?: unknown[];
+      certificates?: unknown[];
+      resumeUrl?: string | null;
+      theme?: string | null;
+      animations?: boolean;
+      componentSelection?: Record<string, unknown>;
+      designPreferences?: Record<string, unknown>;
+      seo?: Record<string, unknown>;
+    },
+  ) {
+    const portfolio = await this.findByIdAndProfileId(portfolioId, profileId);
+
+    if (!portfolio) {
+      return null;
+    }
+
+    const [updatedData] = await db
+      .update(portfolioData)
+      .set({
+        headline: data.headline ?? null,
+        about: data.about ?? null,
+        projects: data.projects ?? [],
+        experience: data.experience ?? [],
+        skills: data.skills ?? [],
+        education: data.education ?? [],
+        certificates: data.certificates ?? [],
+        resumeUrl: data.resumeUrl ?? null,
+        theme: data.theme ?? "minimal",
+        animations: data.animations ?? true,
+        componentSelection: data.componentSelection ?? {},
+        designPreferences: data.designPreferences ?? {},
+        seo: data.seo ?? {},
+        updatedAt: new Date().toISOString(),
+      })
+      .where(and(eq(portfolioData.portfolioId, portfolioId)))
+      .returning();
+
+    return updatedData ?? null;
+  }
+  
 }
 
 export const portfolioRepository = new PortfolioRepository();
