@@ -4,6 +4,50 @@ import { useState, useTransition } from "react";
 
 import { updatePortfolioData } from "@/actions/portfolio/update-portfolio-data";
 
+type Project = {
+  id: string;
+  title: string;
+  description?: string;
+  url?: string;
+  technologies?: string[];
+  imageUrl?: string;
+};
+
+type Experience = {
+  id: string;
+  company: string;
+  role: string;
+  location?: string;
+  startDate?: string;
+  endDate?: string;
+  current?: boolean;
+  description?: string;
+};
+
+type Skill = {
+  id: string;
+  name: string;
+  level?: string;
+};
+
+type Education = {
+  id: string;
+  institution: string;
+  degree?: string;
+  field?: string;
+  startDate?: string;
+  endDate?: string;
+  description?: string;
+};
+
+type Certificate = {
+  id: string;
+  name: string;
+  issuer?: string;
+  issueDate?: string;
+  credentialUrl?: string;
+};
+
 type PortfolioEditorProps = {
   portfolio: {
     id: string;
@@ -14,10 +58,23 @@ type PortfolioEditorProps = {
   data: {
     headline: string | null;
     about: string | null;
+    projects: Project[] | null;
+    experience: Experience[] | null;
+    skills: Skill[] | null;
+    education: Education[] | null;
+    certificates: Certificate[] | null;
+    resumeUrl: string | null;
     theme: string | null;
     animations: boolean;
+    componentSelection: Record<string, unknown> | null;
+    designPreferences: Record<string, unknown> | null;
+    seo: Record<string, unknown> | null;
   } | null;
 };
+
+function createId() {
+  return crypto.randomUUID();
+}
 
 export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
   const [isPending, startTransition] = useTransition();
@@ -26,11 +83,195 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
 
   const [about, setAbout] = useState(data?.about ?? "");
 
+  const [projects, setProjects] = useState<Project[]>(data?.projects ?? []);
+
+  const [experience, setExperience] = useState<Experience[]>(
+    data?.experience ?? [],
+  );
+
+  const [skills, setSkills] = useState<Skill[]>(data?.skills ?? []);
+
+  const [education, setEducation] = useState<Education[]>(
+    data?.education ?? [],
+  );
+
+  const [certificates, setCertificates] = useState<Certificate[]>(
+    data?.certificates ?? [],
+  );
+
+  const [resumeUrl, setResumeUrl] = useState(data?.resumeUrl ?? "");
+
   const [theme, setTheme] = useState(data?.theme ?? "minimal");
 
   const [animations, setAnimations] = useState(data?.animations ?? true);
 
   const [message, setMessage] = useState("");
+
+  function updateProject(
+    id: string,
+    field: keyof Project,
+    value: string | string[],
+  ) {
+    setProjects((current) =>
+      current.map((project) =>
+        project.id === id
+          ? {
+              ...project,
+              [field]: value,
+            }
+          : project,
+      ),
+    );
+  }
+
+  function addProject() {
+    setProjects((current) => [
+      ...current,
+      {
+        id: createId(),
+        title: "",
+        description: "",
+        url: "",
+        technologies: [],
+        imageUrl: "",
+      },
+    ]);
+  }
+
+  function removeProject(id: string) {
+    setProjects((current) => current.filter((project) => project.id !== id));
+  }
+
+  function updateExperience(
+    id: string,
+    field: keyof Experience,
+    value: string | boolean,
+  ) {
+    setExperience((current) =>
+      current.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              [field]: value,
+            }
+          : item,
+      ),
+    );
+  }
+
+  function addExperience() {
+    setExperience((current) => [
+      ...current,
+      {
+        id: createId(),
+        company: "",
+        role: "",
+        location: "",
+        startDate: "",
+        endDate: "",
+        current: false,
+        description: "",
+      },
+    ]);
+  }
+
+  function removeExperience(id: string) {
+    setExperience((current) => current.filter((item) => item.id !== id));
+  }
+
+  function updateSkill(id: string, field: keyof Skill, value: string) {
+    setSkills((current) =>
+      current.map((skill) =>
+        skill.id === id
+          ? {
+              ...skill,
+              [field]: value,
+            }
+          : skill,
+      ),
+    );
+  }
+
+  function addSkill() {
+    setSkills((current) => [
+      ...current,
+      {
+        id: createId(),
+        name: "",
+        level: "",
+      },
+    ]);
+  }
+
+  function removeSkill(id: string) {
+    setSkills((current) => current.filter((skill) => skill.id !== id));
+  }
+
+  function updateEducation(id: string, field: keyof Education, value: string) {
+    setEducation((current) =>
+      current.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              [field]: value,
+            }
+          : item,
+      ),
+    );
+  }
+
+  function addEducation() {
+    setEducation((current) => [
+      ...current,
+      {
+        id: createId(),
+        institution: "",
+        degree: "",
+        field: "",
+        startDate: "",
+        endDate: "",
+        description: "",
+      },
+    ]);
+  }
+
+  function removeEducation(id: string) {
+    setEducation((current) => current.filter((item) => item.id !== id));
+  }
+
+  function updateCertificate(
+    id: string,
+    field: keyof Certificate,
+    value: string,
+  ) {
+    setCertificates((current) =>
+      current.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              [field]: value,
+            }
+          : item,
+      ),
+    );
+  }
+
+  function addCertificate() {
+    setCertificates((current) => [
+      ...current,
+      {
+        id: createId(),
+        name: "",
+        issuer: "",
+        issueDate: "",
+        credentialUrl: "",
+      },
+    ]);
+  }
+
+  function removeCertificate(id: string) {
+    setCertificates((current) => current.filter((item) => item.id !== id));
+  }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -40,32 +281,19 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
     startTransition(async () => {
       const result = await updatePortfolioData({
         portfolioId: portfolio.id,
-
         headline,
-
         about,
-
-        projects: [],
-
-        experience: [],
-
-        skills: [],
-
-        education: [],
-
-        certificates: [],
-
-        resumeUrl: "",
-
+        projects,
+        experience,
+        skills,
+        education,
+        certificates,
+        resumeUrl,
         theme,
-
         animations,
-
-        componentSelection: {},
-
-        designPreferences: {},
-
-        seo: {},
+        componentSelection: data?.componentSelection ?? {},
+        designPreferences: data?.designPreferences ?? {},
+        seo: data?.seo ?? {},
       });
 
       if (!result.success) {
@@ -80,12 +308,14 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
+      {/* BASIC CONTENT */}
+
       <section className="space-y-4 rounded border p-5">
         <div>
           <h2 className="text-lg font-semibold">Basic Content</h2>
 
           <p className="text-sm text-gray-500">
-            Update the main content of your portfolio.
+            Main information shown on your portfolio.
           </p>
         </div>
 
@@ -119,49 +349,461 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
         </div>
       </section>
 
+      {/* PROJECTS */}
+
       <section className="space-y-4 rounded border p-5">
-        <div>
-          <h2 className="text-lg font-semibold">Appearance</h2>
-        </div>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-semibold">Projects</h2>
 
-        <div>
-          <label htmlFor="theme" className="mb-1 block text-sm font-medium">
-            Theme
-          </label>
+            <p className="text-sm text-gray-500">Showcase your best work.</p>
+          </div>
 
-          <select
-            id="theme"
-            value={theme}
-            onChange={(event) => setTheme(event.target.value)}
-            className="w-full rounded border px-3 py-2"
+          <button
+            type="button"
+            onClick={addProject}
+            className="rounded border px-3 py-2 text-sm"
           >
-            <option value="minimal">Minimal</option>
-
-            <option value="modern">Modern</option>
-
-            <option value="professional">Professional</option>
-          </select>
+            + Add Project
+          </button>
         </div>
 
-        <label className="flex items-center gap-2">
+        {projects.length === 0 && (
+          <p className="text-sm text-gray-500">No projects added yet.</p>
+        )}
+
+        {projects.map((project, index) => (
+          <div key={project.id} className="space-y-4 rounded border p-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-medium">Project {index + 1}</h3>
+
+              <button
+                type="button"
+                onClick={() => removeProject(project.id)}
+                className="text-sm"
+              >
+                Remove
+              </button>
+            </div>
+
+            <input
+              value={project.title}
+              onChange={(event) =>
+                updateProject(project.id, "title", event.target.value)
+              }
+              placeholder="Project title"
+              className="w-full rounded border px-3 py-2"
+            />
+
+            <textarea
+              value={project.description ?? ""}
+              onChange={(event) =>
+                updateProject(project.id, "description", event.target.value)
+              }
+              placeholder="Project description"
+              rows={4}
+              className="w-full rounded border px-3 py-2"
+            />
+
+            <input
+              value={project.url ?? ""}
+              onChange={(event) =>
+                updateProject(project.id, "url", event.target.value)
+              }
+              placeholder="Project URL"
+              className="w-full rounded border px-3 py-2"
+            />
+
+            <input
+              value={project.technologies?.join(", ") ?? ""}
+              onChange={(event) =>
+                updateProject(
+                  project.id,
+                  "technologies",
+                  event.target.value
+                    .split(",")
+                    .map((item) => item.trim())
+                    .filter(Boolean),
+                )
+              }
+              placeholder="React, Next.js, PostgreSQL"
+              className="w-full rounded border px-3 py-2"
+            />
+
+            <input
+              value={project.imageUrl ?? ""}
+              onChange={(event) =>
+                updateProject(project.id, "imageUrl", event.target.value)
+              }
+              placeholder="Project image URL"
+              className="w-full rounded border px-3 py-2"
+            />
+          </div>
+        ))}
+      </section>
+
+      {/* EXPERIENCE */}
+
+      <section className="space-y-4 rounded border p-5">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-semibold">Experience</h2>
+
+            <p className="text-sm text-gray-500">
+              Add your professional experience.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={addExperience}
+            className="rounded border px-3 py-2 text-sm"
+          >
+            + Add Experience
+          </button>
+        </div>
+
+        {experience.map((item, index) => (
+          <div key={item.id} className="space-y-4 rounded border p-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-medium">Experience {index + 1}</h3>
+
+              <button
+                type="button"
+                onClick={() => removeExperience(item.id)}
+                className="text-sm"
+              >
+                Remove
+              </button>
+            </div>
+
+            <input
+              value={item.role}
+              onChange={(event) =>
+                updateExperience(item.id, "role", event.target.value)
+              }
+              placeholder="Software Engineer"
+              className="w-full rounded border px-3 py-2"
+            />
+
+            <input
+              value={item.company}
+              onChange={(event) =>
+                updateExperience(item.id, "company", event.target.value)
+              }
+              placeholder="Company"
+              className="w-full rounded border px-3 py-2"
+            />
+
+            <input
+              value={item.location ?? ""}
+              onChange={(event) =>
+                updateExperience(item.id, "location", event.target.value)
+              }
+              placeholder="Location"
+              className="w-full rounded border px-3 py-2"
+            />
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <input
+                type="date"
+                value={item.startDate ?? ""}
+                onChange={(event) =>
+                  updateExperience(item.id, "startDate", event.target.value)
+                }
+                className="w-full rounded border px-3 py-2"
+              />
+
+              <input
+                type="date"
+                value={item.endDate ?? ""}
+                disabled={item.current}
+                onChange={(event) =>
+                  updateExperience(item.id, "endDate", event.target.value)
+                }
+                className="w-full rounded border px-3 py-2"
+              />
+            </div>
+
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={item.current ?? false}
+                onChange={(event) =>
+                  updateExperience(item.id, "current", event.target.checked)
+                }
+              />
+              Currently working here
+            </label>
+
+            <textarea
+              value={item.description ?? ""}
+              onChange={(event) =>
+                updateExperience(item.id, "description", event.target.value)
+              }
+              placeholder="Describe your work..."
+              rows={4}
+              className="w-full rounded border px-3 py-2"
+            />
+          </div>
+        ))}
+      </section>
+
+      {/* SKILLS */}
+
+      <section className="space-y-4 rounded border p-5">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-semibold">Skills</h2>
+          </div>
+
+          <button
+            type="button"
+            onClick={addSkill}
+            className="rounded border px-3 py-2 text-sm"
+          >
+            + Add Skill
+          </button>
+        </div>
+
+        {skills.map((skill, index) => (
+          <div
+            key={skill.id}
+            className="flex flex-col gap-3 rounded border p-4 sm:flex-row"
+          >
+            <input
+              value={skill.name}
+              onChange={(event) =>
+                updateSkill(skill.id, "name", event.target.value)
+              }
+              placeholder={`Skill ${index + 1}`}
+              className="flex-1 rounded border px-3 py-2"
+            />
+
+            <input
+              value={skill.level ?? ""}
+              onChange={(event) =>
+                updateSkill(skill.id, "level", event.target.value)
+              }
+              placeholder="Expert / Intermediate"
+              className="flex-1 rounded border px-3 py-2"
+            />
+
+            <button
+              type="button"
+              onClick={() => removeSkill(skill.id)}
+              className="rounded border px-3 py-2 text-sm"
+            >
+              Remove
+            </button>
+          </div>
+        ))}
+      </section>
+
+      {/* EDUCATION */}
+
+      <section className="space-y-4 rounded border p-5">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-semibold">Education</h2>
+          </div>
+
+          <button
+            type="button"
+            onClick={addEducation}
+            className="rounded border px-3 py-2 text-sm"
+          >
+            + Add Education
+          </button>
+        </div>
+
+        {education.map((item, index) => (
+          <div key={item.id} className="space-y-4 rounded border p-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-medium">Education {index + 1}</h3>
+
+              <button
+                type="button"
+                onClick={() => removeEducation(item.id)}
+                className="text-sm"
+              >
+                Remove
+              </button>
+            </div>
+
+            <input
+              value={item.institution}
+              onChange={(event) =>
+                updateEducation(item.id, "institution", event.target.value)
+              }
+              placeholder="Institution"
+              className="w-full rounded border px-3 py-2"
+            />
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <input
+                value={item.degree ?? ""}
+                onChange={(event) =>
+                  updateEducation(item.id, "degree", event.target.value)
+                }
+                placeholder="Degree"
+                className="w-full rounded border px-3 py-2"
+              />
+
+              <input
+                value={item.field ?? ""}
+                onChange={(event) =>
+                  updateEducation(item.id, "field", event.target.value)
+                }
+                placeholder="Field of study"
+                className="w-full rounded border px-3 py-2"
+              />
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <input
+                type="date"
+                value={item.startDate ?? ""}
+                onChange={(event) =>
+                  updateEducation(item.id, "startDate", event.target.value)
+                }
+                className="w-full rounded border px-3 py-2"
+              />
+
+              <input
+                type="date"
+                value={item.endDate ?? ""}
+                onChange={(event) =>
+                  updateEducation(item.id, "endDate", event.target.value)
+                }
+                className="w-full rounded border px-3 py-2"
+              />
+            </div>
+
+            <textarea
+              value={item.description ?? ""}
+              onChange={(event) =>
+                updateEducation(item.id, "description", event.target.value)
+              }
+              placeholder="Additional information"
+              rows={3}
+              className="w-full rounded border px-3 py-2"
+            />
+          </div>
+        ))}
+      </section>
+
+      {/* CERTIFICATES */}
+
+      <section className="space-y-4 rounded border p-5">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-semibold">Certificates</h2>
+          </div>
+
+          <button
+            type="button"
+            onClick={addCertificate}
+            className="rounded border px-3 py-2 text-sm"
+          >
+            + Add Certificate
+          </button>
+        </div>
+
+        {certificates.map((item, index) => (
+          <div key={item.id} className="space-y-4 rounded border p-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-medium">Certificate {index + 1}</h3>
+
+              <button
+                type="button"
+                onClick={() => removeCertificate(item.id)}
+                className="text-sm"
+              >
+                Remove
+              </button>
+            </div>
+
+            <input
+              value={item.name}
+              onChange={(event) =>
+                updateCertificate(item.id, "name", event.target.value)
+              }
+              placeholder="Certificate name"
+              className="w-full rounded border px-3 py-2"
+            />
+
+            <input
+              value={item.issuer ?? ""}
+              onChange={(event) =>
+                updateCertificate(item.id, "issuer", event.target.value)
+              }
+              placeholder="Issuing organization"
+              className="w-full rounded border px-3 py-2"
+            />
+
+            <input
+              type="date"
+              value={item.issueDate ?? ""}
+              onChange={(event) =>
+                updateCertificate(item.id, "issueDate", event.target.value)
+              }
+              className="w-full rounded border px-3 py-2"
+            />
+
+            <input
+              value={item.credentialUrl ?? ""}
+              onChange={(event) =>
+                updateCertificate(item.id, "credentialUrl", event.target.value)
+              }
+              placeholder="Credential URL"
+              className="w-full rounded border px-3 py-2"
+            />
+          </div>
+        ))}
+      </section>
+
+      {/* RESUME */}
+
+      <section className="space-y-4 rounded border p-5">
+        <h2 className="text-lg font-semibold">Resume</h2>
+
+        <input
+          value={resumeUrl}
+          onChange={(event) => setResumeUrl(event.target.value)}
+          placeholder="Resume URL"
+          className="w-full rounded border px-3 py-2"
+        />
+      </section>
+
+      {/* APPEARANCE */}
+
+      <section className="space-y-4 rounded border p-5">
+        <h2 className="text-lg font-semibold">Appearance</h2>
+
+        <select
+          value={theme}
+          onChange={(event) => setTheme(event.target.value)}
+          className="w-full rounded border px-3 py-2"
+        >
+          <option value="minimal">Minimal</option>
+
+          <option value="modern">Modern</option>
+
+          <option value="professional">Professional</option>
+        </select>
+
+        <label className="flex items-center gap-2 text-sm">
           <input
             type="checkbox"
             checked={animations}
             onChange={(event) => setAnimations(event.target.checked)}
           />
-
-          <span className="text-sm">Enable animations</span>
+          Enable animations
         </label>
       </section>
 
-      <section className="space-y-4 rounded border p-5">
-        <h2 className="text-lg font-semibold">Coming Sections</h2>
-
-        <p className="text-sm text-gray-500">
-          Projects, experience, skills, education, certificates, resume, SEO and
-          design preferences will be managed here.
-        </p>
-      </section>
+      {/* SAVE */}
 
       {message && <p className="text-sm">{message}</p>}
 
