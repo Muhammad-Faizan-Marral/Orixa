@@ -113,19 +113,22 @@ export class PortfolioService {
     }
 
     if (portfolio.status === "archived") {
-      throw new Error("Archived portfolio cannot be published.");
+      throw new Error(
+        "Archived portfolios must be restored before publishing.",
+      );
     }
 
     if (portfolio.status === "published") {
       return portfolio;
     }
 
-    return portfolioRepository.updateStatus(
-      id,
-      profileId,
-      "published",
-      new Date().toISOString(),
-    );
+    const updated = await portfolioRepository.publish(id, profileId);
+
+    if (!updated) {
+      throw new Error("Unable to publish portfolio.");
+    }
+
+    return updated;
   }
 
   async unpublishPortfolio(id: string, profileId: string) {
@@ -138,11 +141,21 @@ export class PortfolioService {
       throw new Error("Portfolio not found.");
     }
 
-    if (portfolio.status !== "published") {
-      throw new Error("Portfolio is not currently published.");
+    if (portfolio.status === "draft") {
+      return portfolio;
     }
 
-    return portfolioRepository.updateStatus(id, profileId, "draft", null);
+    if (portfolio.status === "archived") {
+      throw new Error("Archived portfolios cannot be unpublished.");
+    }
+
+    const updated = await portfolioRepository.unpublish(id, profileId);
+
+    if (!updated) {
+      throw new Error("Unable to unpublish portfolio.");
+    }
+
+    return updated;
   }
 
   async archivePortfolio(id: string, profileId: string) {
@@ -159,7 +172,13 @@ export class PortfolioService {
       return portfolio;
     }
 
-    return portfolioRepository.updateStatus(id, profileId, "archived", null);
+    const updated = await portfolioRepository.archive(id, profileId);
+
+    if (!updated) {
+      throw new Error("Unable to archive portfolio.");
+    }
+
+    return updated;
   }
 
   async restorePortfolio(id: string, profileId: string) {
@@ -176,7 +195,13 @@ export class PortfolioService {
       throw new Error("Only archived portfolios can be restored.");
     }
 
-    return portfolioRepository.updateStatus(id, profileId, "draft", null);
+    const updated = await portfolioRepository.restore(id, profileId);
+
+    if (!updated) {
+      throw new Error("Unable to restore portfolio.");
+    }
+
+    return updated;
   }
 
   async updatePortfolioData(
@@ -211,7 +236,6 @@ export class PortfolioService {
       seo: data.seo,
     });
   }
-  
 }
 
 export const portfolioService = new PortfolioService();

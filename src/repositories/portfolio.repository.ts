@@ -204,7 +204,81 @@ export class PortfolioRepository {
 
     return updatedData ?? null;
   }
-  
+  async publish(portfolioId: string, profileId: string) {
+    const [portfolio] = await db
+      .update(portfolios)
+      .set({
+        status: "published",
+        publishedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      })
+      .where(
+        and(
+          eq(portfolios.id, portfolioId),
+          eq(portfolios.profileId, profileId),
+        ),
+      )
+      .returning();
+
+    return portfolio ?? null;
+  }
+
+  async unpublish(portfolioId: string, profileId: string) {
+    const [portfolio] = await db
+      .update(portfolios)
+      .set({
+        status: "draft",
+        publishedAt: null,
+        updatedAt: new Date().toISOString(),
+      })
+      .where(
+        and(
+          eq(portfolios.id, portfolioId),
+          eq(portfolios.profileId, profileId),
+        ),
+      )
+      .returning();
+
+    return portfolio ?? null;
+  }
+
+  async archive(portfolioId: string, profileId: string) {
+    const [portfolio] = await db
+      .update(portfolios)
+      .set({
+        status: "archived",
+        publishedAt: null,
+        updatedAt: new Date().toISOString(),
+      })
+      .where(
+        and(
+          eq(portfolios.id, portfolioId),
+          eq(portfolios.profileId, profileId),
+        ),
+      )
+      .returning();
+
+    return portfolio ?? null;
+  }
+
+  async restore(portfolioId: string, profileId: string) {
+    const [portfolio] = await db
+      .update(portfolios)
+      .set({
+        status: "draft",
+        publishedAt: null,
+        updatedAt: new Date().toISOString(),
+      })
+      .where(
+        and(
+          eq(portfolios.id, portfolioId),
+          eq(portfolios.profileId, profileId),
+        ),
+      )
+      .returning();
+
+    return portfolio ?? null;
+  }
 }
 
 export const portfolioRepository = new PortfolioRepository();

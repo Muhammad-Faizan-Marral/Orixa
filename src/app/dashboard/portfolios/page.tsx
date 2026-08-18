@@ -8,9 +8,7 @@ export default async function PortfoliosPage() {
   const user = await requireUser();
   const profile = await requireProfile();
 
-  const portfolios = await portfolioService.getUserPortfolios(
-    profile.id,
-  );
+  const portfolios = await portfolioService.getUserPortfolios(profile.id);
 
   return (
     <main>
@@ -20,43 +18,32 @@ export default async function PortfoliosPage() {
           <h1>Portfolios</h1>
         </div>
 
-        <Link href="/dashboard/portfolios/new">
-          Create Portfolio
-        </Link>
+        <Link href="/dashboard/portfolios/new">Create Portfolio</Link>
       </header>
 
       {portfolios.length === 0 ? (
         <section>
           <h2>No portfolios found</h2>
 
-          <p>
-            Create your first portfolio.
-          </p>
+          <p>Create your first portfolio.</p>
 
-          <Link href="/dashboard/portfolios/new">
-            Create Portfolio
-          </Link>
+          <Link href="/dashboard/portfolios/new">Create Portfolio</Link>
         </section>
       ) : (
         <section>
           {portfolios.map((portfolio) => (
-            <article key={portfolio.id}>
-              <h2>{portfolio.title}</h2>
-
-              <p>
-                @{portfolio.slug}
-              </p>
-
-              <p>
-                {portfolio.status}
-              </p>
-
+            <div key={portfolio.id} className="space-y-2 rounded border p-4">
               <Link
                 href={`/dashboard/portfolios/${portfolio.id}`}
+                className="font-medium"
               >
-                Open Portfolio
+                {portfolio.title}
               </Link>
-            </article>
+
+              <p className="text-sm text-gray-500">@{portfolio.slug}</p>
+
+              <p className="text-sm">Status: {portfolio.status}</p>
+            </div>
           ))}
         </section>
       )}
