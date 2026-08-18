@@ -33,7 +33,6 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
 
   return (
     <main className="space-y-8">
-      
       <div>
         <Link href="/dashboard/portfolios">← Portfolios</Link>
       </div>
@@ -58,7 +57,12 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
         portfolioId={portfolio.id}
         status={portfolio.status as "draft" | "published" | "archived"}
       />
-
+      <Link
+        href={`/dashboard/portfolios/${portfolio.id}/versions`}
+        className="rounded border px-4 py-2"
+      >
+        Version History
+      </Link>
       <div>
         <Link
           href={`/dashboard/portfolios/${portfolio.id}/edit`}
@@ -79,7 +83,6 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
           <p>No portfolio data found.</p>
         )}
       </section>
-
     </main>
   );
 }

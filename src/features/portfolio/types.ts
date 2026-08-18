@@ -92,4 +92,6 @@ export type PortfolioSEO = {
   canonicalUrl: string;
   noIndex: boolean;
 };
+
+
 export type PortfolioFormValues = CreatePortfolioInput;

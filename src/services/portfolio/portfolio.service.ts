@@ -1,4 +1,5 @@
 import { portfolioRepository } from "@/repositories/portfolio.repository";
+import { portfolioVersionRepository } from "@/repositories/portfolio-version.repository";
 import {
   UpdatePortfolioDataInput,
   updatePortfolioDataSchema,
@@ -118,17 +119,13 @@ export class PortfolioService {
       );
     }
 
-    if (portfolio.status === "published") {
-      return portfolio;
-    }
+    const result = await portfolioRepository.publishWithVersion(id, profileId);
 
-    const updated = await portfolioRepository.publish(id, profileId);
-
-    if (!updated) {
+    if (!result) {
       throw new Error("Unable to publish portfolio.");
     }
 
-    return updated;
+    return result;
   }
 
   async unpublishPortfolio(id: string, profileId: string) {
@@ -149,7 +146,12 @@ export class PortfolioService {
       throw new Error("Archived portfolios cannot be unpublished.");
     }
 
-    const updated = await portfolioRepository.unpublish(id, profileId);
+    const updated = await portfolioRepository.updateStatus(
+      id,
+      profileId,
+      "draft",
+      null,
+    );
 
     if (!updated) {
       throw new Error("Unable to unpublish portfolio.");
@@ -172,7 +174,12 @@ export class PortfolioService {
       return portfolio;
     }
 
-    const updated = await portfolioRepository.archive(id, profileId);
+    const updated = await portfolioRepository.updateStatus(
+      id,
+      profileId,
+      "archived",
+      null,
+    );
 
     if (!updated) {
       throw new Error("Unable to archive portfolio.");
@@ -195,7 +202,12 @@ export class PortfolioService {
       throw new Error("Only archived portfolios can be restored.");
     }
 
-    const updated = await portfolioRepository.restore(id, profileId);
+    const updated = await portfolioRepository.updateStatus(
+      id,
+      profileId,
+      "draft",
+      null,
+    );
 
     if (!updated) {
       throw new Error("Unable to restore portfolio.");
@@ -235,6 +247,18 @@ export class PortfolioService {
       designPreferences: data.designPreferences,
       seo: data.seo,
     });
+  }
+  async getPortfolioVersions(portfolioId: string, profileId: string) {
+    const portfolio = await portfolioRepository.findByIdAndProfileId(
+      portfolioId,
+      profileId,
+    );
+
+    if (!portfolio) {
+      throw new Error("Portfolio not found.");
+    }
+
+    return portfolioVersionRepository.getVersions(portfolioId);
   }
 }
 

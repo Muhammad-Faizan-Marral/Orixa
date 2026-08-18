@@ -1,7 +1,7 @@
 import { and, desc, eq } from "drizzle-orm";
 
 import { db } from "@/db";
-import { portfolioData, portfolios } from "@/db/schema";
+import { portfolioData, portfolioVersions, portfolios } from "@/db/schema";
 import type {
   CreatePortfolioInput,
   UpdatePortfolioInput,
@@ -204,24 +204,7 @@ export class PortfolioRepository {
 
     return updatedData ?? null;
   }
-  async publish(portfolioId: string, profileId: string) {
-    const [portfolio] = await db
-      .update(portfolios)
-      .set({
-        status: "published",
-        publishedAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      })
-      .where(
-        and(
-          eq(portfolios.id, portfolioId),
-          eq(portfolios.profileId, profileId),
-        ),
-      )
-      .returning();
-
-    return portfolio ?? null;
-  }
+ 
 
   async unpublish(portfolioId: string, profileId: string) {
     const [portfolio] = await db
@@ -278,6 +261,110 @@ export class PortfolioRepository {
       .returning();
 
     return portfolio ?? null;
+  }
+
+  async publishWithVersion(portfolioId: string, profileId: string) {
+    return db.transaction(async (tx) => {
+      const [portfolio] = await tx
+        .select()
+        .from(portfolios)
+        .where(
+          and(
+            eq(portfolios.id, portfolioId),
+            eq(portfolios.profileId, profileId),
+          ),
+        )
+        .limit(1);
+
+      if (!portfolio) {
+        return null;
+      }
+
+      const [data] = await tx
+        .select()
+        .from(portfolioData)
+        .where(eq(portfolioData.portfolioId, portfolioId))
+        .limit(1);
+
+      if (!data) {
+        throw new Error("Portfolio data not found.");
+      }
+
+      const [latestVersion] = await tx
+        .select({
+          version: portfolioVersions.version,
+        })
+        .from(portfolioVersions)
+        .where(eq(portfolioVersions.portfolioId, portfolioId))
+        .orderBy(desc(portfolioVersions.version))
+        .limit(1);
+
+      const nextVersion = (latestVersion?.version ?? 0) + 1;
+
+      await tx
+        .update(portfolioVersions)
+        .set({
+          published: false,
+        })
+        .where(eq(portfolioVersions.portfolioId, portfolioId));
+
+      const configJson = {
+        headline: data.headline,
+        about: data.about,
+        projects: data.projects,
+        experience: data.experience,
+        skills: data.skills,
+        education: data.education,
+        certificates: data.certificates,
+        resumeUrl: data.resumeUrl,
+        theme: data.theme,
+        animations: data.animations,
+        componentSelection: data.componentSelection,
+        designPreferences: data.designPreferences,
+        seo: data.seo,
+      };
+
+      const [version] = await tx
+        .insert(portfolioVersions)
+        .values({
+          portfolioId,
+          version: nextVersion,
+          configJson,
+          published: true,
+        })
+        .returning();
+
+      if (!version) {
+        throw new Error("Unable to create portfolio version.");
+      }
+
+      const now = new Date().toISOString();
+
+      const [updatedPortfolio] = await tx
+        .update(portfolios)
+        .set({
+          status: "published",
+          currentVersion: nextVersion,
+          publishedAt: now,
+          updatedAt: now,
+        })
+        .where(
+          and(
+            eq(portfolios.id, portfolioId),
+            eq(portfolios.profileId, profileId),
+          ),
+        )
+        .returning();
+
+      if (!updatedPortfolio) {
+        throw new Error("Unable to publish portfolio.");
+      }
+
+      return {
+        portfolio: updatedPortfolio,
+        version,
+      };
+    });
   }
 }
 

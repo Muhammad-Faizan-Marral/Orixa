@@ -2,8 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 
-import { requireUser } from "@/lib/auth/require-user";
 import { requireProfile } from "@/lib/auth/require-profile";
+import { requireUser } from "@/lib/auth/require-user";
 import { portfolioService } from "@/services/portfolio/portfolio.service";
 
 export async function publishPortfolio(portfolioId: string) {
@@ -12,7 +12,7 @@ export async function publishPortfolio(portfolioId: string) {
 
     const profile = await requireProfile();
 
-    const portfolio = await portfolioService.publishPortfolio(
+    const result = await portfolioService.publishPortfolio(
       portfolioId,
       profile.id,
     );
@@ -23,7 +23,8 @@ export async function publishPortfolio(portfolioId: string) {
 
     return {
       success: true,
-      portfolio,
+      portfolio: result.portfolio,
+      version: result.version,
     };
   } catch (error) {
     return {
