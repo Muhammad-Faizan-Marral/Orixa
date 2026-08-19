@@ -1,5 +1,6 @@
 import { portfolioRepository } from "@/repositories/portfolio.repository";
 import { portfolioVersionRepository } from "@/repositories/portfolio-version.repository";
+
 import {
   UpdatePortfolioDataInput,
   updatePortfolioDataSchema,
@@ -248,6 +249,7 @@ export class PortfolioService {
       seo: data.seo,
     });
   }
+
   async getPortfolioVersions(portfolioId: string, profileId: string) {
     const portfolio = await portfolioRepository.findByIdAndProfileId(
       portfolioId,
@@ -259,6 +261,47 @@ export class PortfolioService {
     }
 
     return portfolioVersionRepository.getVersions(portfolioId);
+  }
+
+  async restorePortfolioVersion(
+    portfolioId: string,
+    profileId: string,
+    version: number,
+  ) {
+    return portfolioVersionRepository.restoreVersion(
+      portfolioId,
+      profileId,
+      version,
+    );
+  }
+
+  async getPortfolioVersion(
+    portfolioId: string,
+    profileId: string,
+    version: number,
+  ) {
+    const portfolio = await portfolioRepository.findByIdAndProfileId(
+      portfolioId,
+      profileId,
+    );
+
+    if (!portfolio) {
+      return null;
+    }
+
+    const versionData = await portfolioVersionRepository.getVersion(
+      portfolioId,
+      version,
+    );
+
+    if (!versionData) {
+      return null;
+    }
+
+    return {
+      portfolio,
+      version: versionData,
+    };
   }
 }
 

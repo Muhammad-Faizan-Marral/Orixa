@@ -5,6 +5,7 @@ import { requireProfile } from "@/lib/auth/require-profile";
 import { requireUser } from "@/lib/auth/require-user";
 
 import { portfolioService } from "@/services/portfolio/portfolio.service";
+import { RestoreVersionButton } from "@/features/portfolio/components/restore-version-button";
 
 type VersionsPageProps = {
   params: Promise<{
@@ -52,22 +53,26 @@ export default async function VersionsPage({ params }: VersionsPageProps) {
       ) : (
         <div className="space-y-3">
           {versions.map((version) => (
-            <div
-              key={version.id}
-              className="flex items-center justify-between rounded border p-4"
-            >
+            <article key={version.id}>
+              <h2>Version {version.version}</h2>
+
+              <p>Created: {new Date(version.createdAt).toLocaleString()}</p>
+
+              <p>{version.published ? "Published" : "Historical"}</p>
+
               <div>
-                <p className="font-medium">Version {version.version}</p>
+                <Link
+                  href={`/dashboard/portfolios/${portfolioId}/versions/${version.version}`}
+                >
+                  Preview
+                </Link>
 
-                <p className="text-sm text-gray-500">
-                  {new Date(version.createdAt).toLocaleString()}
-                </p>
+                <RestoreVersionButton
+                  portfolioId={portfolioId}
+                  version={version.version}
+                />
               </div>
-
-              <div className="text-sm">
-                {version.published ? "Published" : "Historical"}
-              </div>
-            </div>
+            </article>
           ))}
         </div>
       )}
