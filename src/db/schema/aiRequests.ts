@@ -1,15 +1,16 @@
 import {
-  pgTable,
+  check,
   foreignKey,
   index,
-  pgPolicy,
-  check,
-  uuid,
-  text,
   integer,
   numeric,
+  pgPolicy,
+  pgTable,
+  text,
   timestamp,
+  uuid,
 } from "drizzle-orm/pg-core";
+
 import { sql } from "drizzle-orm";
 
 import { portfolios } from "./portfolios";
@@ -17,13 +18,13 @@ import { portfolios } from "./portfolios";
 export const aiRequests = pgTable(
   "ai_requests",
   {
-    id: uuid("id").defaultRandom().primaryKey().notNull(),
+    id: uuid().defaultRandom().primaryKey().notNull(),
 
     portfolioId: uuid("portfolio_id"),
 
     requestType: text("request_type").notNull(),
 
-    model: text("model").notNull(),
+    model: text().notNull(),
 
     inputTokens: integer("input_tokens").default(0),
 
@@ -40,7 +41,7 @@ export const aiRequests = pgTable(
 
     latencyMs: integer("latency_ms"),
 
-    status: text("status").default("success"),
+    status: text().default("success"),
 
     createdAt: timestamp("created_at", {
       withTimezone: true,
@@ -51,12 +52,14 @@ export const aiRequests = pgTable(
   },
 
   (table) => [
-    index("ai_requests_created_idx").on(
-      table.createdAt,
+    index("ai_requests_created_idx").using(
+      "btree",
+      table.createdAt.asc().nullsLast().op("timestamptz_ops"),
     ),
 
-    index("ai_requests_portfolio_idx").on(
-      table.portfolioId,
+    index("ai_requests_portfolio_idx").using(
+      "btree",
+      table.portfolioId.asc().nullsLast().op("uuid_ops"),
     ),
 
     foreignKey({
@@ -69,37 +72,45 @@ export const aiRequests = pgTable(
       as: "permissive",
       for: "all",
       to: ["public"],
+
       using: sql`(
         EXISTS (
           SELECT 1
           FROM portfolios p
           JOIN profiles pr
             ON p.profile_id = pr.id
-          WHERE p.id = ai_requests.portfolio_id
-          AND pr.user_id = auth.uid()
+          WHERE (
+            p.id = ai_requests.portfolio_id
+            AND pr.user_id = auth.uid()
+          )
         )
       )`,
+
       withCheck: sql`(
         EXISTS (
           SELECT 1
           FROM portfolios p
           JOIN profiles pr
             ON p.profile_id = pr.id
-          WHERE p.id = ai_requests.portfolio_id
-          AND pr.user_id = auth.uid()
+          WHERE (
+            p.id = ai_requests.portfolio_id
+            AND pr.user_id = auth.uid()
+          )
         )
       )`,
     }),
 
     check(
       "ai_status_check",
-      sql`status = ANY (
-        ARRAY[
-          'success'::text,
-          'failed'::text,
-          'cancelled'::text
-        ]
-      )`,
+      sql`
+        status = ANY (
+          ARRAY[
+            'success'::text,
+            'failed'::text,
+            'cancelled'::text
+          ]
+        )
+      `,
     ),
   ],
 );

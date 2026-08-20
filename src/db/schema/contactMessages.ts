@@ -1,13 +1,14 @@
 import {
-  pgTable,
+  check,
   foreignKey,
   index,
   pgPolicy,
-  check,
-  uuid,
+  pgTable,
   text,
   timestamp,
+  uuid,
 } from "drizzle-orm/pg-core";
+
 import { sql } from "drizzle-orm";
 
 import { portfolios } from "./portfolios";
@@ -15,7 +16,7 @@ import { portfolios } from "./portfolios";
 export const contactMessages = pgTable(
   "contact_messages",
   {
-    id: uuid("id").defaultRandom().primaryKey().notNull(),
+    id: uuid().defaultRandom().primaryKey().notNull(),
 
     portfolioId: uuid("portfolio_id").notNull(),
 
@@ -23,13 +24,11 @@ export const contactMessages = pgTable(
 
     visitorEmail: text("visitor_email").notNull(),
 
-    subject: text("subject"),
+    subject: text(),
 
-    message: text("message").notNull(),
+    message: text().notNull(),
 
-    status: text("status")
-      .default("unread")
-      .notNull(),
+    status: text().default("unread").notNull(),
 
     createdAt: timestamp("created_at", {
       withTimezone: true,
@@ -40,8 +39,9 @@ export const contactMessages = pgTable(
   },
 
   (table) => [
-    index("contact_messages_portfolio_idx").on(
-      table.portfolioId,
+    index("contact_messages_portfolio_idx").using(
+      "btree",
+      table.portfolioId.asc().nullsLast().op("uuid_ops"),
     ),
 
     foreignKey({
@@ -54,38 +54,46 @@ export const contactMessages = pgTable(
       as: "permissive",
       for: "all",
       to: ["public"],
+
       using: sql`(
         EXISTS (
           SELECT 1
           FROM portfolios p
           JOIN profiles pr
             ON p.profile_id = pr.id
-          WHERE p.id = contact_messages.portfolio_id
-          AND pr.user_id = auth.uid()
+          WHERE (
+            p.id = contact_messages.portfolio_id
+            AND pr.user_id = auth.uid()
+          )
         )
       )`,
+
       withCheck: sql`(
         EXISTS (
           SELECT 1
           FROM portfolios p
           JOIN profiles pr
             ON p.profile_id = pr.id
-          WHERE p.id = contact_messages.portfolio_id
-          AND pr.user_id = auth.uid()
+          WHERE (
+            p.id = contact_messages.portfolio_id
+            AND pr.user_id = auth.uid()
+          )
         )
       )`,
     }),
 
     check(
       "contact_status_check",
-      sql`status = ANY (
-        ARRAY[
-          'unread'::text,
-          'read'::text,
-          'replied'::text,
-          'archived'::text
-        ]
-      )`,
+      sql`
+        status = ANY (
+          ARRAY[
+            'unread'::text,
+            'read'::text,
+            'replied'::text,
+            'archived'::text
+          ]
+        )
+      `,
     ),
   ],
 );

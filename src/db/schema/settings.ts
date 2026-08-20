@@ -1,14 +1,15 @@
 import {
-  pgTable,
-  foreignKey,
-  unique,
-  pgPolicy,
-  check,
-  uuid,
-  text,
   boolean,
+  check,
+  foreignKey,
+  pgPolicy,
+  pgTable,
+  text,
   timestamp,
+  unique,
+  uuid,
 } from "drizzle-orm/pg-core";
+
 import { sql } from "drizzle-orm";
 
 import { profiles } from "./profiles";
@@ -16,15 +17,16 @@ import { profiles } from "./profiles";
 export const settings = pgTable(
   "settings",
   {
-    id: uuid("id").defaultRandom().primaryKey().notNull(),
+    id: uuid().defaultRandom().primaryKey().notNull(),
 
     profileId: uuid("profile_id").notNull(),
 
-    language: text("language")
+    language: text()
       .default("en")
       .notNull(),
 
-    timezone: text("timezone").default("UTC"),
+    timezone: text()
+      .default("UTC"),
 
     publicProfile: boolean("public_profile")
       .default(true)
@@ -34,7 +36,8 @@ export const settings = pgTable(
       .default(true)
       .notNull(),
 
-    themeMode: text("theme_mode").default("system"),
+    themeMode: text("theme_mode")
+      .default("system"),
 
     createdAt: timestamp("created_at", {
       withTimezone: true,
@@ -58,41 +61,48 @@ export const settings = pgTable(
       name: "settings_profile_id_fkey",
     }).onDelete("cascade"),
 
-    unique("settings_profile_id_key").on(
-      table.profileId,
-    ),
+    unique("settings_profile_id_key")
+      .on(table.profileId),
 
     pgPolicy("Owner manages settings", {
       as: "permissive",
       for: "all",
       to: ["public"],
+
       using: sql`(
         EXISTS (
           SELECT 1
           FROM profiles pr
-          WHERE pr.id = settings.profile_id
-          AND pr.user_id = auth.uid()
+          WHERE (
+            pr.id = settings.profile_id
+            AND pr.user_id = auth.uid()
+          )
         )
       )`,
+
       withCheck: sql`(
         EXISTS (
           SELECT 1
           FROM profiles pr
-          WHERE pr.id = settings.profile_id
-          AND pr.user_id = auth.uid()
+          WHERE (
+            pr.id = settings.profile_id
+            AND pr.user_id = auth.uid()
+          )
         )
       )`,
     }),
 
     check(
       "settings_theme_check",
-      sql`theme_mode = ANY (
-        ARRAY[
-          'light'::text,
-          'dark'::text,
-          'system'::text
-        ]
-      )`,
+      sql`
+        theme_mode = ANY (
+          ARRAY[
+            'light'::text,
+            'dark'::text,
+            'system'::text
+          ]
+        )
+      `,
     ),
   ],
 );

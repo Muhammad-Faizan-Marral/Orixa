@@ -1,14 +1,15 @@
 import {
-  pgTable,
+  bigint,
   foreignKey,
   index,
   pgPolicy,
-  check,
-  uuid,
+  pgTable,
   text,
-  bigint,
   timestamp,
+  uuid,
+  check,
 } from "drizzle-orm/pg-core";
+
 import { sql } from "drizzle-orm";
 
 import { profiles } from "./profiles";
@@ -16,21 +17,28 @@ import { profiles } from "./profiles";
 export const uploads = pgTable(
   "uploads",
   {
-    id: uuid("id").defaultRandom().primaryKey().notNull(),
+    id: uuid()
+      .defaultRandom()
+      .primaryKey()
+      .notNull(),
 
-    profileId: uuid("profile_id").notNull(),
+    profileId: uuid("profile_id")
+      .notNull(),
 
-    type: text("type").notNull(),
+    type: text()
+      .notNull(),
 
-    url: text("url").notNull(),
+    url: text()
+      .notNull(),
 
     mimeType: text("mime_type"),
 
-    size: bigint("size", {
+    size: bigint({
       mode: "number",
     }),
 
-    status: text("status").default("active"),
+    status: text()
+      .default("active"),
 
     createdAt: timestamp("created_at", {
       withTimezone: true,
@@ -41,8 +49,9 @@ export const uploads = pgTable(
   },
 
   (table) => [
-    index("uploads_profile_idx").on(
-      table.profileId,
+    index("uploads_profile_idx").using(
+      "btree",
+      table.profileId.asc().nullsLast().op("uuid_ops"),
     ),
 
     foreignKey({
@@ -55,32 +64,40 @@ export const uploads = pgTable(
       as: "permissive",
       for: "all",
       to: ["public"],
+
       using: sql`(
         EXISTS (
           SELECT 1
           FROM profiles pr
-          WHERE pr.id = uploads.profile_id
-          AND pr.user_id = auth.uid()
+          WHERE (
+            pr.id = uploads.profile_id
+            AND pr.user_id = auth.uid()
+          )
         )
       )`,
+
       withCheck: sql`(
         EXISTS (
           SELECT 1
           FROM profiles pr
-          WHERE pr.id = uploads.profile_id
-          AND pr.user_id = auth.uid()
+          WHERE (
+            pr.id = uploads.profile_id
+            AND pr.user_id = auth.uid()
+          )
         )
       )`,
     }),
 
     check(
       "upload_status_check",
-      sql`status = ANY (
-        ARRAY[
-          'active'::text,
-          'deleted'::text
-        ]
-      )`,
+      sql`
+        status = ANY (
+          ARRAY[
+            'active'::text,
+            'deleted'::text
+          ]
+        )
+      `,
     ),
   ],
 );
