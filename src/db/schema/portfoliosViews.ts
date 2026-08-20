@@ -1,12 +1,13 @@
 import {
-  pgTable,
   foreignKey,
   index,
   pgPolicy,
-  uuid,
+  pgTable,
   text,
   timestamp,
+  uuid,
 } from "drizzle-orm/pg-core";
+
 import { sql } from "drizzle-orm";
 
 import { portfolios } from "./portfolios";
@@ -14,21 +15,21 @@ import { portfolios } from "./portfolios";
 export const portfolioViews = pgTable(
   "portfolio_views",
   {
-    id: uuid("id").defaultRandom().primaryKey().notNull(),
+    id: uuid().defaultRandom().primaryKey().notNull(),
 
     portfolioId: uuid("portfolio_id").notNull(),
 
-    country: text("country"),
+    country: text(),
 
-    city: text("city"),
+    city: text(),
 
-    browser: text("browser"),
+    browser: text(),
 
-    device: text("device"),
+    device: text(),
 
-    os: text("os"),
+    os: text(),
 
-    referrer: text("referrer"),
+    referrer: text(),
 
     ipHash: text("ip_hash"),
 
@@ -41,12 +42,14 @@ export const portfolioViews = pgTable(
   },
 
   (table) => [
-    index("portfolio_views_date_idx").on(
-      table.visitedAt,
+    index("portfolio_views_date_idx").using(
+      "btree",
+      table.visitedAt.asc().nullsLast().op("timestamptz_ops"),
     ),
 
-    index("portfolio_views_portfolio_idx").on(
-      table.portfolioId,
+    index("portfolio_views_portfolio_idx").using(
+      "btree",
+      table.portfolioId.asc().nullsLast().op("uuid_ops"),
     ),
 
     foreignKey({

@@ -83,6 +83,7 @@ export class ProfileService {
       avatarUrl: data.avatarUrl || null,
     });
   }
+  
 }
 
 export const profileService = new ProfileService();
