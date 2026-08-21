@@ -6,6 +6,7 @@ import { requireUser } from "@/lib/auth/require-user";
 import { portfolioService } from "@/services/portfolio/portfolio.service";
 
 import { PortfolioLifecycleActions } from "@/features/portfolio/components/portfolio-lifecycle-actions";
+import { PortfolioViewTracker } from "@/features/portfolio/components/portfolio-view-tracker";
 
 type PortfolioPageProps = {
   params: Promise<{
@@ -63,6 +64,9 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
       >
         Version History
       </Link>
+      <Link href={`/dashboard/portfolios/${portfolio.id}/analytics`}>
+        Analytics
+      </Link>
       <div>
         <Link
           href={`/dashboard/portfolios/${portfolio.id}/edit`}
@@ -83,6 +87,7 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
           <p>No portfolio data found.</p>
         )}
       </section>
+      <PortfolioViewTracker portfolioId={portfolio.id} />
     </main>
   );
 }
