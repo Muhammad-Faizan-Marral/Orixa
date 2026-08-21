@@ -1,8 +1,20 @@
-export default function DashboardSettingsPage() {
+import { requireProfile } from "@/lib/auth/require-profile";
+import { requireUser } from "@/lib/auth/require-user";
+
+import { settingsService } from "@/services/profile/settings.service";
+
+import { SettingsForm } from "@/features/profile/components/settings-form";
+
+export default async function SettingsPage() {
+  await requireUser();
+
+  const profile = await requireProfile();
+
+  const settings = await settingsService.getSettings(profile.id);
+
   return (
     <main>
-      <h1>Settings</h1>
-      <p>Settings management is coming next.</p>
+      <SettingsForm initialSettings={settings} />
     </main>
   );
 }
