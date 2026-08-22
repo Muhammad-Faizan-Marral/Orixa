@@ -68,11 +68,24 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
         Analytics
       </Link>
       <div>
-        <Link
-          href={`/dashboard/portfolios/${portfolio.id}/edit`}
-          className="rounded border px-4 py-2"
-        >
+        <Link href={`/dashboard/portfolios/${portfolio.id}/edit`}>
           Edit Portfolio
+        </Link>
+
+        <Link href={`/dashboard/portfolios/${portfolio.id}/versions`}>
+          Versions
+        </Link>
+
+        <Link href={`/dashboard/portfolios/${portfolio.id}/analytics`}>
+          Analytics
+        </Link>
+
+        <Link href={`/dashboard/portfolios/${portfolio.id}/messages`}>
+          Messages
+        </Link>
+
+        <Link href={`/dashboard/portfolios/${portfolio.id}/ai-usage`}>
+          AI Usage
         </Link>
       </div>
 
