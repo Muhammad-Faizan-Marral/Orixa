@@ -1,7 +1,12 @@
 import { and, desc, eq } from "drizzle-orm";
 
 import { db } from "@/db";
-import { portfolioData, portfolioVersions, portfolios } from "@/db/schema";
+import {
+  portfolioData,
+  portfolioVersions,
+  portfolios,
+  profiles,
+} from "@/db/schema";
 import type {
   CreatePortfolioInput,
   UpdatePortfolioInput,
@@ -46,6 +51,20 @@ export class PortfolioRepository {
       .limit(1);
 
     return portfolio ?? null;
+  }
+
+  async findOwnerByPortfolioId(portfolioId: string) {
+    const [result] = await db
+      .select({
+        userId: profiles.userId,
+        username: profiles.username,
+      })
+      .from(portfolios)
+      .innerJoin(profiles, eq(portfolios.profileId, profiles.id))
+      .where(eq(portfolios.id, portfolioId))
+      .limit(1);
+
+    return result ?? null;
   }
 
   async create(profileId: string, data: CreatePortfolioInput) {
@@ -204,7 +223,6 @@ export class PortfolioRepository {
 
     return updatedData ?? null;
   }
- 
 
   async unpublish(portfolioId: string, profileId: string) {
     const [portfolio] = await db
