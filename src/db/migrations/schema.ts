@@ -12,11 +12,10 @@ import {
   integer,
   jsonb,
   boolean,
-  bigint,
   numeric,
+  bigint,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
-import { authUsers } from "drizzle-orm/supabase";
 
 export const profiles = pgTable(
   "profiles",
@@ -39,7 +38,7 @@ export const profiles = pgTable(
   (table) => [
     foreignKey({
       columns: [table.userId],
-      foreignColumns: [authUsers.id],
+      foreignColumns: [users.id],
       name: "profiles_user_id_fkey",
     }).onDelete("cascade"),
     unique("profiles_user_id_key").on(table.userId),
@@ -352,49 +351,6 @@ export const settings = pgTable(
   ],
 );
 
-export const uploads = pgTable(
-  "uploads",
-  {
-    id: uuid().defaultRandom().primaryKey().notNull(),
-    profileId: uuid("profile_id").notNull(),
-    type: text().notNull(),
-    url: text().notNull(),
-    mimeType: text("mime_type"),
-    // You can use { mode: "bigint" } if numbers are exceeding js number limitations
-    size: bigint({ mode: "number" }),
-    status: text().default("active"),
-    createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
-      .defaultNow()
-      .notNull(),
-  },
-  (table) => [
-    index("uploads_profile_idx").using(
-      "btree",
-      table.profileId.asc().nullsLast().op("uuid_ops"),
-    ),
-    foreignKey({
-      columns: [table.profileId],
-      foreignColumns: [profiles.id],
-      name: "uploads_profile_id_fkey",
-    }).onDelete("cascade"),
-    pgPolicy("Owner manages uploads", {
-      as: "permissive",
-      for: "all",
-      to: ["public"],
-      using: sql`(EXISTS ( SELECT 1
-   FROM profiles pr
-  WHERE ((pr.id = uploads.profile_id) AND (pr.user_id = auth.uid()))))`,
-      withCheck: sql`(EXISTS ( SELECT 1
-   FROM profiles pr
-  WHERE ((pr.id = uploads.profile_id) AND (pr.user_id = auth.uid()))))`,
-    }),
-    check(
-      "upload_status_check",
-      sql`status = ANY (ARRAY['active'::text, 'deleted'::text])`,
-    ),
-  ],
-);
-
 export const aiRequests = pgTable(
   "ai_requests",
   {
@@ -494,5 +450,62 @@ export const contactMessages = pgTable(
     ),
   ],
 );
-export { authUsers };
 
+export const uploads = pgTable(
+  "uploads",
+  {
+    id: uuid().defaultRandom().primaryKey().notNull(),
+    profileId: uuid("profile_id").notNull(),
+    type: text().notNull(),
+    url: text(),
+    mimeType: text("mime_type"),
+    // You can use { mode: "bigint" } if numbers are exceeding js number limitations
+    size: bigint({ mode: "number" }).notNull(),
+    status: text().default("active"),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+      .defaultNow()
+      .notNull(),
+    bucket: text().notNull(),
+    storagePath: text("storage_path").notNull(),
+  },
+  (table) => [
+    uniqueIndex("uploads_bucket_path_unique").using(
+      "btree",
+      table.bucket.asc().nullsLast().op("text_ops"),
+      table.storagePath.asc().nullsLast().op("text_ops"),
+    ),
+    index("uploads_profile_idx").using(
+      "btree",
+      table.profileId.asc().nullsLast().op("uuid_ops"),
+    ),
+    index("uploads_profile_status_idx").using(
+      "btree",
+      table.profileId.asc().nullsLast().op("text_ops"),
+      table.status.asc().nullsLast().op("text_ops"),
+    ),
+    foreignKey({
+      columns: [table.profileId],
+      foreignColumns: [profiles.id],
+      name: "uploads_profile_id_fkey",
+    }).onDelete("cascade"),
+    pgPolicy("Owner manages uploads", {
+      as: "permissive",
+      for: "all",
+      to: ["public"],
+      using: sql`(EXISTS ( SELECT 1
+   FROM profiles pr
+  WHERE ((pr.id = uploads.profile_id) AND (pr.user_id = auth.uid()))))`,
+      withCheck: sql`(EXISTS ( SELECT 1
+   FROM profiles pr
+  WHERE ((pr.id = uploads.profile_id) AND (pr.user_id = auth.uid()))))`,
+    }),
+    check(
+      "upload_status_check",
+      sql`status = ANY (ARRAY['reserved'::text, 'active'::text, 'deleting'::text, 'deleted'::text])`,
+    ),
+    check(
+      "upload_type_check",
+      sql`type = ANY (ARRAY['avatar'::text, 'project-image'::text, 'resume'::text])`,
+    ),
+  ],
+);

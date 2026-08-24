@@ -1,5 +1,6 @@
 import {
   bigint,
+  check,
   foreignKey,
   index,
   pgPolicy,
@@ -7,7 +8,7 @@ import {
   text,
   timestamp,
   uuid,
-  check,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 
 import { sql } from "drizzle-orm";
@@ -17,28 +18,23 @@ import { profiles } from "./profiles";
 export const uploads = pgTable(
   "uploads",
   {
-    id: uuid()
-      .defaultRandom()
-      .primaryKey()
-      .notNull(),
+    id: uuid().defaultRandom().primaryKey().notNull(),
 
-    profileId: uuid("profile_id")
-      .notNull(),
+    profileId: uuid("profile_id").notNull(),
 
-    type: text()
-      .notNull(),
+    type: text().notNull(),
 
-    url: text()
-      .notNull(),
+    bucket: text().notNull(),
+
+    storagePath: text("storage_path").notNull(),
+
+    url: text(),
 
     mimeType: text("mime_type"),
 
-    size: bigint({
-      mode: "number",
-    }),
+    size: bigint({ mode: "number" }).notNull(),
 
-    status: text()
-      .default("active"),
+    status: text().default("active").notNull(),
 
     createdAt: timestamp("created_at", {
       withTimezone: true,
@@ -49,9 +45,11 @@ export const uploads = pgTable(
   },
 
   (table) => [
-    index("uploads_profile_idx").using(
-      "btree",
-      table.profileId.asc().nullsLast().op("uuid_ops"),
+    index("uploads_profile_idx").on(table.profileId),
+
+    uniqueIndex("uploads_bucket_path_unique").on(
+      table.bucket,
+      table.storagePath,
     ),
 
     foreignKey({
@@ -64,40 +62,45 @@ export const uploads = pgTable(
       as: "permissive",
       for: "all",
       to: ["public"],
-
       using: sql`(
         EXISTS (
           SELECT 1
           FROM profiles pr
-          WHERE (
-            pr.id = uploads.profile_id
-            AND pr.user_id = auth.uid()
-          )
+          WHERE pr.id = uploads.profile_id
+          AND pr.user_id = auth.uid()
         )
       )`,
-
       withCheck: sql`(
         EXISTS (
           SELECT 1
           FROM profiles pr
-          WHERE (
-            pr.id = uploads.profile_id
-            AND pr.user_id = auth.uid()
-          )
+          WHERE pr.id = uploads.profile_id
+          AND pr.user_id = auth.uid()
         )
       )`,
     }),
 
     check(
       "upload_status_check",
-      sql`
-        status = ANY (
-          ARRAY[
-            'active'::text,
-            'deleted'::text
-          ]
-        )
-      `,
+      sql`status = ANY (
+        ARRAY[
+          'reserved'::text,
+          'active'::text,
+          'deleting'::text,
+          'deleted'::text
+        ]
+      )`,
+    ),
+
+    check(
+      "upload_type_check",
+      sql`type = ANY (
+        ARRAY[
+          'avatar'::text,
+          'project-image'::text,
+          'resume'::text
+        ]
+      )`,
     ),
   ],
 );

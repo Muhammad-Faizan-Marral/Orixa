@@ -8,32 +8,42 @@ import { requireUser } from "@/lib/auth/require-user";
 import { uploadService } from "@/services/profile/upload.service";
 
 export async function deleteUpload(uploadId: string) {
-  await requireUser();
-
+  const user = await requireUser();
   const profile = await requireProfile();
 
-  try {
-    const upload = await uploadService.deleteUpload(profile.id, uploadId);
+  if (profile.userId !== user.id) {
+    return {
+      success: false,
+      message: "Unauthorized.",
+    };
+  }
 
-    if (!upload) {
-      return {
-        success: false,
-        message: "Upload not found.",
-      };
-    }
+  if (!uploadId?.trim()) {
+    return {
+      success: false,
+      message: "Invalid upload ID.",
+    };
+  }
+
+  try {
+    await uploadService.deleteFile({
+      uploadId,
+      profileId: profile.id,
+    });
 
     revalidatePath("/dashboard/profile");
 
     return {
       success: true,
-      message: "Upload deleted.",
+      message: "File deleted successfully.",
     };
   } catch (error) {
     console.error("deleteUpload:", error);
 
     return {
       success: false,
-      message: "Unable to delete upload.",
+      message:
+        error instanceof Error ? error.message : "Unable to delete file.",
     };
   }
 }

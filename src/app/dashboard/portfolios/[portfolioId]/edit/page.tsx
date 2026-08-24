@@ -6,6 +6,7 @@ import { requireUser } from "@/lib/auth/require-user";
 import { portfolioService } from "@/services/portfolio/portfolio.service";
 
 import { PortfolioEditor } from "../../../../../features/portfolio/components/portfolio-editor";
+import { FileUpload } from "@/features/profile/components/file-upload";
 
 type EditPortfolioPageProps = {
   params: Promise<{
@@ -40,6 +41,18 @@ export default async function EditPortfolioPage({
       </div>
 
       <PortfolioEditor portfolio={result.portfolio} data={result.data} />
+      <FileUpload
+        type="project-image"
+        portfolioId={portfolioId}
+        accept="image/jpeg,image/png,image/webp,image/gif"
+        label="Upload Project Image"
+      />
+      <FileUpload
+        type="resume"
+        portfolioId={portfolioId}
+        accept="application/pdf"
+        label="Upload Resume"
+      />
     </main>
   );
 }
