@@ -3,6 +3,10 @@
 import Link from "next/link";
 import { useActionState } from "react";
 
+import { AuthLayout } from "@/components/auth/auth-layout";
+import { FormAlert } from "@/components/auth/form-alert";
+import { Input } from "@/components/UI/Input";
+import { Button } from "@/components/UI/Button";
 import {
   resetPassword,
   type ResetPasswordState,
@@ -11,60 +15,44 @@ import {
 const initialState: ResetPasswordState = {};
 
 export default function ResetPasswordPage() {
-  const [state, formAction, pending] = useActionState(
-    resetPassword,
-    initialState,
-  );
+  const [state, formAction, pending] = useActionState(resetPassword, initialState);
 
   return (
-    <main>
-      <h1>Set a new password</h1>
+    <AuthLayout title="Set a new password" subtitle="Choose a strong password for your account.">
+      <form action={formAction} className="space-y-4">
+        <Input
+          id="password"
+          name="password"
+          type="password"
+          label="New password"
+          autoComplete="new-password"
+          minLength={8}
+          hint="At least 8 characters."
+          required
+        />
 
-      <form action={formAction}>
-        <div>
-          <label htmlFor="password">
-            New password
-          </label>
+        <Input
+          id="confirmPassword"
+          name="confirmPassword"
+          type="password"
+          label="Confirm password"
+          autoComplete="new-password"
+          minLength={8}
+          required
+        />
 
-          <input
-            id="password"
-            name="password"
-            type="password"
-            autoComplete="new-password"
-            minLength={8}
-            required
-          />
-        </div>
+        {state.error && <FormAlert>{state.error}</FormAlert>}
 
-        <div>
-          <label htmlFor="confirmPassword">
-            Confirm password
-          </label>
-
-          <input
-            id="confirmPassword"
-            name="confirmPassword"
-            type="password"
-            autoComplete="new-password"
-            minLength={8}
-            required
-          />
-        </div>
-
-        {state.error && (
-          <p role="alert">
-            {state.error}
-          </p>
-        )}
-
-        <button type="submit" disabled={pending}>
+        <Button type="submit" variant="gradient" className="w-full" loading={pending}>
           {pending ? "Updating..." : "Update password"}
-        </button>
+        </Button>
       </form>
 
-      <Link href="/auth/login">
-        Back to login
-      </Link>
-    </main>
+      <p className="text-small mt-8 text-center">
+        <Link href="/auth/login" className="font-medium text-primary hover:text-primary-hover">
+          Back to login
+        </Link>
+      </p>
+    </AuthLayout>
   );
 }

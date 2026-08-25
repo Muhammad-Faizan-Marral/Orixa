@@ -3,6 +3,10 @@
 import Link from "next/link";
 import { useActionState } from "react";
 
+import { AuthLayout } from "@/components/auth/auth-layout";
+import { FormAlert } from "@/components/auth/form-alert";
+import { Input } from "@/components/UI/Input";
+import { Button } from "@/components/UI/Button";
 import {
   forgotPassword,
   type ForgotPasswordState,
@@ -11,64 +15,43 @@ import {
 const initialState: ForgotPasswordState = {};
 
 export default function ForgotPasswordPage() {
-  const [state, formAction, pending] = useActionState(
-    forgotPassword,
-    initialState,
-  );
+  const [state, formAction, pending] = useActionState(forgotPassword, initialState);
 
   if (state.success) {
     return (
-      <main>
-        <h1>Check your email</h1>
-
-        <p>
-          If an account exists for this email, we sent a password
-          reset link.
-        </p>
-
-        <Link href="/auth/login">
-          Back to login
+      <AuthLayout title="Check your email" subtitle="If an account exists, a reset link is on its way.">
+        <div className="surface-panel p-5 text-sm text-muted-foreground">
+          Follow the link in the email to set a new password.
+        </div>
+        <Link href="/auth/login" className="mt-6 block">
+          <Button variant="secondary" className="w-full">
+            Back to login
+          </Button>
         </Link>
-      </main>
+      </AuthLayout>
     );
   }
 
   return (
-    <main>
-      <h1>Forgot your password?</h1>
+    <AuthLayout
+      title="Forgot your password?"
+      subtitle="Enter your email and we'll send you a reset link."
+    >
+      <form action={formAction} className="space-y-4">
+        <Input id="email" name="email" type="email" label="Email" autoComplete="email" required />
 
-      <p>
-        Enter your email address and we&apos;ll send you a reset
-        link.
-      </p>
+        {state.error && <FormAlert>{state.error}</FormAlert>}
 
-      <form action={formAction}>
-        <div>
-          <label htmlFor="email">Email</label>
-
-          <input
-            id="email"
-            name="email"
-            type="email"
-            autoComplete="email"
-            required
-          />
-        </div>
-
-        {state.error && (
-          <p role="alert">
-            {state.error}
-          </p>
-        )}
-
-        <button type="submit" disabled={pending}>
+        <Button type="submit" variant="gradient" className="w-full" loading={pending}>
           {pending ? "Sending..." : "Send reset link"}
-        </button>
+        </Button>
       </form>
 
-      <Link href="/auth/login">
-        Back to login
-      </Link>
-    </main>
+      <p className="text-small mt-8 text-center">
+        <Link href="/auth/login" className="font-medium text-primary hover:text-primary-hover">
+          Back to login
+        </Link>
+      </p>
+    </AuthLayout>
   );
 }

@@ -3,6 +3,12 @@
 import Link from "next/link";
 import { useActionState } from "react";
 
+import { AuthLayout } from "@/components/auth/auth-layout";
+import { FormAlert } from "@/components/auth/form-alert";
+import { OAuthButtons } from "@/components/auth/oauth-buttons";
+import { Input } from "@/components/UI/Input";
+import { Button } from "@/components/UI/Button";
+import { Separator } from "@/components/UI/Separator";
 import { signup, type SignupState } from "@/actions/auth/signup";
 
 const initialState: SignupState = {};
@@ -12,59 +18,57 @@ export default function SignupPage() {
 
   if (state.success) {
     return (
-      <main>
-        <h1>Check your email</h1>
-
-        <p>
-          We sent you a verification link. Please verify your email before
-          logging in.
-        </p>
-
-        <Link href="/auth/login">Go to login</Link>
-      </main>
+      <AuthLayout title="Check your email" subtitle="We sent you a verification link.">
+        <div className="surface-panel p-5 text-sm text-muted-foreground">
+          Verify your email before logging in. You can close this tab once you&apos;ve
+          confirmed.
+        </div>
+        <Link href="/auth/login" className="mt-6 block">
+          <Button variant="secondary" className="w-full">
+            Go to login
+          </Button>
+        </Link>
+      </AuthLayout>
     );
   }
 
   return (
-    <main>
-      <h1>Create your Orixa AI account</h1>
+    <AuthLayout title="Create your account" subtitle="Free to start — publish whenever you're ready.">
+      <form action={formAction} className="space-y-4">
+        <Input id="email" name="email" type="email" label="Email" autoComplete="email" required />
 
-      <form action={formAction}>
-        <div>
-          <label htmlFor="email">Email</label>
+        <Input
+          id="password"
+          name="password"
+          type="password"
+          label="Password"
+          autoComplete="new-password"
+          minLength={8}
+          hint="At least 8 characters."
+          required
+        />
 
-          <input
-            id="email"
-            name="email"
-            type="email"
-            autoComplete="email"
-            required
-          />
-        </div>
+        {state.error && <FormAlert>{state.error}</FormAlert>}
 
-        <div>
-          <label htmlFor="password">Password</label>
-
-          <input
-            id="password"
-            name="password"
-            type="password"
-            autoComplete="new-password"
-            minLength={8}
-            required
-          />
-        </div>
-
-        {state.error && <p role="alert">{state.error}</p>}
-
-        <button type="submit" disabled={pending}>
+        <Button type="submit" variant="gradient" className="w-full" loading={pending}>
           {pending ? "Creating account..." : "Create account"}
-        </button>
+        </Button>
       </form>
 
-      <p>
-        Already have an account? <Link href="/auth/login">Login</Link>
+      <div className="my-6 flex items-center gap-3">
+        <Separator className="flex-1" />
+        <span className="text-caption">OR</span>
+        <Separator className="flex-1" />
+      </div>
+
+      <OAuthButtons />
+
+      <p className="text-small mt-8 text-center">
+        Already have an account?{" "}
+        <Link href="/auth/login" className="font-medium text-primary hover:text-primary-hover">
+          Log in
+        </Link>
       </p>
-    </main>
+    </AuthLayout>
   );
 }
