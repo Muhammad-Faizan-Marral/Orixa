@@ -1,8 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-
-import { useFormState } from "react-dom";
+import { Button } from "@/components/UI/Button";
 
 interface SubmitButtonProps {
   children?: ReactNode;
@@ -11,19 +10,20 @@ interface SubmitButtonProps {
 }
 
 export function SubmitButton({
-  children = "Create Profile",
+  children = "Create profile",
   pending = false,
   disabled = false,
 }: SubmitButtonProps) {
-  const isPending = pending;
-
   return (
-    <button
+    <Button
       type="submit"
-      disabled={disabled || isPending}
-      className="rounded-md border px-4 py-2 disabled:cursor-not-allowed disabled:opacity-50"
+      variant="gradient"
+      size="lg"
+      className="w-full"
+      disabled={disabled || pending}
+      loading={pending}
     >
-      {isPending ? "Creating profile..." : children}
-    </button>
+      {pending ? "Creating profile..." : children}
+    </Button>
   );
 }

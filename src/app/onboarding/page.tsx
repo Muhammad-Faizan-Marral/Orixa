@@ -14,17 +14,21 @@ export default async function OnboardingPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-2xl px-4 py-8">
-      <div className="space-y-2">
-        <h1 className="text-2xl font-semibold">Create your profile</h1>
+    <main className="bg-aurora relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-12">
+      <div className="bg-grain pointer-events-none absolute inset-0 opacity-60" aria-hidden="true" />
 
-        <p className="text-sm text-gray-500">
-          Set up your Orixa AI profile. You can update these details later.
-        </p>
-      </div>
+      <div className="relative w-full max-w-xl">
+        <div className="mb-8 text-center">
+          <span className="text-caption text-accent">Step into Orixa</span>
+          <h1 className="text-h1 mt-3 text-balance">Let&rsquo;s set up your profile</h1>
+          <p className="text-body-lg mt-2 text-balance">
+            A few quick details — you can change all of this later.
+          </p>
+        </div>
 
-      <div className="mt-8">
-        <OnboardingForm />
+        <div className="surface-card shadow-elevated p-6 md:p-8">
+          <OnboardingForm />
+        </div>
       </div>
     </main>
   );
