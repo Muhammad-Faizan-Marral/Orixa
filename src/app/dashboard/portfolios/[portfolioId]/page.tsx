@@ -1,106 +1,65 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 
 import { requireProfile } from "@/lib/auth/require-profile";
-import { requireUser } from "@/lib/auth/require-user";
 import { portfolioService } from "@/services/portfolio/portfolio.service";
 
-import { PortfolioLifecycleActions } from "@/features/portfolio/components/portfolio-lifecycle-actions";
-import { PortfolioViewTracker } from "@/features/portfolio/components/portfolio-view-tracker";
+import { PortfolioEditor } from "@/features/portfolio/components/portfolio-editor";
+import { FileUpload } from "@/features/profile/components/file-upload";
 
-type PortfolioPageProps = {
-  params: Promise<{
-    portfolioId: string;
-  }>;
+type EditPortfolioPageProps = {
+  params: Promise<{ portfolioId: string }>;
 };
 
-export default async function PortfolioPage({ params }: PortfolioPageProps) {
-  await requireUser();
-
+export default async function EditPortfolioPage({ params }: EditPortfolioPageProps) {
   const profile = await requireProfile();
-
   const { portfolioId } = await params;
 
-  const result = await portfolioService.getPortfolioWithData(
-    portfolioId,
-    profile.id,
-  );
+  const result = await portfolioService.getPortfolioWithData(portfolioId, profile.id);
 
   if (!result) {
     notFound();
   }
 
-  const { portfolio, data } = result;
-
   return (
-    <main className="space-y-8">
+    <div className="space-y-6">
       <div>
-        <Link href="/dashboard/portfolios">← Portfolios</Link>
-      </div>
-
-      <header className="space-y-2">
-        <h1 className="text-2xl font-semibold">{portfolio.title}</h1>
-
-        <p className="text-sm text-gray-500">@{portfolio.slug}</p>
-
-        <p className="text-sm">
-          Status: <strong>{portfolio.status}</strong>
+        <Link
+          href={`/dashboard/portfolios/${portfolioId}`}
+          className="text-small mb-4 inline-flex items-center gap-1 hover:text-foreground"
+        >
+          ← {result.portfolio.title}
+        </Link>
+        <h1 className="text-h1">Edit portfolio</h1>
+        <p className="text-body mt-1 text-muted-foreground">
+          Manage your portfolio content, design and SEO.
         </p>
-
-        {portfolio.publishedAt && (
-          <p className="text-sm text-gray-500">
-            Published: {new Date(portfolio.publishedAt).toLocaleString()}
-          </p>
-        )}
-      </header>
-
-      <PortfolioLifecycleActions
-        portfolioId={portfolio.id}
-        status={portfolio.status as "draft" | "published" | "archived"}
-      />
-      <Link
-        href={`/dashboard/portfolios/${portfolio.id}/versions`}
-        className="rounded border px-4 py-2"
-      >
-        Version History
-      </Link>
-      <Link href={`/dashboard/portfolios/${portfolio.id}/analytics`}>
-        Analytics
-      </Link>
-      <div>
-        <Link href={`/dashboard/portfolios/${portfolio.id}/edit`}>
-          Edit Portfolio
-        </Link>
-
-        <Link href={`/dashboard/portfolios/${portfolio.id}/versions`}>
-          Versions
-        </Link>
-
-        <Link href={`/dashboard/portfolios/${portfolio.id}/analytics`}>
-          Analytics
-        </Link>
-
-        <Link href={`/dashboard/portfolios/${portfolio.id}/messages`}>
-          Messages
-        </Link>
-
-        <Link href={`/dashboard/portfolios/${portfolio.id}/ai-usage`}>
-          AI Usage
-        </Link>
       </div>
 
-      <section>
-        <h2 className="text-lg font-semibold">Portfolio Data</h2>
+      <PortfolioEditor portfolio={result.portfolio} data={result.data} />
 
-        {data ? (
-          <pre className="mt-4 overflow-auto rounded border p-4 text-sm">
-            {JSON.stringify(data, null, 2)}
-          </pre>
-        ) : (
-          <p>No portfolio data found.</p>
-        )}
+      <section className="surface-card space-y-4 p-6">
+        <div>
+          <h2 className="text-h3">Assets</h2>
+          <p className="text-small mt-1">
+            Upload images or your resume — paste the resulting URL into the relevant section above.
+          </p>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FileUpload
+            type="project-image"
+            portfolioId={portfolioId}
+            accept="image/jpeg,image/png,image/webp,image/gif"
+            label="Upload project image"
+          />
+          <FileUpload
+            type="resume"
+            portfolioId={portfolioId}
+            accept="application/pdf"
+            label="Upload resume"
+          />
+        </div>
       </section>
-      <PortfolioViewTracker portfolioId={portfolio.id} />
-    </main>
+    </div>
   );
 }
