@@ -10,7 +10,7 @@ type DashboardStore = {
 };
 
 export const useDashboardStore = create<DashboardStore>((set) => ({
-  sidebarOpen: true,
+  sidebarOpen: false,
   openSidebar: () => {
     set({ sidebarOpen: true });
   },

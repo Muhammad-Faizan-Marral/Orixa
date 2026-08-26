@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { Suspense, useActionState } from "react";
+import { useSearchParams } from "next/navigation";
 
 import { AuthLayout } from "@/components/auth/auth-layout";
 import { FormAlert } from "@/components/auth/form-alert";
@@ -14,12 +15,46 @@ import { login, type LoginState } from "@/actions/auth/login";
 const initialState: LoginState = {};
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
+  );
+}
+
+function LoginForm() {
   const [state, formAction, pending] = useActionState(login, initialState);
+  const searchParams = useSearchParams();
+  const next = searchParams.get("next");
+  const cameFromProtectedRoute = Boolean(next && next !== "/dashboard");
+  const resetSuccess = searchParams.get("reset") === "success";
 
   return (
-    <AuthLayout title="Welcome back" subtitle="Log in to keep building your portfolio.">
+    <AuthLayout
+      title="Welcome back"
+      subtitle="Log in to keep building your portfolio."
+    >
       <form action={formAction} className="space-y-4">
-        <Input id="email" name="email" type="email" label="Email" autoComplete="email" required />
+        <input type="hidden" name="next" value={next ?? ""} />
+
+        {resetSuccess && !state.error && (
+          <FormAlert variant="success">
+            Password updated. Log in with your new password.
+          </FormAlert>
+        )}
+
+        {cameFromProtectedRoute && !resetSuccess && !state.error && (
+          <FormAlert variant="success">Please log in to continue.</FormAlert>
+        )}
+
+        <Input
+          id="email"
+          name="email"
+          type="email"
+          label="Email"
+          autoComplete="email"
+          required
+        />
 
         <Input
           id="password"
@@ -32,7 +67,12 @@ export default function LoginPage() {
 
         {state.error && <FormAlert>{state.error}</FormAlert>}
 
-        <Button type="submit" variant="gradient" className="w-full" loading={pending}>
+        <Button
+          type="submit"
+          variant="gradient"
+          className="w-full"
+          loading={pending}
+        >
           {pending ? "Logging in..." : "Log in"}
         </Button>
       </form>
@@ -46,14 +86,20 @@ export default function LoginPage() {
       <OAuthButtons />
 
       <div className="mt-6 text-center">
-        <Link href="/auth/forgot-password" className="text-small hover:text-foreground">
+        <Link
+          href="/auth/forgot-password"
+          className="text-small hover:text-foreground"
+        >
           Forgot password?
         </Link>
       </div>
 
       <p className="text-small mt-8 text-center">
         Don&apos;t have an account?{" "}
-        <Link href="/auth/signup" className="font-medium text-primary hover:text-primary-hover">
+        <Link
+          href="/auth/signup"
+          className="font-medium text-primary hover:text-primary-hover"
+        >
           Create account
         </Link>
       </p>

@@ -43,6 +43,12 @@ export async function resetPassword(
   });
 
   if (error) {
+    if (error.code === "session_not_found" || error.message.toLowerCase().includes("session missing")) {
+      return {
+        error: "This reset link has expired. Please request a new one.",
+      };
+    }
+
     return {
       error: error.message,
     };

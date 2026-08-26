@@ -10,35 +10,24 @@ export async function GET(request: Request) {
 
   if (!code) {
     return NextResponse.redirect(
-      new URL(
-        "/auth/login?error=missing_code",
-        requestUrl.origin,
-      ),
+      new URL("/auth/login?error=missing_code", requestUrl.origin),
     );
   }
 
   const supabase = await createClient();
 
-  const { error } =
-    await supabase.auth.exchangeCodeForSession(code);
+  const { error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error) {
     return NextResponse.redirect(
-      new URL(
-        "/auth/login?error=verification_failed",
-        requestUrl.origin,
-      ),
+      new URL("/auth/login?error=verification_failed", requestUrl.origin),
     );
   }
 
   const safeNext =
-    next &&
-    next.startsWith("/") &&
-    !next.startsWith("//")
+    next && next.startsWith("/") && !next.startsWith("//")
       ? next
       : "/dashboard";
 
-  return NextResponse.redirect(
-    new URL(safeNext, requestUrl.origin),
-  );
+  return NextResponse.redirect(new URL(safeNext, requestUrl.origin));
 }
