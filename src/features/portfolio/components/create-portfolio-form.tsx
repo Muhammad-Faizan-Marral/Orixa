@@ -12,6 +12,14 @@ import {
   type CreatePortfolioInput,
 } from "@/validations/portfolio.schema";
 
+import { Input } from "@/components/UI/Input";
+import { Textarea } from "@/components/UI/Textarea";
+import { Button } from "@/components/UI/Button";
+
+const THEMES = [
+  { value: "minimal", label: "Minimal", description: "Clean, editorial, content-first." },
+];
+
 export function CreatePortfolioForm() {
   const [serverError, setServerError] = useState("");
 
@@ -19,6 +27,7 @@ export function CreatePortfolioForm() {
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<CreatePortfolioInput>({
     resolver: zodResolver(createPortfolioSchema),
@@ -32,6 +41,7 @@ export function CreatePortfolioForm() {
   });
 
   const slug = watch("slug");
+  const theme = watch("theme");
 
   const { available, checking } = usePortfolioSlugCheck(slug);
 
@@ -39,8 +49,7 @@ export function CreatePortfolioForm() {
     setServerError("");
 
     if (available === false) {
-      setServerError("Please choose another portfolio slug.");
-
+      setServerError("Please choose another portfolio URL.");
       return;
     }
 
@@ -52,76 +61,109 @@ export function CreatePortfolioForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <div>
-        <label htmlFor="title">Portfolio Title</label>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      <Input
+        id="title"
+        label="Portfolio title"
+        {...register("title")}
+        placeholder="My Developer Portfolio"
+        error={errors.title?.message}
+      />
 
-        <input
-          id="title"
-          {...register("title")}
-          placeholder="My Developer Portfolio"
+      <div>
+        <Input
+          id="slug"
+          label="Portfolio URL"
+          {...register("slug")}
+          placeholder="developer"
+          error={errors.slug?.message}
+          onChange={(e) =>
+            setValue("slug", e.target.value.toLowerCase().replace(/\s+/g, "-"), {
+              shouldValidate: true,
+            })
+          }
         />
-
-        {errors.title && <p>{errors.title.message}</p>}
+        <div className="mt-1.5 text-small min-h-[1.1rem]">
+          {slug && (
+            <p className="text-subtle-foreground">
+              orixa.ai/your-username/<span className="text-foreground">{slug}</span>
+            </p>
+          )}
+          {checking && <p className="mt-1">Checking availability...</p>}
+          {!checking && available === true && (
+            <p className="mt-1 flex items-center gap-1.5 text-success">
+              <span className="h-1.5 w-1.5 rounded-full bg-success" />
+              Available
+            </p>
+          )}
+          {!checking && available === false && (
+            <p className="mt-1 flex items-center gap-1.5 text-error">
+              <span className="h-1.5 w-1.5 rounded-full bg-error" />
+              Already taken
+            </p>
+          )}
+        </div>
       </div>
 
-      <div>
-        <label htmlFor="slug">Portfolio Slug</label>
+      <Input
+        id="headline"
+        label="Headline"
+        {...register("headline")}
+        placeholder="Full Stack Developer"
+        error={errors.headline?.message}
+      />
 
-        <input id="slug" {...register("slug")} placeholder="developer" />
+      <Textarea
+        id="about"
+        label="About"
+        {...register("about")}
+        placeholder="Tell people about this portfolio..."
+        rows={4}
+        error={errors.about?.message}
+      />
 
-        {checking && <p>Checking slug...</p>}
-
-        {!checking && available === true && <p>Slug is available.</p>}
-
-        {!checking && available === false && <p>Slug is already taken.</p>}
-
-        {errors.slug && <p>{errors.slug.message}</p>}
+      <div className="space-y-2">
+        <p className="text-label">Theme</p>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {THEMES.map((t) => (
+            <button
+              key={t.value}
+              type="button"
+              onClick={() => setValue("theme", t.value, { shouldValidate: true })}
+              className={
+                "surface-panel space-y-1 p-3 text-left transition-colors " +
+                (theme === t.value
+                  ? "border-primary/40 bg-gradient-ion-soft"
+                  : "hover:border-border-strong")
+              }
+            >
+              <p className="text-label">{t.label}</p>
+              <p className="text-small">{t.description}</p>
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div>
-        <label htmlFor="headline">Headline</label>
+      {serverError && (
+        <p role="alert" className="rounded-lg border border-error/20 bg-error/10 px-3 py-2.5 text-sm text-error">
+          {serverError}
+        </p>
+      )}
 
-        <input
-          id="headline"
-          {...register("headline")}
-          placeholder="Full Stack Developer"
-        />
-
-        {errors.headline && <p>{errors.headline.message}</p>}
-      </div>
-
-      <div>
-        <label htmlFor="about">About</label>
-
-        <textarea
-          id="about"
-          {...register("about")}
-          placeholder="Tell people about this portfolio..."
-        />
-
-        {errors.about && <p>{errors.about.message}</p>}
-      </div>
-
-      <div>
-        <label htmlFor="theme">Theme</label>
-
-        <select id="theme" {...register("theme")}>
-          <option value="minimal">Minimal</option>
-        </select>
-      </div>
-
-      {serverError && <p>{serverError}</p>}
-
-      <div>
-        <button
+      <div className="flex items-center gap-3 pt-2">
+        <Button
           type="submit"
+          variant="gradient"
+          loading={isSubmitting}
           disabled={isSubmitting || checking || available === false}
         >
-          {isSubmitting ? "Creating..." : "Create Portfolio"}
-        </button>
-
-        <Link href="/dashboard/portfolios">Cancel</Link>
+          {isSubmitting ? "Creating..." : "Create portfolio"}
+        </Button>
+        <Link href="/dashboard/portfolios">
+          <Button type="button" variant="ghost">
+            Cancel
+          </Button>
+        </Link>
       </div>
     </form>
   );

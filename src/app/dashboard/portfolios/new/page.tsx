@@ -1,16 +1,25 @@
+import Link from "next/link";
 import { CreatePortfolioForm } from "@/features/portfolio/components/create-portfolio-form";
-
 
 export default function NewPortfolioPage() {
   return (
-    <main>
-      <h1>Create Portfolio</h1>
+    <div className="mx-auto max-w-xl">
+      <Link href="/dashboard/portfolios" className="text-small mb-6 inline-flex items-center gap-1 hover:text-foreground">
+        ← Back to portfolios
+      </Link>
 
-      <p>
-        Create a new portfolio for your profile.
-      </p>
+      <div className="mb-8">
+        <p className="text-caption text-accent">New portfolio</p>
+        <h1 className="text-h1 mt-2">Create your portfolio</h1>
+        <p className="text-body mt-2 text-muted-foreground">
+          Give it a title and a URL — you can add projects, experience and the
+          rest once it&rsquo;s created.
+        </p>
+      </div>
 
-      <CreatePortfolioForm />
-    </main>
+      <div className="surface-card p-6 md:p-8">
+        <CreatePortfolioForm />
+      </div>
+    </div>
   );
 }

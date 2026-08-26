@@ -1,52 +1,55 @@
 import Link from "next/link";
 
-import { requireUser } from "@/lib/auth/require-user";
 import { requireProfile } from "@/lib/auth/require-profile";
 import { portfolioService } from "@/services/portfolio/portfolio.service";
 
-export default async function PortfoliosPage() {
-  const user = await requireUser();
-  const profile = await requireProfile();
+import { Button } from "@/components/UI/Button";
+import { PortfolioCard } from "@/components/dashboard/portfolio-card";
 
+export default async function PortfoliosPage() {
+  const profile = await requireProfile();
   const portfolios = await portfolioService.getUserPortfolios(profile.id);
 
+  const sorted = [...portfolios].sort(
+    (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+  );
+
   return (
-    <main>
-      <header>
+    <div className="space-y-8">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p>Dashboard</p>
-          <h1>Portfolios</h1>
+          <p className="text-caption text-accent">Dashboard</p>
+          <h1 className="text-h1 mt-2">Portfolios</h1>
+          <p className="text-body mt-1 text-muted-foreground">
+            {portfolios.length} {portfolios.length === 1 ? "portfolio" : "portfolios"} in your profile
+          </p>
         </div>
 
-        <Link href="/dashboard/portfolios/new">Create Portfolio</Link>
+        <Link href="/dashboard/portfolios/new">
+          <Button variant="gradient">+ Create portfolio</Button>
+        </Link>
       </header>
 
       {portfolios.length === 0 ? (
-        <section>
-          <h2>No portfolios found</h2>
-
-          <p>Create your first portfolio.</p>
-
-          <Link href="/dashboard/portfolios/new">Create Portfolio</Link>
-        </section>
+        <div className="border-gradient-ion flex flex-col items-center gap-3 rounded-2xl px-6 py-16 text-center">
+          <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-ion-soft text-xl">
+            ✦
+          </span>
+          <h3 className="text-h3">No portfolios yet</h3>
+          <p className="text-body max-w-sm text-muted-foreground">
+            Create your first portfolio to get a shareable orixa.ai URL.
+          </p>
+          <Link href="/dashboard/portfolios/new" className="mt-2">
+            <Button variant="gradient">Create your first portfolio</Button>
+          </Link>
+        </div>
       ) : (
-        <section>
-          {portfolios.map((portfolio) => (
-            <div key={portfolio.id} className="space-y-2 rounded border p-4">
-              <Link
-                href={`/dashboard/portfolios/${portfolio.id}`}
-                className="font-medium"
-              >
-                {portfolio.title}
-              </Link>
-
-              <p className="text-sm text-gray-500">@{portfolio.slug}</p>
-
-              <p className="text-sm">Status: {portfolio.status}</p>
-            </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {sorted.map((portfolio) => (
+            <PortfolioCard key={portfolio.id} portfolio={portfolio} />
           ))}
-        </section>
+        </div>
       )}
-    </main>
+    </div>
   );
 }
