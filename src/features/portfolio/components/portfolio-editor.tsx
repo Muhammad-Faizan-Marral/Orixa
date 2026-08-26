@@ -14,6 +14,7 @@ import { Button } from "@/components/UI/Button";
 import { EditorNav, type EditorSectionId } from "./editor-nav";
 import { RepeaterCard, AddButton } from "./repeater-card";
 import { OptionCardGroup } from "./option-card-group";
+import { AiAssistButton } from "./ai-assist-button";
 
 type Project = {
   id: string;
@@ -314,6 +315,13 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
               onChange={(e) => setHeadline(e.target.value)}
               placeholder="Full Stack Developer"
             />
+            <AiAssistButton
+              portfolioId={portfolio.id}
+              field="headline"
+              currentText={headline}
+              onAccept={setHeadline}
+              label="Suggest a headline"
+            />
 
             <Textarea
               label="About"
@@ -321,6 +329,13 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
               onChange={(e) => setAbout(e.target.value)}
               rows={8}
               placeholder="Tell people about yourself..."
+            />
+            <AiAssistButton
+              portfolioId={portfolio.id}
+              field="about"
+              currentText={about}
+              onAccept={setAbout}
+              label="Improve this section"
             />
           </section>
         )}
@@ -355,6 +370,13 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
                     onChange={(e) => updateProject(project.id, "description", e.target.value)}
                     rows={4}
                     placeholder="Project description"
+                  />
+                  <AiAssistButton
+                    portfolioId={portfolio.id}
+                    field="project_description"
+                    currentText={project.description ?? ""}
+                    context={project.title}
+                    onAccept={(text) => updateProject(project.id, "description", text)}
                   />
                   <Input
                     value={project.url ?? ""}
@@ -437,6 +459,13 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
                     onChange={(e) => updateExperience(item.id, "description", e.target.value)}
                     rows={4}
                     placeholder="Describe your work..."
+                  />
+                  <AiAssistButton
+                    portfolioId={portfolio.id}
+                    field="experience_description"
+                    currentText={item.description ?? ""}
+                    context={`${item.role} at ${item.company}`}
+                    onAccept={(text) => updateExperience(item.id, "description", text)}
                   />
                 </RepeaterCard>
               ))}
