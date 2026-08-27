@@ -10,6 +10,10 @@ import {
   type UpdateProfileInput,
 } from "@/validations/profile.schema";
 
+import { Input } from "@/components/UI/Input";
+import { Textarea } from "@/components/UI/Textarea";
+import { Button } from "@/components/UI/Button";
+
 type ProfileEditFormProps = {
   profile: {
     username: string;
@@ -21,23 +25,18 @@ type ProfileEditFormProps = {
   };
 };
 
-export function ProfileEditForm({
-  profile,
-}: ProfileEditFormProps) {
-  const [serverMessage, setServerMessage] =
-    useState("");
+export function ProfileEditForm({ profile }: ProfileEditFormProps) {
+  const [status, setStatus] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
   const {
     register,
     handleSubmit,
-    formState: {
-      errors,
-      isSubmitting,
-    },
+    formState: { errors, isSubmitting, isDirty },
   } = useForm<UpdateProfileInput>({
-    resolver: zodResolver(
-      updateProfileSchema,
-    ),
+    resolver: zodResolver(updateProfileSchema),
     defaultValues: {
       username: profile.username,
       fullName: profile.fullName ?? "",
@@ -48,112 +47,95 @@ export function ProfileEditForm({
     },
   });
 
-  const onSubmit = async (
-    data: UpdateProfileInput,
-  ) => {
-    setServerMessage("");
+  const onSubmit = async (data: UpdateProfileInput) => {
+    setStatus(null);
 
-    const result =
-      await updateProfile(data);
+    const result = await updateProfile(data);
 
     if (!result.success) {
-      setServerMessage(result.message);
+      setStatus({ type: "error", message: result.message });
       return;
     }
 
-    setServerMessage(
-      "Profile updated successfully.",
-    );
+    setStatus({ type: "success", message: "Profile updated successfully." });
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
       <div>
-        <label htmlFor="username">
-          Username
-        </label>
+        <p className="text-caption text-accent">Identity</p>
+        <h2 className="text-h3 mt-1">Basic information</h2>
+        <p className="text-small mt-1">
+          This appears on your public profile and every portfolio you publish.
+        </p>
+      </div>
 
-        <input
-          id="username"
+      <div className="grid gap-5 sm:grid-cols-2">
+        <Input
+          label="Username"
+          hint="orixa.ai/username"
           {...register("username")}
+          error={errors.username?.message}
         />
 
-        {errors.username && (
-          <p>{errors.username.message}</p>
-        )}
-      </div>
-
-      <div>
-        <label htmlFor="fullName">
-          Full Name
-        </label>
-
-        <input
-          id="fullName"
+        <Input
+          label="Full name"
+          placeholder="John Doe"
           {...register("fullName")}
+          error={errors.fullName?.message}
         />
       </div>
 
-      <div>
-        <label htmlFor="headline">
-          Headline
-        </label>
+      <Input
+        label="Headline"
+        placeholder="Full Stack Developer"
+        {...register("headline")}
+        error={errors.headline?.message}
+      />
 
-        <input
-          id="headline"
-          {...register("headline")}
-        />
-      </div>
+      <Textarea
+        label="Bio"
+        placeholder="I build scalable web applications..."
+        rows={4}
+        {...register("bio")}
+        error={errors.bio?.message}
+      />
 
-      <div>
-        <label htmlFor="bio">
-          Bio
-        </label>
-
-        <textarea
-          id="bio"
-          {...register("bio")}
-        />
-      </div>
-
-      <div>
-        <label htmlFor="location">
-          Location
-        </label>
-
-        <input
-          id="location"
+      <div className="grid gap-5 sm:grid-cols-2">
+        <Input
+          label="Location"
+          placeholder="Lahore, Pakistan"
           {...register("location")}
+          error={errors.location?.message}
         />
-      </div>
 
-      <div>
-        <label htmlFor="avatarUrl">
-          Avatar URL
-        </label>
-
-        <input
-          id="avatarUrl"
+        <Input
+          label="Avatar URL"
+          placeholder="https://..."
           {...register("avatarUrl")}
+          error={errors.avatarUrl?.message}
         />
-
-        {errors.avatarUrl && (
-          <p>{errors.avatarUrl.message}</p>
-        )}
       </div>
 
-      {serverMessage && (
-        <p>{serverMessage}</p>
-      )}
+      <div className="flex items-center justify-between gap-4 border-t border-border pt-5">
+        <div className="min-h-[1.25rem]">
+          {status && (
+            <p
+              className={
+                "text-small animate-fade-in " +
+                (status.type === "success" ? "text-success" : "text-error")
+              }
+              role={status.type === "error" ? "alert" : undefined}
+            >
+              {status.message}
+            </p>
+          )}
+        </div>
 
-      <button
-        type="submit"
-        disabled={isSubmitting}
-      >
-        {isSubmitting
-          ? "Saving..."
-          : "Save Changes"}
-      </button>
+        <Button type="submit" variant="primary" loading={isSubmitting} disabled={!isDirty && !isSubmitting}>
+          {isSubmitting ? "Saving..." : "Save changes"}
+        </Button>
+      </div>
     </form>
   );
 }

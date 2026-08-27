@@ -30,7 +30,9 @@ export function PortfolioCard({ portfolio }: { portfolio: Portfolio }) {
             {portfolio.status}
           </Badge>
         </div>
-        <p className="text-small mt-1 text-primary/80">orixa.ai/{portfolio.slug}</p>
+        <p className="text-small mt-1 text-primary/80">
+          orixa.ai/{portfolio.slug}
+        </p>
       </div>
 
       <div className="mt-6 flex items-center justify-between">

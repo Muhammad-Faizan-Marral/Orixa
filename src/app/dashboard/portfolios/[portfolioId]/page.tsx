@@ -24,7 +24,10 @@ const STATUS_VARIANT = {
 const NAV_LINKS = (portfolioId: string) => [
   { href: `/dashboard/portfolios/${portfolioId}/edit`, label: "Edit" },
   { href: `/dashboard/portfolios/${portfolioId}/versions`, label: "Versions" },
-  { href: `/dashboard/portfolios/${portfolioId}/analytics`, label: "Analytics" },
+  {
+    href: `/dashboard/portfolios/${portfolioId}/analytics`,
+    label: "Analytics",
+  },
   { href: `/dashboard/portfolios/${portfolioId}/ai-usage`, label: "AI Usage" },
 ];
 
@@ -33,11 +36,17 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
   const profile = await requireProfile();
   const { portfolioId } = await params;
 
-  const result = await portfolioService.getPortfolioWithData(portfolioId, profile.id);
+  const result = await portfolioService.getPortfolioWithData(
+    portfolioId,
+    profile.id,
+  );
   if (!result) notFound();
 
   const { portfolio, data } = result;
-  const analytics = await portfolioViewService.getAnalytics(portfolioId, profile.id);
+  const analytics = await portfolioViewService.getAnalytics(
+    portfolioId,
+    profile.id,
+  );
 
   const status = portfolio.status as "draft" | "published" | "archived";
 
@@ -59,15 +68,21 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
                 {status}
               </Badge>
             </div>
-            <p className="text-small mt-1 text-primary/80">orixa.ai/{profile.username}/{portfolio.slug}</p>
+            <p className="text-small mt-1 text-primary/80">
+              orixa.ai/{profile.username}/{portfolio.slug}
+            </p>
             {portfolio.publishedAt && (
               <p className="text-small mt-1">
-                Last published {new Date(portfolio.publishedAt).toLocaleString()}
+                Last published{" "}
+                {new Date(portfolio.publishedAt).toLocaleString()}
               </p>
             )}
           </div>
 
-          <PortfolioLifecycleActions portfolioId={portfolio.id} status={status} />
+          <PortfolioLifecycleActions
+            portfolioId={portfolio.id}
+            status={status}
+          />
         </div>
       </div>
 

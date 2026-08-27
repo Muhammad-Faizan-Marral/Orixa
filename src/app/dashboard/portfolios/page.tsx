@@ -10,9 +10,7 @@ export default async function PortfoliosPage() {
   const profile = await requireProfile();
   const portfolios = await portfolioService.getUserPortfolios(profile.id);
 
-  const sorted = [...portfolios].sort(
-    (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
-  );
+  const sorted = [...portfolios].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
 
   return (
     <div className="space-y-8">

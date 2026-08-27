@@ -24,11 +24,14 @@ export async function generateMetadata({
 
   return {
     title: `${name} · Orixa AI`,
-    description: profile.headline || profile.bio || `${name}'s portfolio on Orixa AI.`,
+    description:
+      profile.headline || profile.bio || `${name}'s portfolio on Orixa AI.`,
   };
 }
 
-export default async function PublicProfilePage({ params }: PublicProfilePageProps) {
+export default async function PublicProfilePage({
+  params,
+}: PublicProfilePageProps) {
   const { username } = await params;
 
   const profile = await profileService.getProfileByUsername(username);
@@ -39,12 +42,19 @@ export default async function PublicProfilePage({ params }: PublicProfilePagePro
     socialLinkService.getSocialLinks(profile.id),
   ]);
 
-  const publishedPortfolios = portfolios.filter((p) => p.status === "published");
-  const initials = (profile.fullName ?? profile.username).slice(0, 1).toUpperCase();
+  const publishedPortfolios = portfolios.filter(
+    (p) => p.status === "published",
+  );
+  const initials = (profile.fullName ?? profile.username)
+    .slice(0, 1)
+    .toUpperCase();
 
   return (
     <main className="bg-aurora relative min-h-screen overflow-hidden px-4 py-20">
-      <div className="bg-grain pointer-events-none absolute inset-0 opacity-50" aria-hidden="true" />
+      <div
+        className="bg-grain pointer-events-none absolute inset-0 opacity-50"
+        aria-hidden="true"
+      />
 
       <div className="relative mx-auto max-w-2xl">
         <div className="text-center">
@@ -61,11 +71,17 @@ export default async function PublicProfilePage({ params }: PublicProfilePagePro
             </span>
           )}
 
-          <h1 className="text-h1 mt-6">{profile.fullName || profile.username}</h1>
+          <h1 className="text-h1 mt-6">
+            {profile.fullName || profile.username}
+          </h1>
           {profile.headline && (
-            <p className="text-body-lg text-gradient-ion mt-2 inline-block">{profile.headline}</p>
+            <p className="text-body-lg text-gradient-ion mt-2 inline-block">
+              {profile.headline}
+            </p>
           )}
-          {profile.location && <p className="text-small mt-1">{profile.location}</p>}
+          {profile.location && (
+            <p className="text-small mt-1">{profile.location}</p>
+          )}
 
           {profile.bio && (
             <p className="text-body mx-auto mt-5 max-w-lg text-balance text-muted-foreground">
@@ -80,7 +96,9 @@ export default async function PublicProfilePage({ params }: PublicProfilePagePro
 
         <div className="mt-14">
           {publishedPortfolios.length === 0 ? (
-            <p className="text-small text-center">No published portfolios yet.</p>
+            <p className="text-small text-center">
+              No published portfolios yet.
+            </p>
           ) : (
             <>
               <p className="text-caption mb-4 text-center">Portfolios</p>

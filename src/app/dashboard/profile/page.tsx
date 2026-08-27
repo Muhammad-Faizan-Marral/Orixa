@@ -14,7 +14,7 @@ export default async function ProfilePage() {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-      <div className="space-y-6">
+      <div className="animate-fade-in-up space-y-6">
         <header>
           <p className="text-caption text-accent">Profile studio</p>
           <h1 className="text-h1 mt-2">Your identity</h1>
@@ -32,21 +32,27 @@ export default async function ProfilePage() {
         </section>
       </div>
 
-      <aside className="space-y-6">
-        <div className="surface-card p-6 text-center">
+      <aside
+        className="animate-fade-in-up space-y-6"
+        style={{ animationDelay: "80ms" }}
+      >
+        <div className="surface-card bg-aurora p-6 text-center">
           <p className="text-label mb-4">Profile picture</p>
           {profile.avatarUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={profile.avatarUrl}
               alt={profile.fullName ?? profile.username}
-              className="mx-auto h-20 w-20 rounded-full object-cover"
+              className="border-border shadow-elevated mx-auto h-20 w-20 rounded-full border object-cover"
             />
           ) : (
-            <span className="bg-gradient-ion mx-auto flex h-20 w-20 items-center justify-center rounded-full text-2xl font-semibold text-white">
+            <span className="bg-gradient-ion shadow-glow-primary mx-auto flex h-20 w-20 items-center justify-center rounded-full text-2xl font-semibold text-white">
               {(profile.fullName ?? profile.username).slice(0, 1).toUpperCase()}
             </span>
           )}
+          <p className="text-small mt-3">
+            {profile.fullName || profile.username}
+          </p>
           <div className="mt-5 text-left">
             <FileUpload
               type="avatar"
@@ -57,13 +63,14 @@ export default async function ProfilePage() {
         </div>
 
         <div className="space-y-2">
+          <p className="text-caption px-1 text-subtle-foreground">Public URL</p>
           <CopyUrlButton url={`orixa.ai/${profile.username}`} />
           <Link
             href={`/${profile.username}`}
             target="_blank"
-            className="surface-card block p-4 text-center text-sm text-primary hover:bg-surface-2"
+            className="surface-card flex items-center justify-center gap-1.5 p-4 text-center text-sm text-primary transition-colors hover:bg-surface-2"
           >
-            View public profile →
+            View public profile <span aria-hidden>→</span>
           </Link>
         </div>
       </aside>

@@ -90,12 +90,32 @@ const SECTION_LABELS: Record<string, string> = {
   showContact: "Contact",
 };
 
-const ACCENT_PRESETS = ["#6c5cff", "#22d3ee", "#34d399", "#fbbf24", "#fb7185", "#f472b6", "#0e0f13"];
+const ACCENT_PRESETS = [
+  "#6c5cff",
+  "#22d3ee",
+  "#34d399",
+  "#fbbf24",
+  "#fb7185",
+  "#f472b6",
+  "#0e0f13",
+];
 
 const THEME_OPTIONS = [
-  { value: "minimal", label: "Minimal", description: "Clean, editorial, content-first." },
-  { value: "modern", label: "Modern", description: "Bolder type, more visual rhythm." },
-  { value: "professional", label: "Professional", description: "Structured, resume-forward." },
+  {
+    value: "minimal",
+    label: "Minimal",
+    description: "Clean, editorial, content-first.",
+  },
+  {
+    value: "modern",
+    label: "Modern",
+    description: "Bolder type, more visual rhythm.",
+  },
+  {
+    value: "professional",
+    label: "Professional",
+    description: "Structured, resume-forward.",
+  },
 ];
 
 const LAYOUT_OPTIONS = [
@@ -139,17 +159,27 @@ const CARD_STYLE_OPTIONS = [
 ];
 
 export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
-  const [activeSection, setActiveSection] = useState<EditorSectionId>("overview");
+  const [activeSection, setActiveSection] =
+    useState<EditorSectionId>("overview");
   const [isPending, startTransition] = useTransition();
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [message, setMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
 
   const [headline, setHeadline] = useState(data?.headline ?? "");
   const [about, setAbout] = useState(data?.about ?? "");
   const [projects, setProjects] = useState<Project[]>(data?.projects ?? []);
-  const [experience, setExperience] = useState<Experience[]>(data?.experience ?? []);
+  const [experience, setExperience] = useState<Experience[]>(
+    data?.experience ?? [],
+  );
   const [skills, setSkills] = useState<Skill[]>(data?.skills ?? []);
-  const [education, setEducation] = useState<Education[]>(data?.education ?? []);
-  const [certificates, setCertificates] = useState<Certificate[]>(data?.certificates ?? []);
+  const [education, setEducation] = useState<Education[]>(
+    data?.education ?? [],
+  );
+  const [certificates, setCertificates] = useState<Certificate[]>(
+    data?.certificates ?? [],
+  );
   const [resumeUrl, setResumeUrl] = useState(data?.resumeUrl ?? "");
   const [theme, setTheme] = useState(data?.theme ?? "minimal");
   const [animations, setAnimations] = useState(data?.animations ?? true);
@@ -182,30 +212,56 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
     noIndex: (data?.seo?.noIndex as boolean) ?? false,
   });
 
-  function updateProject(id: string, field: keyof Project, value: string | string[]) {
+  function updateProject(
+    id: string,
+    field: keyof Project,
+    value: string | string[],
+  ) {
     setProjects((current) =>
-      current.map((p) => (p.id === id ? { ...p, [field]: value } : p))
+      current.map((p) => (p.id === id ? { ...p, [field]: value } : p)),
     );
   }
   function addProject() {
     setProjects((current) => [
       ...current,
-      { id: createId(), title: "", description: "", url: "", technologies: [], imageUrl: "" },
+      {
+        id: createId(),
+        title: "",
+        description: "",
+        url: "",
+        technologies: [],
+        imageUrl: "",
+      },
     ]);
   }
   function removeProject(id: string) {
     setProjects((current) => current.filter((p) => p.id !== id));
   }
 
-  function updateExperience(id: string, field: keyof Experience, value: string | boolean) {
+  function updateExperience(
+    id: string,
+    field: keyof Experience,
+    value: string | boolean,
+  ) {
     setExperience((current) =>
-      current.map((item) => (item.id === id ? { ...item, [field]: value } : item))
+      current.map((item) =>
+        item.id === id ? { ...item, [field]: value } : item,
+      ),
     );
   }
   function addExperience() {
     setExperience((current) => [
       ...current,
-      { id: createId(), company: "", role: "", location: "", startDate: "", endDate: "", current: false, description: "" },
+      {
+        id: createId(),
+        company: "",
+        role: "",
+        location: "",
+        startDate: "",
+        endDate: "",
+        current: false,
+        description: "",
+      },
     ]);
   }
   function removeExperience(id: string) {
@@ -214,11 +270,14 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
 
   function updateSkill(id: string, field: keyof Skill, value: string) {
     setSkills((current) =>
-      current.map((s) => (s.id === id ? { ...s, [field]: value } : s))
+      current.map((s) => (s.id === id ? { ...s, [field]: value } : s)),
     );
   }
   function addSkill() {
-    setSkills((current) => [...current, { id: createId(), name: "", level: "" }]);
+    setSkills((current) => [
+      ...current,
+      { id: createId(), name: "", level: "" },
+    ]);
   }
   function removeSkill(id: string) {
     setSkills((current) => current.filter((s) => s.id !== id));
@@ -226,28 +285,50 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
 
   function updateEducation(id: string, field: keyof Education, value: string) {
     setEducation((current) =>
-      current.map((item) => (item.id === id ? { ...item, [field]: value } : item))
+      current.map((item) =>
+        item.id === id ? { ...item, [field]: value } : item,
+      ),
     );
   }
   function addEducation() {
     setEducation((current) => [
       ...current,
-      { id: createId(), institution: "", degree: "", field: "", startDate: "", endDate: "", description: "" },
+      {
+        id: createId(),
+        institution: "",
+        degree: "",
+        field: "",
+        startDate: "",
+        endDate: "",
+        description: "",
+      },
     ]);
   }
   function removeEducation(id: string) {
     setEducation((current) => current.filter((item) => item.id !== id));
   }
 
-  function updateCertificate(id: string, field: keyof Certificate, value: string) {
+  function updateCertificate(
+    id: string,
+    field: keyof Certificate,
+    value: string,
+  ) {
     setCertificates((current) =>
-      current.map((item) => (item.id === id ? { ...item, [field]: value } : item))
+      current.map((item) =>
+        item.id === id ? { ...item, [field]: value } : item,
+      ),
     );
   }
   function addCertificate() {
     setCertificates((current) => [
       ...current,
-      { id: createId(), name: "", issuer: "", issueDate: "", credentialUrl: "" },
+      {
+        id: createId(),
+        name: "",
+        issuer: "",
+        issueDate: "",
+        credentialUrl: "",
+      },
     ]);
   }
   function removeCertificate(id: string) {
@@ -255,12 +336,21 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
   }
 
   function toggleComponent(component: keyof typeof componentSelection) {
-    setComponentSelection((current) => ({ ...current, [component]: !current[component] }));
+    setComponentSelection((current) => ({
+      ...current,
+      [component]: !current[component],
+    }));
   }
-  function updateDesignPreference(field: keyof typeof designPreferences, value: string) {
+  function updateDesignPreference(
+    field: keyof typeof designPreferences,
+    value: string,
+  ) {
     setDesignPreferences((current) => ({ ...current, [field]: value }));
   }
-  function updateSEO(field: keyof typeof seo, value: string | boolean | string[]) {
+  function updateSEO(
+    field: keyof typeof seo,
+    value: string | boolean | string[],
+  ) {
     setSeo((current) => ({ ...current, [field]: value }));
   }
 
@@ -287,7 +377,10 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
       });
 
       if (!result.success) {
-        setMessage({ type: "error", text: result.message ?? "Unable to save portfolio." });
+        setMessage({
+          type: "error",
+          text: result.message ?? "Unable to save portfolio.",
+        });
         return;
       }
 
@@ -296,7 +389,10 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-6 lg:grid-cols-[220px_1fr]">
+    <form
+      onSubmit={handleSubmit}
+      className="grid gap-6 lg:grid-cols-[220px_1fr]"
+    >
       <div className="lg:sticky lg:top-24 lg:self-start">
         <EditorNav active={activeSection} onChange={setActiveSection} />
       </div>
@@ -306,7 +402,9 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
           <section className="surface-card space-y-5 p-6">
             <div>
               <h2 className="text-h3">Overview</h2>
-              <p className="text-small mt-1">Main information shown on your portfolio.</p>
+              <p className="text-small mt-1">
+                Main information shown on your portfolio.
+              </p>
             </div>
 
             <Input
@@ -362,12 +460,16 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
                 >
                   <Input
                     value={project.title}
-                    onChange={(e) => updateProject(project.id, "title", e.target.value)}
+                    onChange={(e) =>
+                      updateProject(project.id, "title", e.target.value)
+                    }
                     placeholder="Project title"
                   />
                   <Textarea
                     value={project.description ?? ""}
-                    onChange={(e) => updateProject(project.id, "description", e.target.value)}
+                    onChange={(e) =>
+                      updateProject(project.id, "description", e.target.value)
+                    }
                     rows={4}
                     placeholder="Project description"
                   />
@@ -376,11 +478,15 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
                     field="project_description"
                     currentText={project.description ?? ""}
                     context={project.title}
-                    onAccept={(text) => updateProject(project.id, "description", text)}
+                    onAccept={(text) =>
+                      updateProject(project.id, "description", text)
+                    }
                   />
                   <Input
                     value={project.url ?? ""}
-                    onChange={(e) => updateProject(project.id, "url", e.target.value)}
+                    onChange={(e) =>
+                      updateProject(project.id, "url", e.target.value)
+                    }
                     placeholder="Project URL"
                   />
                   <Input
@@ -389,14 +495,19 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
                       updateProject(
                         project.id,
                         "technologies",
-                        e.target.value.split(",").map((t) => t.trim()).filter(Boolean)
+                        e.target.value
+                          .split(",")
+                          .map((t) => t.trim())
+                          .filter(Boolean),
                       )
                     }
                     placeholder="React, Next.js, PostgreSQL"
                   />
                   <Input
                     value={project.imageUrl ?? ""}
-                    onChange={(e) => updateProject(project.id, "imageUrl", e.target.value)}
+                    onChange={(e) =>
+                      updateProject(project.id, "imageUrl", e.target.value)
+                    }
                     placeholder="Project image URL"
                   />
                 </RepeaterCard>
@@ -411,7 +522,9 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
           <section className="surface-card space-y-4 p-6">
             <div>
               <h2 className="text-h3">Experience</h2>
-              <p className="text-small mt-1">Add your professional experience.</p>
+              <p className="text-small mt-1">
+                Add your professional experience.
+              </p>
             </div>
 
             <div className="space-y-4">
@@ -423,40 +536,54 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
                 >
                   <Input
                     value={item.role}
-                    onChange={(e) => updateExperience(item.id, "role", e.target.value)}
+                    onChange={(e) =>
+                      updateExperience(item.id, "role", e.target.value)
+                    }
                     placeholder="Software Engineer"
                   />
                   <Input
                     value={item.company}
-                    onChange={(e) => updateExperience(item.id, "company", e.target.value)}
+                    onChange={(e) =>
+                      updateExperience(item.id, "company", e.target.value)
+                    }
                     placeholder="Company"
                   />
                   <Input
                     value={item.location ?? ""}
-                    onChange={(e) => updateExperience(item.id, "location", e.target.value)}
+                    onChange={(e) =>
+                      updateExperience(item.id, "location", e.target.value)
+                    }
                     placeholder="Location"
                   />
                   <div className="grid gap-4 sm:grid-cols-2">
                     <Input
                       type="date"
                       value={item.startDate ?? ""}
-                      onChange={(e) => updateExperience(item.id, "startDate", e.target.value)}
+                      onChange={(e) =>
+                        updateExperience(item.id, "startDate", e.target.value)
+                      }
                     />
                     <Input
                       type="date"
                       value={item.endDate ?? ""}
                       disabled={item.current}
-                      onChange={(e) => updateExperience(item.id, "endDate", e.target.value)}
+                      onChange={(e) =>
+                        updateExperience(item.id, "endDate", e.target.value)
+                      }
                     />
                   </div>
                   <Switch
                     checked={item.current ?? false}
-                    onChange={(value) => updateExperience(item.id, "current", value)}
+                    onChange={(value) =>
+                      updateExperience(item.id, "current", value)
+                    }
                     label="Currently working here"
                   />
                   <Textarea
                     value={item.description ?? ""}
-                    onChange={(e) => updateExperience(item.id, "description", e.target.value)}
+                    onChange={(e) =>
+                      updateExperience(item.id, "description", e.target.value)
+                    }
                     rows={4}
                     placeholder="Describe your work..."
                   />
@@ -465,7 +592,9 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
                     field="experience_description"
                     currentText={item.description ?? ""}
                     context={`${item.role} at ${item.company}`}
-                    onAccept={(text) => updateExperience(item.id, "description", text)}
+                    onAccept={(text) =>
+                      updateExperience(item.id, "description", text)
+                    }
                   />
                 </RepeaterCard>
               ))}
@@ -481,20 +610,32 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
 
             <div className="space-y-3">
               {skills.map((skill, index) => (
-                <div key={skill.id} className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <div
+                  key={skill.id}
+                  className="flex flex-col gap-3 sm:flex-row sm:items-center"
+                >
                   <Input
                     value={skill.name}
-                    onChange={(e) => updateSkill(skill.id, "name", e.target.value)}
+                    onChange={(e) =>
+                      updateSkill(skill.id, "name", e.target.value)
+                    }
                     placeholder={`Skill ${index + 1}`}
                     className="flex-1"
                   />
                   <Input
                     value={skill.level ?? ""}
-                    onChange={(e) => updateSkill(skill.id, "level", e.target.value)}
+                    onChange={(e) =>
+                      updateSkill(skill.id, "level", e.target.value)
+                    }
                     placeholder="Expert / Intermediate"
                     className="flex-1"
                   />
-                  <Button type="button" variant="ghost" size="sm" onClick={() => removeSkill(skill.id)}>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeSkill(skill.id)}
+                  >
                     Remove
                   </Button>
                 </div>
@@ -518,18 +659,24 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
                 >
                   <Input
                     value={item.institution}
-                    onChange={(e) => updateEducation(item.id, "institution", e.target.value)}
+                    onChange={(e) =>
+                      updateEducation(item.id, "institution", e.target.value)
+                    }
                     placeholder="Institution"
                   />
                   <div className="grid gap-4 sm:grid-cols-2">
                     <Input
                       value={item.degree ?? ""}
-                      onChange={(e) => updateEducation(item.id, "degree", e.target.value)}
+                      onChange={(e) =>
+                        updateEducation(item.id, "degree", e.target.value)
+                      }
                       placeholder="Degree"
                     />
                     <Input
                       value={item.field ?? ""}
-                      onChange={(e) => updateEducation(item.id, "field", e.target.value)}
+                      onChange={(e) =>
+                        updateEducation(item.id, "field", e.target.value)
+                      }
                       placeholder="Field of study"
                     />
                   </div>
@@ -537,17 +684,23 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
                     <Input
                       type="date"
                       value={item.startDate ?? ""}
-                      onChange={(e) => updateEducation(item.id, "startDate", e.target.value)}
+                      onChange={(e) =>
+                        updateEducation(item.id, "startDate", e.target.value)
+                      }
                     />
                     <Input
                       type="date"
                       value={item.endDate ?? ""}
-                      onChange={(e) => updateEducation(item.id, "endDate", e.target.value)}
+                      onChange={(e) =>
+                        updateEducation(item.id, "endDate", e.target.value)
+                      }
                     />
                   </div>
                   <Textarea
                     value={item.description ?? ""}
-                    onChange={(e) => updateEducation(item.id, "description", e.target.value)}
+                    onChange={(e) =>
+                      updateEducation(item.id, "description", e.target.value)
+                    }
                     rows={3}
                     placeholder="Additional information"
                   />
@@ -572,22 +725,34 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
                 >
                   <Input
                     value={item.name}
-                    onChange={(e) => updateCertificate(item.id, "name", e.target.value)}
+                    onChange={(e) =>
+                      updateCertificate(item.id, "name", e.target.value)
+                    }
                     placeholder="Certificate name"
                   />
                   <Input
                     value={item.issuer ?? ""}
-                    onChange={(e) => updateCertificate(item.id, "issuer", e.target.value)}
+                    onChange={(e) =>
+                      updateCertificate(item.id, "issuer", e.target.value)
+                    }
                     placeholder="Issuing organization"
                   />
                   <Input
                     type="date"
                     value={item.issueDate ?? ""}
-                    onChange={(e) => updateCertificate(item.id, "issueDate", e.target.value)}
+                    onChange={(e) =>
+                      updateCertificate(item.id, "issueDate", e.target.value)
+                    }
                   />
                   <Input
                     value={item.credentialUrl ?? ""}
-                    onChange={(e) => updateCertificate(item.id, "credentialUrl", e.target.value)}
+                    onChange={(e) =>
+                      updateCertificate(
+                        item.id,
+                        "credentialUrl",
+                        e.target.value,
+                      )
+                    }
                     placeholder="Credential URL"
                   />
                 </RepeaterCard>
@@ -602,7 +767,8 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
           <section className="surface-card space-y-4 p-6">
             <h2 className="text-h3">Resume</h2>
             <p className="text-small">
-              Upload your resume from the Assets panel below — the URL fills in automatically.
+              Upload your resume from the Assets panel below — the URL fills in
+              automatically.
             </p>
             <Input
               value={resumeUrl}
@@ -617,7 +783,9 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
             <section className="surface-card space-y-5 p-6">
               <div>
                 <h2 className="text-h3">Portfolio sections</h2>
-                <p className="text-small mt-1">Choose what appears on your public portfolio.</p>
+                <p className="text-small mt-1">
+                  Choose what appears on your public portfolio.
+                </p>
               </div>
 
               <div className="grid gap-2 sm:grid-cols-2">
@@ -625,7 +793,9 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
                   <div key={key} className="surface-panel px-4 py-3">
                     <Switch
                       checked={value}
-                      onChange={() => toggleComponent(key as keyof typeof componentSelection)}
+                      onChange={() =>
+                        toggleComponent(key as keyof typeof componentSelection)
+                      }
                       label={SECTION_LABELS[key] ?? key}
                     />
                   </div>
@@ -636,7 +806,9 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
             <section className="surface-card space-y-5 p-6">
               <div>
                 <h2 className="text-h3">Theme</h2>
-                <p className="text-small mt-1">The overall visual style of your published portfolio.</p>
+                <p className="text-small mt-1">
+                  The overall visual style of your published portfolio.
+                </p>
               </div>
 
               <OptionCardGroup
@@ -658,7 +830,9 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
             <section className="surface-card space-y-6 p-6">
               <div>
                 <h2 className="text-h3">Design preferences</h2>
-                <p className="text-small mt-1">Customize the visual style of your portfolio.</p>
+                <p className="text-small mt-1">
+                  Customize the visual style of your portfolio.
+                </p>
               </div>
 
               <div className="space-y-2">
@@ -685,7 +859,9 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
                     ),
                   }))}
                   value={designPreferences.borderRadius}
-                  onChange={(value) => updateDesignPreference("borderRadius", value)}
+                  onChange={(value) =>
+                    updateDesignPreference("borderRadius", value)
+                  }
                 />
               </div>
 
@@ -700,14 +876,18 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
                         className={cn(
                           "h-full w-full rounded-md",
                           option.value === "flat" && "bg-surface-3",
-                          option.value === "bordered" && "border border-border-strong bg-transparent",
-                          option.value === "elevated" && "shadow-elevated bg-surface-2"
+                          option.value === "bordered" &&
+                            "border border-border-strong bg-transparent",
+                          option.value === "elevated" &&
+                            "shadow-elevated bg-surface-2",
                         )}
                       />
                     ),
                   }))}
                   value={designPreferences.cardStyle}
-                  onChange={(value) => updateDesignPreference("cardStyle", value)}
+                  onChange={(value) =>
+                    updateDesignPreference("cardStyle", value)
+                  }
                 />
               </div>
 
@@ -715,7 +895,9 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
                 <p className="text-label">Font</p>
                 <Select
                   value={designPreferences.fontFamily}
-                  onChange={(e) => updateDesignPreference("fontFamily", e.target.value)}
+                  onChange={(e) =>
+                    updateDesignPreference("fontFamily", e.target.value)
+                  }
                 >
                   <option value="Inter">Inter</option>
                   <option value="Geist">Geist</option>
@@ -723,7 +905,10 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
                   <option value="Poppins">Poppins</option>
                   <option value="Playfair Display">Playfair Display</option>
                 </Select>
-                <p className="text-small" style={{ fontFamily: designPreferences.fontFamily }}>
+                <p
+                  className="text-small"
+                  style={{ fontFamily: designPreferences.fontFamily }}
+                >
                   The quick brown fox jumps over the lazy dog.
                 </p>
               </div>
@@ -735,13 +920,15 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
                     <button
                       key={color}
                       type="button"
-                      onClick={() => updateDesignPreference("accentColor", color)}
+                      onClick={() =>
+                        updateDesignPreference("accentColor", color)
+                      }
                       aria-label={color}
                       className={cn(
                         "h-8 w-8 rounded-full border-2 transition-transform hover:scale-105",
                         designPreferences.accentColor === color
                           ? "border-foreground"
-                          : "border-transparent"
+                          : "border-transparent",
                       )}
                       style={{ backgroundColor: color }}
                     />
@@ -749,13 +936,17 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
                   <input
                     type="color"
                     value={designPreferences.accentColor}
-                    onChange={(e) => updateDesignPreference("accentColor", e.target.value)}
+                    onChange={(e) =>
+                      updateDesignPreference("accentColor", e.target.value)
+                    }
                     className="h-8 w-8 rounded-full border border-border bg-transparent"
                   />
                 </div>
                 <Input
                   value={designPreferences.accentColor}
-                  onChange={(e) => updateDesignPreference("accentColor", e.target.value)}
+                  onChange={(e) =>
+                    updateDesignPreference("accentColor", e.target.value)
+                  }
                   placeholder="#6c5cff"
                 />
               </div>
@@ -768,7 +959,8 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
             <div>
               <h2 className="text-h3">SEO</h2>
               <p className="text-small mt-1">
-                Configure how your public portfolio appears in search and social previews.
+                Configure how your public portfolio appears in search and social
+                previews.
               </p>
             </div>
 
@@ -795,7 +987,13 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
               label="Keywords"
               value={seo.keywords.join(", ")}
               onChange={(e) =>
-                updateSEO("keywords", e.target.value.split(",").map((k) => k.trim()).filter(Boolean))
+                updateSEO(
+                  "keywords",
+                  e.target.value
+                    .split(",")
+                    .map((k) => k.trim())
+                    .filter(Boolean),
+                )
               }
               placeholder="Next.js, React, TypeScript, Full Stack Developer"
               hint="Separate keywords with commas."
@@ -827,11 +1025,22 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
 
         <div className="sticky bottom-4 flex items-center gap-4 rounded-xl border border-border bg-surface/90 p-4 shadow-elevated backdrop-blur-xl">
           {message && (
-            <p className={message.type === "success" ? "text-small text-success" : "text-small text-error"}>
+            <p
+              className={
+                message.type === "success"
+                  ? "text-small text-success"
+                  : "text-small text-error"
+              }
+            >
               {message.text}
             </p>
           )}
-          <Button type="submit" variant="gradient" loading={isPending} className="ml-auto">
+          <Button
+            type="submit"
+            variant="gradient"
+            loading={isPending}
+            className="ml-auto"
+          >
             {isPending ? "Saving..." : "Save changes"}
           </Button>
         </div>
