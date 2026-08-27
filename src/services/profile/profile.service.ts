@@ -19,6 +19,10 @@ export class ProfileService {
     return profileRepository.findByUserId(userId);
   }
 
+  async getProfileByUsername(username: string) {
+    return profileRepository.findByUsername(username);
+  }
+
   async profileExists(userId: string) {
     return profileRepository.exists(userId);
   }

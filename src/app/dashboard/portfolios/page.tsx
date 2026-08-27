@@ -11,7 +11,7 @@ export default async function PortfoliosPage() {
   const portfolios = await portfolioService.getUserPortfolios(profile.id);
 
   const sorted = [...portfolios].sort(
-    (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+    (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
   );
 
   return (
@@ -21,7 +21,9 @@ export default async function PortfoliosPage() {
           <p className="text-caption text-accent">Dashboard</p>
           <h1 className="text-h1 mt-2">Portfolios</h1>
           <p className="text-body mt-1 text-muted-foreground">
-            {portfolios.length} {portfolios.length === 1 ? "portfolio" : "portfolios"} in your profile
+            {portfolios.length}{" "}
+            {portfolios.length === 1 ? "portfolio" : "portfolios"} in your
+            profile
           </p>
         </div>
 

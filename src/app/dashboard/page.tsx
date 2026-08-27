@@ -31,16 +31,22 @@ export default async function DashboardPage() {
   const portfolios = await portfolioService.getUserPortfolios(profile.id);
 
   const publishedCount = portfolios.filter((p) => p.status === "published").length;
+  
   const completion = computeProfileCompletion(profile);
 
   const totalViews = (
     await Promise.all(
-      portfolios.map((p) => portfolioViewService.getAnalytics(p.id, profile.id))
+      portfolios.map((p) =>
+        portfolioViewService.getAnalytics(p.id, profile.id),
+      ),
     )
   ).reduce((sum, analytics) => sum + (analytics?.total ?? 0), 0);
 
   const recentPortfolios = [...portfolios]
-    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+    .sort(
+      (a, b) =>
+        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+    )
     .slice(0, 3);
 
   return (
@@ -48,7 +54,9 @@ export default async function DashboardPage() {
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-caption text-accent">Welcome back</p>
-          <h1 className="text-h1 mt-2">{profile.fullName || profile.username}</h1>
+          <h1 className="text-h1 mt-2">
+            {profile.fullName || profile.username}
+          </h1>
         </div>
 
         <Link href="/dashboard/portfolios/new">
@@ -63,7 +71,11 @@ export default async function DashboardPage() {
         <StatCard
           label="Profile completion"
           value={`${completion}%`}
-          hint={completion < 100 ? "Add more details to your profile" : "Looking sharp"}
+          hint={
+            completion < 100
+              ? "Add more details to your profile"
+              : "Looking sharp"
+          }
         />
       </section>
 
@@ -71,7 +83,10 @@ export default async function DashboardPage() {
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-h3">Your portfolios</h2>
           {portfolios.length > 0 && (
-            <Link href="/dashboard/portfolios" className="text-small hover:text-foreground">
+            <Link
+              href="/dashboard/portfolios"
+              className="text-small hover:text-foreground"
+            >
               View all →
             </Link>
           )}
@@ -82,7 +97,9 @@ export default async function DashboardPage() {
             <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-ion-soft text-xl">
               ✦
             </span>
-            <h3 className="text-h3">You haven&rsquo;t created your first portfolio yet</h3>
+            <h3 className="text-h3">
+              You haven&rsquo;t created your first portfolio yet
+            </h3>
             <p className="text-body max-w-sm text-muted-foreground">
               Add your projects, experience and skills — Orixa turns it into a
               published website in minutes.

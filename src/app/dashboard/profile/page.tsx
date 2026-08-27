@@ -1,41 +1,72 @@
+import Link from "next/link";
+
 import { requireProfile } from "@/lib/auth/require-profile";
-import { requireUser } from "@/lib/auth/require-user";
-import { ProfileEditForm } from "@/features/profile/components/profile-edit-form";
 import { socialLinkService } from "@/services/profile/social-link.service";
+
+import { ProfileEditForm } from "@/features/profile/components/profile-edit-form";
 import { SocialLinksManager } from "@/features/profile/components/social-links-manager";
 import { FileUpload } from "@/features/profile/components/file-upload";
-import { uploadService } from "@/services/profile/upload.service";
-import { UploadList } from "@/features/profile/components/upload-list";
+import { CopyUrlButton } from "@/features/profile/components/copy-url-button";
 
 export default async function ProfilePage() {
-  await requireUser();
-
   const profile = await requireProfile();
   const socialLinks = await socialLinkService.getSocialLinks(profile.id);
-  const uploads = await uploadService.getUploads(profile.id);
 
   return (
-    <main>
-      <h1>Profile</h1>
-      <p>Manage your public Orixa identity.</p>
+    <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+      <div className="space-y-6">
+        <header>
+          <p className="text-caption text-accent">Profile studio</p>
+          <h1 className="text-h1 mt-2">Your identity</h1>
+          <p className="text-body mt-1 text-muted-foreground">
+            This information appears across all of your portfolios.
+          </p>
+        </header>
 
-      <ProfileEditForm profile={profile} />
-      <SocialLinksManager initialLinks={socialLinks} />
+        <section className="surface-card p-6">
+          <ProfileEditForm profile={profile} />
+        </section>
 
-      <section>
-        <h2>Profile Picture</h2>
+        <section className="surface-card p-6">
+          <SocialLinksManager initialLinks={socialLinks} />
+        </section>
+      </div>
 
-        <FileUpload
-          type="avatar"
-          accept="image/jpeg,image/png,image/webp,image/gif"
-          label="Upload Profile Picture"
-        />
-      </section>
+      <aside className="space-y-6">
+        <div className="surface-card p-6 text-center">
+          <p className="text-label mb-4">Profile picture</p>
+          {profile.avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={profile.avatarUrl}
+              alt={profile.fullName ?? profile.username}
+              className="mx-auto h-20 w-20 rounded-full object-cover"
+            />
+          ) : (
+            <span className="bg-gradient-ion mx-auto flex h-20 w-20 items-center justify-center rounded-full text-2xl font-semibold text-white">
+              {(profile.fullName ?? profile.username).slice(0, 1).toUpperCase()}
+            </span>
+          )}
+          <div className="mt-5 text-left">
+            <FileUpload
+              type="avatar"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              label="Upload profile picture"
+            />
+          </div>
+        </div>
 
-      <section>
-        <h2>Your Uploads</h2>
-        <UploadList uploads={uploads} />
-      </section>
-    </main>
+        <div className="space-y-2">
+          <CopyUrlButton url={`orixa.ai/${profile.username}`} />
+          <Link
+            href={`/${profile.username}`}
+            target="_blank"
+            className="surface-card block p-4 text-center text-sm text-primary hover:bg-surface-2"
+          >
+            View public profile →
+          </Link>
+        </div>
+      </aside>
+    </div>
   );
 }
