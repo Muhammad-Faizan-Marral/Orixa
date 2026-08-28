@@ -6,22 +6,8 @@
 
 export const LANGUAGE_OPTIONS = [
   { value: "en", label: "English" },
-  { value: "ur", label: "Urdu" },
   { value: "es", label: "Spanish" },
-  { value: "fr", label: "French" },
-  { value: "de", label: "German" },
-  { value: "pt", label: "Portuguese" },
-  { value: "it", label: "Italian" },
-  { value: "nl", label: "Dutch" },
-  { value: "ru", label: "Russian" },
-  { value: "tr", label: "Turkish" },
-  { value: "ar", label: "Arabic" },
-  { value: "hi", label: "Hindi" },
-  { value: "zh", label: "Chinese" },
-  { value: "ja", label: "Japanese" },
-  { value: "ko", label: "Korean" },
 ] as const;
-
 export const TIMEZONE_OPTIONS: { group: string; zones: string[] }[] = [
   {
     group: "UTC",

@@ -3,14 +3,15 @@
 import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-
+import { useTheme } from "@/components/theme-provider";
+import type { ThemeMode } from "@/lib/theme";
 import { updateSettings } from "@/actions/profile/update-settings";
 import {
   updateSettingsSchema,
   type UpdateSettingsInput,
 } from "@/validations/settings.schema";
 
-import { LANGUAGE_OPTIONS, TIMEZONE_OPTIONS } from "@/constants/locale";
+import { LANGUAGE_OPTIONS, TIMEZONE_OPTIONS } from "../../../constants/locale";
 
 import { Select } from "@/components/UI/Select";
 import { Switch } from "@/components/UI/Switch";
@@ -97,7 +98,7 @@ export function SettingsForm({ initialSettings }: Props) {
     type: "success" | "error";
     message: string;
   } | null>(null);
-
+  const { setTheme } = useTheme();
   const {
     register,
     handleSubmit,
@@ -127,7 +128,9 @@ export function SettingsForm({ initialSettings }: Props) {
     }
 
     setStatus({ type: "success", message: "Settings saved." });
-
+    if (data.themeMode) {
+      setTheme(data.themeMode);
+    }
     reset(data);
   };
 
@@ -163,7 +166,10 @@ export function SettingsForm({ initialSettings }: Props) {
                     type="button"
                     role="radio"
                     aria-checked={active}
-                    onClick={() => field.onChange(option.value)}
+                    onClick={() => {
+                      field.onChange(option.value);
+                      setTheme(option.value); // instant preview
+                    }}
                     className={cn(
                       "relative flex flex-col items-start gap-3 rounded-lg border p-4 text-left transition-all duration-200",
                       active

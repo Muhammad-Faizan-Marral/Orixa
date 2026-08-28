@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const updateSettingsSchema = z.object({
-  language: z.string().trim().min(2).max(10),
+  language: z.enum(["en", "es"]),
 
   timezone: z.string().trim().max(100).nullable().optional(),
 
