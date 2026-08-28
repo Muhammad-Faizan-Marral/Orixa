@@ -6,6 +6,7 @@ import { requireUser } from "@/lib/auth/require-user";
 import { portfolioService } from "@/services/portfolio/portfolio.service";
 import { RestoreVersionButton } from "@/features/portfolio/components/restore-version-button";
 import { Badge } from "@/components/UI/Badge";
+import { FormatDate } from "@/components/format-date";
 
 type VersionPreviewPageProps = {
   params: Promise<{ portfolioId: string; version: string }>;
@@ -63,7 +64,7 @@ export default async function VersionPreviewPage({ params }: VersionPreviewPageP
           </Badge>
         </div>
         <p className="text-body mt-1 text-muted-foreground">
-          Created {new Date(versionData.createdAt).toLocaleString()}
+           Created <FormatDate value={versionData.createdAt} />
         </p>
       </div>
 

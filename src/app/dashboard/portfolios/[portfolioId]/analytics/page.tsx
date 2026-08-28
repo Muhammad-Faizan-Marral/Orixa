@@ -5,6 +5,7 @@ import { requireProfile } from "@/lib/auth/require-profile";
 import { requireUser } from "@/lib/auth/require-user";
 
 import { portfolioViewService } from "@/services/portfolio/portfolio-view.service";
+import { FormatDate } from "@/components/format-date";
 
 type Props = {
   params: Promise<{
@@ -106,7 +107,7 @@ export default async function AnalyticsPage({ params }: Props) {
 
                 <p>{view.referrer || "Direct"}</p>
 
-                <time>{new Date(view.visitedAt).toLocaleString()}</time>
+                <time><FormatDate value={view.visitedAt} /></time>
               </article>
             ))}
           </div>

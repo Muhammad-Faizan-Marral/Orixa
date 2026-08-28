@@ -8,13 +8,8 @@ import { settingsService } from "@/services/profile/settings.service";
 import { SettingsForm } from "@/features/profile/components/settings-form";
 import { LogoutButton } from "@/components/dashboard/logout-button";
 import { CopyUrlButton } from "@/features/profile/components/copy-url-button";
+import { FormatDate } from "@/components/format-date";
 
-function formatMemberSince(isoDate: string) {
-  return new Date(isoDate).toLocaleDateString("en-US", {
-    month: "long",
-    year: "numeric",
-  });
-}
 
 export default async function SettingsPage() {
   const user = await requireUser();
@@ -72,7 +67,7 @@ export default async function SettingsPage() {
                 Member since
               </p>
               <p className="text-small mt-0.5 text-foreground">
-                {formatMemberSince(profile.createdAt)}
+               <FormatDate value={profile.createdAt} variant="monthYear" />
               </p>
             </div>
           </div>

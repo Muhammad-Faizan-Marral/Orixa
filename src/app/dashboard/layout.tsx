@@ -3,6 +3,7 @@ import { ThemeSync } from "@/components/theme-sync";
 import { LocaleSync } from "@/components/locale-sync";
 import { requireProfile } from "@/lib/auth/require-profile";
 import { settingsService } from "@/services/profile/settings.service";
+import { TimezoneSync } from "@/components/timezone-sync";
 
 export default async function DashboardLayout({
   children,
@@ -14,6 +15,7 @@ export default async function DashboardLayout({
     <>
       <ThemeSync themeMode={settings.themeMode} />
       <LocaleSync language={settings.language} />
+      <TimezoneSync timezone={settings.timezone} />
       <DashboardShell
         profile={{
           username: profile.username,

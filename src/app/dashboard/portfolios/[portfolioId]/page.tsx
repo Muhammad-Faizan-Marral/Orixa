@@ -10,6 +10,7 @@ import { PortfolioLifecycleActions } from "@/features/portfolio/components/portf
 import { PortfolioViewTracker } from "@/features/portfolio/components/portfolio-view-tracker";
 import { Badge } from "@/components/UI/Badge";
 import { StatCard } from "@/components/dashboard/stat-card";
+import { FormatDate } from "@/components/format-date";
 
 type PortfolioPageProps = {
   params: Promise<{ portfolioId: string }>;
@@ -73,8 +74,7 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
             </p>
             {portfolio.publishedAt && (
               <p className="text-small mt-1">
-                Last published{" "}
-                {new Date(portfolio.publishedAt).toLocaleString()}
+                Last published <FormatDate value={portfolio.publishedAt} />
               </p>
             )}
           </div>

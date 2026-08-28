@@ -7,6 +7,7 @@ import { requireUser } from "@/lib/auth/require-user";
 import { portfolioService } from "@/services/portfolio/portfolio.service";
 import { RestoreVersionButton } from "@/features/portfolio/components/restore-version-button";
 import { Badge } from "@/components/UI/Badge";
+import { FormatDate } from "@/components/format-date";
 
 type VersionsPageProps = {
   params: Promise<{ portfolioId: string }>;
@@ -76,7 +77,7 @@ export default async function VersionsPage({ params }: VersionsPageProps) {
                       )}
                     </div>
                     <p className="text-small mt-1">
-                      {new Date(version.createdAt).toLocaleString()}
+                     <FormatDate value={version.createdAt} />
                     </p>
                   </div>
 

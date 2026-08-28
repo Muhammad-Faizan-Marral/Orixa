@@ -5,6 +5,7 @@ import { requireProfile } from "@/lib/auth/require-profile";
 import { requireUser } from "@/lib/auth/require-user";
 
 import { aiRequestService } from "@/services/portfolio/ai-request.service";
+import { FormatDate } from "@/components/format-date";
 
 type Props = {
   params: Promise<{
@@ -90,7 +91,7 @@ export default async function AiUsagePage({ params }: Props) {
 
                 <p>Cost: {request.estimatedCost}</p>
 
-                <time>{new Date(request.createdAt).toLocaleString()}</time>
+                <time><FormatDate value={request.createdAt} /></time>
               </article>
             ))}
           </div>

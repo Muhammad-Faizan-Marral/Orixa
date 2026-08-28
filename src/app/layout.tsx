@@ -4,9 +4,8 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { LocaleProvider } from "@/components/locale-provider";
 import { THEME_INIT_SCRIPT } from "@/lib/theme";
 import { LOCALE_INIT_SCRIPT } from "@/i18n/locale";
+import { TimezoneProvider } from "@/components/timezone-provider";
 import "./globals.css";
-
-
 
 const inter = Inter({
   variable: "--font-inter",
@@ -62,7 +61,9 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col bg-background text-foreground font-sans">
         <ThemeProvider>
-          <LocaleProvider>{children}</LocaleProvider>
+          <LocaleProvider>
+            <TimezoneProvider>{children}</TimezoneProvider>
+          </LocaleProvider>
         </ThemeProvider>
       </body>
     </html>
