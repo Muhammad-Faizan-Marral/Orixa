@@ -1,19 +1,19 @@
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { ThemeSync } from "@/components/theme-sync";
+import { LocaleSync } from "@/components/locale-sync";
 import { requireProfile } from "@/lib/auth/require-profile";
 import { settingsService } from "@/services/profile/settings.service";
 
 export default async function DashboardLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   const profile = await requireProfile();
   const settings = await settingsService.getSettings(profile.id);
 
   return (
     <>
       <ThemeSync themeMode={settings.themeMode} />
+      <LocaleSync language={settings.language} />
       <DashboardShell
         profile={{
           username: profile.username,

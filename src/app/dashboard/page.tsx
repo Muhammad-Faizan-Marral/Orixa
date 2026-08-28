@@ -30,8 +30,10 @@ export default async function DashboardPage() {
   const profile = await requireProfile();
   const portfolios = await portfolioService.getUserPortfolios(profile.id);
 
-  const publishedCount = portfolios.filter((p) => p.status === "published").length;
-  
+  const publishedCount = portfolios.filter(
+    (p) => p.status === "published",
+  ).length;
+
   const completion = computeProfileCompletion(profile);
 
   const totalViews = (

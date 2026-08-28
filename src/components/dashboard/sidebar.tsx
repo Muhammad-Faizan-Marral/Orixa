@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-
+import { useLocale } from "@/components/locale-provider";
 import { LogoutButton } from "@/components/dashboard/logout-button";
 import { useDashboardStore } from "@/stores/dashboard.store";
 import { cn } from "@/lib/utils";
@@ -14,42 +14,76 @@ type Profile = {
   avatarUrl: string | null;
 };
 
-const NAV_ITEMS = [
-  { href: "/dashboard", label: "Overview", icon: "home", exact: true },
-  { href: "/dashboard/portfolios", label: "Portfolios", icon: "layers" },
-  { href: "/dashboard/profile", label: "Profile", icon: "user" },
-  { href: "/dashboard/settings", label: "Settings", icon: "settings" },
-];
+
 
 function NavIcon({ name }: { name: string }) {
   const common = "h-[18px] w-[18px]";
   switch (name) {
     case "home":
       return (
-        <svg className={common} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
-          <path d="M4 11.5 12 4l8 7.5" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M6 10v9a1 1 0 0 0 1 1h3v-6h4v6h3a1 1 0 0 0 1-1v-9" strokeLinecap="round" strokeLinejoin="round" />
+        <svg
+          className={common}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.7"
+        >
+          <path
+            d="M4 11.5 12 4l8 7.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M6 10v9a1 1 0 0 0 1 1h3v-6h4v6h3a1 1 0 0 0 1-1v-9"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </svg>
       );
     case "layers":
       return (
-        <svg className={common} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+        <svg
+          className={common}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.7"
+        >
           <path d="M12 3l9 5-9 5-9-5 9-5Z" strokeLinejoin="round" />
           <path d="M3 13l9 5 9-5" strokeLinejoin="round" />
         </svg>
       );
     case "user":
       return (
-        <svg className={common} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+        <svg
+          className={common}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.7"
+        >
           <circle cx="12" cy="8" r="3.5" />
-          <path d="M4.5 20c1.6-3.5 4.5-5.3 7.5-5.3s5.9 1.8 7.5 5.3" strokeLinecap="round" />
+          <path
+            d="M4.5 20c1.6-3.5 4.5-5.3 7.5-5.3s5.9 1.8 7.5 5.3"
+            strokeLinecap="round"
+          />
         </svg>
       );
     case "settings":
       return (
-        <svg className={common} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+        <svg
+          className={common}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.7"
+        >
           <circle cx="12" cy="12" r="3" />
-          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" strokeLinecap="round" strokeLinejoin="round" />
+          <path
+            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </svg>
       );
     default:
@@ -61,9 +95,16 @@ export function Sidebar({ profile }: { profile: Profile }) {
   const pathname = usePathname();
   const sidebarOpen = useDashboardStore((state) => state.sidebarOpen);
   const closeSidebar = useDashboardStore((state) => state.closeSidebar);
-
-  const initials = (profile.fullName ?? profile.username).slice(0, 1).toUpperCase();
-
+  const { t } = useLocale();
+  const initials = (profile.fullName ?? profile.username)
+    .slice(0, 1)
+    .toUpperCase();
+const NAV_ITEMS = [
+  { href: "/dashboard", label: t.nav.overview, icon: "home", exact: true },
+  { href: "/dashboard/portfolios", label: t.nav.portfolios, icon: "layers" },
+  { href: "/dashboard/profile", label: t.nav.profile, icon: "user" },
+  { href: "/dashboard/settings", label: t.nav.settings, icon: "settings" },
+];
   return (
     <>
       {sidebarOpen && (
@@ -77,7 +118,7 @@ export function Sidebar({ profile }: { profile: Profile }) {
       <aside
         className={cn(
           "fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-border bg-surface transition-transform duration-300 ease-out lg:translate-x-0",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          sidebarOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
         <div className="flex items-center justify-between px-5 py-5">
@@ -115,7 +156,7 @@ export function Sidebar({ profile }: { profile: Profile }) {
                   "relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors",
                   active
                     ? "text-foreground"
-                    : "text-muted-foreground hover:bg-surface-2 hover:text-foreground"
+                    : "text-muted-foreground hover:bg-surface-2 hover:text-foreground",
                 )}
               >
                 {active && (
@@ -155,7 +196,9 @@ export function Sidebar({ profile }: { profile: Profile }) {
               <p className="truncate text-sm font-medium text-foreground">
                 {profile.fullName || profile.username}
               </p>
-              <p className="truncate text-xs text-subtle-foreground">@{profile.username}</p>
+              <p className="truncate text-xs text-subtle-foreground">
+                @{profile.username}
+              </p>
             </div>
           </Link>
           <div className="mt-1">

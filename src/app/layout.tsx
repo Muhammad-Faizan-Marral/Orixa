@@ -1,9 +1,12 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Bricolage_Grotesque, JetBrains_Mono } from "next/font/google";
+import { ThemeProvider } from "@/components/theme-provider";
+import { LocaleProvider } from "@/components/locale-provider";
+import { THEME_INIT_SCRIPT } from "@/lib/theme";
+import { LOCALE_INIT_SCRIPT } from "@/i18n/locale";
 import "./globals.css";
 
-import { ThemeProvider } from "@/components/theme-provider";
-import { THEME_INIT_SCRIPT } from "@/lib/theme";
+
 
 const inter = Inter({
   variable: "--font-inter",
@@ -43,9 +46,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html
       lang="en"
@@ -53,11 +54,16 @@ export default function RootLayout({
       className={`${inter.variable} ${bricolage.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       <head>
-        {/* Prevent FOUC: apply stored / system theme before first paint */}
-        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `${THEME_INIT_SCRIPT}${LOCALE_INIT_SCRIPT}`,
+          }}
+        />
       </head>
       <body className="min-h-full flex flex-col bg-background text-foreground font-sans">
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <LocaleProvider>{children}</LocaleProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

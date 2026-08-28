@@ -12,7 +12,8 @@ import {
 } from "@/validations/settings.schema";
 
 import { LANGUAGE_OPTIONS, TIMEZONE_OPTIONS } from "../../../constants/locale";
-
+import { useLocale } from "@/components/locale-provider";
+import { isLocale, type Locale } from "@/i18n/config";
 import { Select } from "@/components/UI/Select";
 import { Switch } from "@/components/UI/Switch";
 import { Button } from "@/components/UI/Button";
@@ -29,16 +30,6 @@ type Settings = {
 type Props = {
   initialSettings: Settings;
 };
-
-const THEME_OPTIONS: {
-  value: "system" | "light" | "dark";
-  label: string;
-  description: string;
-}[] = [
-  { value: "system", label: "System", description: "Match your device" },
-  { value: "light", label: "Light", description: "Bright canvas" },
-  { value: "dark", label: "Dark", description: "Ink & Ion (default)" },
-];
 
 function ThemeIcon({ variant }: { variant: "system" | "light" | "dark" }) {
   const common = "h-5 w-5";
@@ -98,7 +89,32 @@ export function SettingsForm({ initialSettings }: Props) {
     type: "success" | "error";
     message: string;
   } | null>(null);
+
   const { setTheme } = useTheme();
+  const { setLocale, t } = useLocale();
+
+  const THEME_OPTIONS: {
+    value: "system" | "light" | "dark";
+    label: string;
+    description: string;
+  }[] = [
+    {
+      value: "system",
+      label: t.settings.themeOptions?.system || "System",
+      description: "Match your device",
+    },
+    {
+      value: "light",
+      label: t.settings.themeOptions?.light || "Light",
+      description: "Bright canvas",
+    },
+    {
+      value: "dark",
+      label: t.settings.themeOptions?.dark || "Dark",
+      description: "Ink & Ion (default)",
+    },
+  ];
+
   const {
     register,
     handleSubmit,
@@ -127,6 +143,11 @@ export function SettingsForm({ initialSettings }: Props) {
       return;
     }
 
+    // Instant locale sync on successful save
+    if (isLocale(data.language)) {
+      setLocale(data.language as Locale);
+    }
+
     setStatus({ type: "success", message: "Settings saved." });
     if (data.themeMode) {
       setTheme(data.themeMode);
@@ -142,9 +163,9 @@ export function SettingsForm({ initialSettings }: Props) {
       <section className="surface-card p-6">
         <div className="mb-5">
           <p className="text-caption text-accent">Appearance</p>
-          <h2 className="text-h3 mt-1">Theme</h2>
+          <h2 className="text-h3 mt-1">{t.settings.theme}</h2>
           <p className="text-small mt-1">
-            Choose how the Orixa dashboard looks on this device.
+            Choose how the dashboard looks on this device.
           </p>
         </div>
 
@@ -213,20 +234,37 @@ export function SettingsForm({ initialSettings }: Props) {
       <section className="surface-card p-6">
         <div className="mb-5">
           <p className="text-caption text-accent">Language &amp; region</p>
-          <h2 className="text-h3 mt-1">Preferences</h2>
+          <h2 className="text-h3 mt-1">{t.settings.title}</h2>
           <p className="text-small mt-1">
             Used for dashboard text and date/time formatting.
           </p>
         </div>
 
         <div className="grid gap-5 sm:grid-cols-2">
-          <Select label="Language" {...register("language")}>
-            {LANGUAGE_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </Select>
+          <Controller
+            control={control}
+            name="language"
+            render={({ field }) => (
+              <Select
+                label="Language"
+                {...field}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  field.onChange(value);
+                  // Dynamic instant language switch on dropdown change
+                  if (isLocale(value)) {
+                    setLocale(value as Locale);
+                  }
+                }}
+              >
+                {LANGUAGE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </Select>
+            )}
+          />
 
           <Select
             label="Timezone"
@@ -325,7 +363,7 @@ export function SettingsForm({ initialSettings }: Props) {
           loading={isSubmitting}
           disabled={!isDirty && !isSubmitting}
         >
-          {isSubmitting ? "Saving..." : "Save settings"}
+          {isSubmitting ? t.common.saving : t.settings.saveSettings}
         </Button>
       </div>
     </form>
