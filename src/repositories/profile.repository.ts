@@ -29,18 +29,12 @@ export class ProfileRepository {
   }
 
   async create(data: typeof profiles.$inferInsert) {
-    const [profile] = await db
-      .insert(profiles)
-      .values(data)
-      .returning();
+    const [profile] = await db.insert(profiles).values(data).returning();
 
     return profile;
   }
 
-  async update(
-    userId: string,
-    data: Partial<typeof profiles.$inferInsert>,
-  ) {
+  async update(userId: string, data: Partial<typeof profiles.$inferInsert>) {
     const [profile] = await db
       .update(profiles)
       .set({

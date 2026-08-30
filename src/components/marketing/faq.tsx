@@ -41,7 +41,9 @@ export function Faq() {
           className="mx-auto max-w-lg text-center"
         >
           <span className="text-caption">Questions</span>
-          <h2 className="text-h1 mt-4 text-balance">Everything you're wondering.</h2>
+          <h2 className="text-h1 mt-4 text-balance">
+            Everything you're wondering.
+          </h2>
         </motion.div>
 
         <div className="mt-12 space-y-3">
@@ -66,7 +68,7 @@ export function Faq() {
                   <span
                     className={cn(
                       "flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border-strong text-xs transition-transform duration-300",
-                      isOpen && "rotate-45 border-primary/40 text-primary"
+                      isOpen && "rotate-45 border-primary/40 text-primary",
                     )}
                   >
                     +
@@ -80,7 +82,9 @@ export function Faq() {
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                     >
-                      <p className="text-body px-5 pb-5 text-muted-foreground">{item.a}</p>
+                      <p className="text-body px-5 pb-5 text-muted-foreground">
+                        {item.a}
+                      </p>
                     </motion.div>
                   )}
                 </AnimatePresence>

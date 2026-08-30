@@ -42,12 +42,8 @@ export default async function PublicProfilePage({
     socialLinkService.getSocialLinks(profile.id),
   ]);
 
-  const publishedPortfolios = portfolios.filter(
-    (p) => p.status === "published",
-  );
-  const initials = (profile.fullName ?? profile.username)
-    .slice(0, 1)
-    .toUpperCase();
+  const publishedPortfolios = portfolios.filter((p) => p.status === "published");
+  const initials = (profile.fullName ?? profile.username).slice(0, 1).toUpperCase();
 
   return (
     <main className="bg-aurora relative min-h-screen overflow-hidden px-4 py-20">

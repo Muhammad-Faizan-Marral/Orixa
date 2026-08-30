@@ -17,7 +17,11 @@ import { Textarea } from "@/components/UI/Textarea";
 import { Button } from "@/components/UI/Button";
 
 const THEMES = [
-  { value: "minimal", label: "Minimal", description: "Clean, editorial, content-first." },
+  {
+    value: "minimal",
+    label: "Minimal",
+    description: "Clean, editorial, content-first.",
+  },
 ];
 
 export function CreatePortfolioForm() {
@@ -78,15 +82,20 @@ export function CreatePortfolioForm() {
           placeholder="developer"
           error={errors.slug?.message}
           onChange={(e) =>
-            setValue("slug", e.target.value.toLowerCase().replace(/\s+/g, "-"), {
-              shouldValidate: true,
-            })
+            setValue(
+              "slug",
+              e.target.value.toLowerCase().replace(/\s+/g, "-"),
+              {
+                shouldValidate: true,
+              },
+            )
           }
         />
         <div className="mt-1.5 text-small min-h-[1.1rem]">
           {slug && (
             <p className="text-subtle-foreground">
-              orixa.ai/your-username/<span className="text-foreground">{slug}</span>
+              orixa.ai/your-username/
+              <span className="text-foreground">{slug}</span>
             </p>
           )}
           {checking && <p className="mt-1">Checking availability...</p>}
@@ -129,7 +138,9 @@ export function CreatePortfolioForm() {
             <button
               key={t.value}
               type="button"
-              onClick={() => setValue("theme", t.value, { shouldValidate: true })}
+              onClick={() =>
+                setValue("theme", t.value, { shouldValidate: true })
+              }
               className={
                 "surface-panel space-y-1 p-3 text-left transition-colors " +
                 (theme === t.value
@@ -145,7 +156,10 @@ export function CreatePortfolioForm() {
       </div>
 
       {serverError && (
-        <p role="alert" className="rounded-lg border border-error/20 bg-error/10 px-3 py-2.5 text-sm text-error">
+        <p
+          role="alert"
+          className="rounded-lg border border-error/20 bg-error/10 px-3 py-2.5 text-sm text-error"
+        >
           {serverError}
         </p>
       )}

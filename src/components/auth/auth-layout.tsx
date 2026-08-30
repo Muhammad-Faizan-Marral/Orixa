@@ -6,7 +6,15 @@ const POINTS = [
   "Versioned publishing — nothing breaks live",
 ];
 
-export function AuthLayout({children,title,subtitle}: {children: React.ReactNode;title: string;subtitle?: string;}) {
+export function AuthLayout({
+  children,
+  title,
+  subtitle,
+}: {
+  children: React.ReactNode;
+  title: string;
+  subtitle?: string;
+}) {
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
       <div className="relative hidden flex-col justify-between overflow-hidden bg-surface p-10 lg:flex">

@@ -7,6 +7,7 @@ import {
   type UpdateProfileInput,
 } from "@/validations/profile.schema";
 export class ProfileService {
+  
   async isUsernameAvailable(username: string) {
     const parsed = usernameSchema.parse(username);
 
@@ -87,7 +88,6 @@ export class ProfileService {
       avatarUrl: data.avatarUrl || null,
     });
   }
-  
 }
 
 export const profileService = new ProfileService();

@@ -10,7 +10,6 @@ import { LogoutButton } from "@/components/dashboard/logout-button";
 import { CopyUrlButton } from "@/features/profile/components/copy-url-button";
 import { FormatDate } from "@/components/format-date";
 
-
 export default async function SettingsPage() {
   const user = await requireUser();
   const profile = await requireProfile();
@@ -67,7 +66,7 @@ export default async function SettingsPage() {
                 Member since
               </p>
               <p className="text-small mt-0.5 text-foreground">
-               <FormatDate value={profile.createdAt} variant="monthYear" />
+                <FormatDate value={profile.createdAt} variant="monthYear" />
               </p>
             </div>
           </div>

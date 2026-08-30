@@ -5,10 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { updateProfile } from "@/actions/profile/update-profile";
-import {
-  updateProfileSchema,
-  type UpdateProfileInput,
-} from "@/validations/profile.schema";
+import { updateProfileSchema, type UpdateProfileInput} from "@/validations/profile.schema";
 
 import { Input } from "@/components/UI/Input";
 import { Textarea } from "@/components/UI/Textarea";
@@ -26,16 +23,10 @@ type ProfileEditFormProps = {
 };
 
 export function ProfileEditForm({ profile }: ProfileEditFormProps) {
-  const [status, setStatus] = useState<{
-    type: "success" | "error";
-    message: string;
-  } | null>(null);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting, isDirty },
-  } = useForm<UpdateProfileInput>({
+  const [status, setStatus] = useState<{type: "success" | "error"; message: string;} | null>(null);
+
+  const { register, handleSubmit, formState: { errors, isSubmitting, isDirty }} = useForm<UpdateProfileInput>({
     resolver: zodResolver(updateProfileSchema),
     defaultValues: {
       username: profile.username,
@@ -132,7 +123,12 @@ export function ProfileEditForm({ profile }: ProfileEditFormProps) {
           )}
         </div>
 
-        <Button type="submit" variant="primary" loading={isSubmitting} disabled={!isDirty && !isSubmitting}>
+        <Button
+          type="submit"
+          variant="primary"
+          loading={isSubmitting}
+          disabled={!isDirty && !isSubmitting}
+        >
           {isSubmitting ? "Saving..." : "Save changes"}
         </Button>
       </div>
