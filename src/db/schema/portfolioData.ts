@@ -21,30 +21,33 @@ export const portfolioData = pgTable(
 
     portfolioId: uuid("portfolio_id").notNull(),
 
-    headline: text("headline"),
+    // ── New identity / contact fields ──
+    name: text("name"),
+    prompt: text("prompt"),
+    avatarUrl: text("avatar_url"),
+    phone: text("phone"),
+    linkedinUrl: text("linkedin_url"),
+    githubUrl: text("github_url"),
 
+    // ── Content ──
+    headline: text("headline"),
     about: text("about"),
 
     projects: jsonb("projects").default([]).notNull(),
-
     experience: jsonb("experience").default([]).notNull(),
-
     skills: jsonb("skills").default([]).notNull(),
-
     education: jsonb("education").default([]).notNull(),
-
     certificates: jsonb("certificates").default([]).notNull(),
 
     resumeUrl: text("resume_url"),
 
     theme: text("theme").default("minimal"),
-
     animations: boolean("animations").default(true).notNull(),
 
+    // AI sets these on submit — user form se nahi aate
     componentSelection: jsonb("component_selection")
       .default({})
       .notNull(),
-
     designPreferences: jsonb("design_preferences")
       .default({})
       .notNull(),
@@ -67,9 +70,7 @@ export const portfolioData = pgTable(
   },
 
   (table) => [
-    index("portfolio_data_portfolio_idx").on(
-      table.portfolioId,
-    ),
+    index("portfolio_data_portfolio_idx").on(table.portfolioId),
 
     foreignKey({
       columns: [table.portfolioId],
@@ -77,9 +78,7 @@ export const portfolioData = pgTable(
       name: "portfolio_data_portfolio_id_fkey",
     }).onDelete("cascade"),
 
-    unique("portfolio_data_portfolio_id_key").on(
-      table.portfolioId,
-    ),
+    unique("portfolio_data_portfolio_id_key").on(table.portfolioId),
 
     pgPolicy("Owner manages portfolio data", {
       as: "permissive",

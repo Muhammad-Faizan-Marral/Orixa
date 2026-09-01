@@ -86,9 +86,24 @@ export class PortfolioRepository {
 
       await tx.insert(portfolioData).values({
         portfolioId: portfolio.id,
+        name: null,
+        prompt: null,
+        avatarUrl: null,
+        phone: null,
+        linkedinUrl: null,
+        githubUrl: null,
         headline: data.headline || null,
         about: data.about || null,
         theme: data.theme || "minimal",
+        animations: true,
+        projects: [],
+        experience: [],
+        skills: [],
+        education: [],
+        certificates: [],
+        componentSelection: {},
+        designPreferences: {},
+        seo: {},
       });
 
       return portfolio;
@@ -179,6 +194,12 @@ export class PortfolioRepository {
     portfolioId: string,
     profileId: string,
     data: {
+      name?: string | null;
+      prompt?: string | null;
+      avatarUrl?: string | null;
+      phone?: string | null;
+      linkedinUrl?: string | null;
+      githubUrl?: string | null;
       headline?: string | null;
       about?: string | null;
       projects?: unknown[];
@@ -203,6 +224,12 @@ export class PortfolioRepository {
     const [updatedData] = await db
       .update(portfolioData)
       .set({
+        name: data.name ?? null,
+        prompt: data.prompt ?? null,
+        avatarUrl: data.avatarUrl ?? null,
+        phone: data.phone ?? null,
+        linkedinUrl: data.linkedinUrl ?? null,
+        githubUrl: data.githubUrl ?? null,
         headline: data.headline ?? null,
         about: data.about ?? null,
         projects: data.projects ?? [],
@@ -327,6 +354,12 @@ export class PortfolioRepository {
         .where(eq(portfolioVersions.portfolioId, portfolioId));
 
       const configJson = {
+        name: data.name,
+        prompt: data.prompt,
+        avatarUrl: data.avatarUrl,
+        phone: data.phone,
+        linkedinUrl: data.linkedinUrl,
+        githubUrl: data.githubUrl,
         headline: data.headline,
         about: data.about,
         projects: data.projects,
@@ -383,6 +416,112 @@ export class PortfolioRepository {
         version,
       };
     });
+  }
+
+  async findPublishedByProfileAndSlug(profileId: string, slug: string) {
+    const [portfolio] = await db
+      .select()
+      .from(portfolios)
+      .where(
+        and(
+          eq(portfolios.profileId, profileId),
+          eq(portfolios.slug, slug),
+          eq(portfolios.status, "published"),
+        ),
+      )
+      .limit(1);
+
+    return portfolio ?? null;
+  }
+
+  async findPublishedByUsernameAndSlug(username: string, slug: string) {
+    const [row] = await db
+      .select({
+        portfolio: portfolios,
+        profile: {
+          id: profiles.id,
+          username: profiles.username,
+          fullName: profiles.fullName,
+          avatarUrl: profiles.avatarUrl,
+        },
+      })
+      .from(portfolios)
+      .innerJoin(profiles, eq(portfolios.profileId, profiles.id))
+      .where(
+        and(
+          eq(profiles.username, username),
+          eq(portfolios.slug, slug),
+          eq(portfolios.status, "published"),
+        ),
+      )
+      .limit(1);
+
+    return row ?? null;
+  }
+
+  /** Published snapshot (version config) for public renderer */
+  async findPublishedConfig(username: string, slug: string) {
+    const found = await this.findPublishedByUsernameAndSlug(username, slug);
+    if (!found) return null;
+
+    const { portfolio, profile } = found;
+
+    // Prefer explicit published version row
+    const [publishedVersion] = await db
+      .select()
+      .from(portfolioVersions)
+      .where(
+        and(
+          eq(portfolioVersions.portfolioId, portfolio.id),
+          eq(portfolioVersions.published, true),
+        ),
+      )
+      .orderBy(desc(portfolioVersions.version))
+      .limit(1);
+
+    if (publishedVersion?.configJson) {
+      return {
+        portfolio,
+        profile,
+        version: publishedVersion.version,
+        config: publishedVersion.configJson as Record<string, unknown>,
+      };
+    }
+
+    // Fallback: current portfolio_data (edge case)
+    const [data] = await db
+      .select()
+      .from(portfolioData)
+      .where(eq(portfolioData.portfolioId, portfolio.id))
+      .limit(1);
+
+    if (!data) return null;
+
+    return {
+      portfolio,
+      profile,
+      version: portfolio.currentVersion,
+      config: {
+        name: data.name,
+        avatarUrl: data.avatarUrl,
+        phone: data.phone,
+        linkedinUrl: data.linkedinUrl,
+        githubUrl: data.githubUrl,
+        headline: data.headline,
+        about: data.about,
+        projects: data.projects,
+        experience: data.experience,
+        skills: data.skills,
+        education: data.education,
+        certificates: data.certificates,
+        resumeUrl: data.resumeUrl,
+        theme: data.theme,
+        animations: data.animations,
+        componentSelection: data.componentSelection,
+        designPreferences: data.designPreferences,
+        seo: data.seo,
+      },
+    };
   }
 }
 

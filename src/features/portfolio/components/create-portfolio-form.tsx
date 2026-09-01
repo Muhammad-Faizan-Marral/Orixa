@@ -16,14 +16,6 @@ import { Input } from "@/components/UI/Input";
 import { Textarea } from "@/components/UI/Textarea";
 import { Button } from "@/components/UI/Button";
 
-const THEMES = [
-  {
-    value: "minimal",
-    label: "Minimal",
-    description: "Clean, editorial, content-first.",
-  },
-];
-
 export function CreatePortfolioForm() {
   const [serverError, setServerError] = useState("");
 
@@ -35,37 +27,37 @@ export function CreatePortfolioForm() {
     formState: { errors, isSubmitting },
   } = useForm<CreatePortfolioInput>({
     resolver: zodResolver(createPortfolioSchema),
+    mode: "onChange", // immediate validation
     defaultValues: {
       title: "",
       slug: "",
       headline: "",
       about: "",
-      theme: "minimal",
     },
   });
 
   const slug = watch("slug");
-  const theme = watch("theme");
-
   const { available, checking } = usePortfolioSlugCheck(slug);
 
   const onSubmit = async (data: CreatePortfolioInput) => {
     setServerError("");
 
     if (available === false) {
-      setServerError("Please choose another portfolio URL.");
+      setServerError(
+        "Please choose another portfolio URL. This slug is already taken.",
+      );
       return;
     }
 
     const result = await createPortfolio(data);
-
+    console.log(result, "Portfolio Create Result");
     if (result?.success === false) {
       setServerError(result.message);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
       <Input
         id="title"
         label="Portfolio title"
@@ -84,10 +76,11 @@ export function CreatePortfolioForm() {
           onChange={(e) =>
             setValue(
               "slug",
-              e.target.value.toLowerCase().replace(/\s+/g, "-"),
-              {
-                shouldValidate: true,
-              },
+              e.target.value
+                .toLowerCase()
+                .replace(/\s+/g, "-")
+                .replace(/[^a-z0-9-]/g, ""),
+              { shouldValidate: true },
             )
           }
         />
@@ -95,11 +88,13 @@ export function CreatePortfolioForm() {
           {slug && (
             <p className="text-subtle-foreground">
               orixa.ai/your-username/
-              <span className="text-foreground">{slug}</span>
+              <span className="font-medium text-foreground">{slug}</span>
             </p>
           )}
-          {checking && <p className="mt-1">Checking availability...</p>}
-          {!checking && available === true && (
+          {checking && (
+            <p className="text-muted-foreground">Checking availability…</p>
+          )}
+          {!checking && available === true && slug.length >= 3 && (
             <p className="mt-1 flex items-center gap-1.5 text-success">
               <span className="h-1.5 w-1.5 rounded-full bg-success" />
               Available
@@ -108,7 +103,7 @@ export function CreatePortfolioForm() {
           {!checking && available === false && (
             <p className="mt-1 flex items-center gap-1.5 text-error">
               <span className="h-1.5 w-1.5 rounded-full bg-error" />
-              Already taken
+              Already taken — try another slug
             </p>
           )}
         </div>
@@ -116,44 +111,20 @@ export function CreatePortfolioForm() {
 
       <Input
         id="headline"
-        label="Headline"
+        label="Headline (optional)"
         {...register("headline")}
-        placeholder="Full Stack Developer"
+        placeholder="Full Stack Developer · Next.js & Node"
         error={errors.headline?.message}
       />
 
       <Textarea
         id="about"
-        label="About"
+        label="About (optional)"
         {...register("about")}
-        placeholder="Tell people about this portfolio..."
-        rows={4}
+        placeholder="Short intro — you can expand this later in the wizard…"
+        rows={3}
         error={errors.about?.message}
       />
-
-      <div className="space-y-2">
-        <p className="text-label">Theme</p>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {THEMES.map((t) => (
-            <button
-              key={t.value}
-              type="button"
-              onClick={() =>
-                setValue("theme", t.value, { shouldValidate: true })
-              }
-              className={
-                "surface-panel space-y-1 p-3 text-left transition-colors " +
-                (theme === t.value
-                  ? "border-primary/40 bg-gradient-ion-soft"
-                  : "hover:border-border-strong")
-              }
-            >
-              <p className="text-label">{t.label}</p>
-              <p className="text-small">{t.description}</p>
-            </button>
-          ))}
-        </div>
-      </div>
 
       {serverError && (
         <p

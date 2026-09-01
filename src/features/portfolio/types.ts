@@ -44,6 +44,13 @@ export type PortfolioCertificate = {
 };
 
 export type PortfolioDataInput = {
+  name: string;
+  prompt: string;
+  avatarUrl: string;
+  phone: string;
+  linkedinUrl: string;
+  githubUrl: string;
+
   headline: string;
   about: string;
 
@@ -56,13 +63,10 @@ export type PortfolioDataInput = {
   resumeUrl: string;
 
   theme: string;
-
   animations: boolean;
 
   componentSelection: Record<string, unknown>;
-
   designPreferences: Record<string, unknown>;
-
   seo: Record<string, unknown>;
 };
 

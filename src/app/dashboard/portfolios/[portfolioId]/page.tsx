@@ -37,17 +37,12 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
   const profile = await requireProfile();
   const { portfolioId } = await params;
 
-  const result = await portfolioService.getPortfolioWithData(
-    portfolioId,
-    profile.id,
-  );
+  const result = await portfolioService.getPortfolioWithData(portfolioId,profile.id);
+
   if (!result) notFound();
 
   const { portfolio, data } = result;
-  const analytics = await portfolioViewService.getAnalytics(
-    portfolioId,
-    profile.id,
-  );
+  const analytics = await portfolioViewService.getAnalytics( portfolioId,profile.id);
 
   const status = portfolio.status as "draft" | "published" | "archived";
 
@@ -97,13 +92,13 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
           </Link>
         ))}
       </nav>
-
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Total views" value={analytics?.total ?? 0} />
-        <StatCard label="Views (7 days)" value={analytics?.last7Days ?? 0} />
-        <StatCard label="Version" value={`v${portfolio.currentVersion}`} />
-        <StatCard label="Projects" value={data?.projects?.length ?? 0} />
-      </section>
+    <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <StatCard label="Total views" value={analytics?.total ?? 0} accent />
+      <StatCard label="Last 7 days" value={analytics?.last7Days ?? 0} />
+      <StatCard label="Last 30 days" value={analytics?.last30Days ?? 0} />
+      <StatCard label="Version" value={`v${portfolio.currentVersion}`} />
+      <StatCard label="Projects" value={data?.projects?.length ?? 0} />
+    </section>
 
       <section className="surface-card space-y-3 p-6">
         <h2 className="text-h3">{data?.headline || "No headline yet"}</h2>

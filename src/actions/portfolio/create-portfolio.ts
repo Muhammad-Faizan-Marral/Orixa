@@ -12,8 +12,7 @@ import type { CreatePortfolioInput } from "@/validations/portfolio.schema";
 
 export async function createPortfolio(data: CreatePortfolioInput) {
   try {
-    const user = await requireUser();
-
+    await requireUser();
     const profile = await requireProfile();
 
     const portfolio = await portfolioService.createPortfolio(profile.id, data);
@@ -21,7 +20,8 @@ export async function createPortfolio(data: CreatePortfolioInput) {
     revalidatePath("/dashboard");
     revalidatePath("/dashboard/portfolios");
 
-    redirect(`/dashboard/portfolios/${portfolio.id}`);
+    // Redrict Edit / Onboarding 
+    redirect(`/dashboard/portfolios/${portfolio.id}/edit`);
   } catch (error) {
     if (error instanceof Error && error.message.includes("NEXT_REDIRECT")) {
       throw error;

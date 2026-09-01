@@ -20,7 +20,10 @@ type PortfolioLifecycleActionsProps = {
 
 type ActionKey = "publish" | "unpublish" | "archive" | "restore" | null;
 
-export function PortfolioLifecycleActions({ portfolioId, status }: PortfolioLifecycleActionsProps) {
+export function PortfolioLifecycleActions({
+  portfolioId,
+  status,
+}: PortfolioLifecycleActionsProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [pendingAction, setPendingAction] = useState<ActionKey>(null);
@@ -29,11 +32,10 @@ export function PortfolioLifecycleActions({ portfolioId, status }: PortfolioLife
 
   const runAction = (
     key: Exclude<ActionKey, null>,
-    action: () => Promise<{ success: boolean; message?: string }>
+    action: () => Promise<{ success: boolean; message?: string }>,
   ) => {
     setError(null);
     setPendingAction(key);
-
     startTransition(async () => {
       const result = await action();
 
@@ -53,15 +55,23 @@ export function PortfolioLifecycleActions({ portfolioId, status }: PortfolioLife
     });
   };
 
-  const handlePublish = () => runAction("publish", () => publishPortfolio(portfolioId));
-  const handleUnpublish = () => runAction("unpublish", () => unpublishPortfolio(portfolioId));
+  const handlePublish = () =>
+    runAction("publish", () => publishPortfolio(portfolioId));
+  const handleUnpublish = () =>
+    runAction("unpublish", () => unpublishPortfolio(portfolioId));
 
   const handleArchive = () => {
-    if (!window.confirm("Archive this portfolio? It will no longer be publicly accessible.")) return;
+    if (
+      !window.confirm(
+        "Archive this portfolio? It will no longer be publicly accessible.",
+      )
+    )
+      return;
     runAction("archive", () => archivePortfolio(portfolioId));
   };
 
-  const handleRestore = () => runAction("restore", () => restorePortfolio(portfolioId));
+  const handleRestore = () =>
+    runAction("restore", () => restorePortfolio(portfolioId));
 
   return (
     <div className="space-y-3">
@@ -73,7 +83,9 @@ export function PortfolioLifecycleActions({ portfolioId, status }: PortfolioLife
             onClick={handlePublish}
             loading={isPending && pendingAction === "publish"}
           >
-            {isPending && pendingAction === "publish" ? "Publishing..." : "Publish"}
+            {isPending && pendingAction === "publish"
+              ? "Publishing..."
+              : "Publish"}
           </Button>
         )}
 
@@ -84,7 +96,9 @@ export function PortfolioLifecycleActions({ portfolioId, status }: PortfolioLife
             onClick={handleUnpublish}
             loading={isPending && pendingAction === "unpublish"}
           >
-            {isPending && pendingAction === "unpublish" ? "Unpublishing..." : "Unpublish"}
+            {isPending && pendingAction === "unpublish"
+              ? "Unpublishing..."
+              : "Unpublish"}
           </Button>
         )}
 
@@ -95,7 +109,9 @@ export function PortfolioLifecycleActions({ portfolioId, status }: PortfolioLife
             onClick={handleArchive}
             loading={isPending && pendingAction === "archive"}
           >
-            {isPending && pendingAction === "archive" ? "Archiving..." : "Archive"}
+            {isPending && pendingAction === "archive"
+              ? "Archiving..."
+              : "Archive"}
           </Button>
         )}
 
@@ -106,7 +122,9 @@ export function PortfolioLifecycleActions({ portfolioId, status }: PortfolioLife
             onClick={handleRestore}
             loading={isPending && pendingAction === "restore"}
           >
-            {isPending && pendingAction === "restore" ? "Restoring..." : "Restore"}
+            {isPending && pendingAction === "restore"
+              ? "Restoring..."
+              : "Restore"}
           </Button>
         )}
 
@@ -126,7 +144,10 @@ export function PortfolioLifecycleActions({ portfolioId, status }: PortfolioLife
       </div>
 
       {error && (
-        <p role="alert" className="text-small rounded-lg border border-error/20 bg-error/10 px-3 py-2 text-error">
+        <p
+          role="alert"
+          className="text-small rounded-lg border border-error/20 bg-error/10 px-3 py-2 text-error"
+        >
           {error}
         </p>
       )}

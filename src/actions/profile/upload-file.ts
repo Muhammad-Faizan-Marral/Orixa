@@ -60,11 +60,15 @@ export async function uploadFile(formData: FormData) {
       revalidatePath(`/dashboard/portfolios/${portfolioId}/edit`);
     }
 
-    return {
-      success: true,
-      message: "File uploaded successfully.",
-      data: result.upload,
-    };
+    // upload-file.ts success return
+return {
+  success: true,
+  message: "File uploaded successfully.",
+  data: {
+    ...result.upload,
+    url: result.url ?? result.upload?.url ?? null,
+  },
+};
   } catch (error) {
     console.error("uploadFile:", error);
 

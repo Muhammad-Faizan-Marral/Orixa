@@ -11,6 +11,7 @@ import {
   type CreatePortfolioInput,
   type UpdatePortfolioInput,
 } from "@/validations/portfolio.schema";
+import { profileRepository } from "@/repositories/profile.repository";
 
 export class PortfolioService {
   async getUserPortfolios(profileId: string) {
@@ -69,7 +70,7 @@ export class PortfolioService {
       slug: data.slug,
       headline: data.headline,
       about: data.about,
-      theme: data.theme,
+      // theme: "minimal",
     });
   }
 
@@ -234,6 +235,12 @@ export class PortfolioService {
     }
 
     return portfolioRepository.updateData(portfolioId, profileId, {
+      name: data.name || null,
+      prompt: data.prompt || null,
+      avatarUrl: data.avatarUrl || null,
+      phone: data.phone || null,
+      linkedinUrl: data.linkedinUrl || null,
+      githubUrl: data.githubUrl || null,
       headline: data.headline || null,
       about: data.about || null,
       projects: data.projects,
@@ -302,6 +309,17 @@ export class PortfolioService {
       portfolio,
       version: versionData,
     };
+  }
+
+  async getPublishedByUsernameAndSlug(username: string, slug: string) {
+    const profile = await profileRepository.findByUsername(username);
+    if (!profile) return null;
+
+    return portfolioRepository.findPublishedByProfileAndSlug(profile.id, slug);
+  }
+
+  async getPublishedPublic(username: string, slug: string) {
+    return portfolioRepository.findPublishedConfig(username, slug);
   }
 }
 
