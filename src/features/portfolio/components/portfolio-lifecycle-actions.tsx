@@ -20,22 +20,18 @@ type PortfolioLifecycleActionsProps = {
 
 type ActionKey = "publish" | "unpublish" | "archive" | "restore" | null;
 
-export function PortfolioLifecycleActions({
-  portfolioId,
-  status,
-}: PortfolioLifecycleActionsProps) {
+export function PortfolioLifecycleActions({portfolioId,status}: PortfolioLifecycleActionsProps) {
+
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [pendingAction, setPendingAction] = useState<ActionKey>(null);
   const [error, setError] = useState<string | null>(null);
   const [justPublished, setJustPublished] = useState(false);
 
-  const runAction = (
-    key: Exclude<ActionKey, null>,
-    action: () => Promise<{ success: boolean; message?: string }>,
-  ) => {
+  const runAction = (key: Exclude<ActionKey, null>, action: () => Promise<{ success: boolean; message?: string }>) => {
     setError(null);
     setPendingAction(key);
+
     startTransition(async () => {
       const result = await action();
 
@@ -55,10 +51,8 @@ export function PortfolioLifecycleActions({
     });
   };
 
-  const handlePublish = () =>
-    runAction("publish", () => publishPortfolio(portfolioId));
-  const handleUnpublish = () =>
-    runAction("unpublish", () => unpublishPortfolio(portfolioId));
+  const handlePublish = () => runAction("publish", () => publishPortfolio(portfolioId));
+  const handleUnpublish = () => runAction("unpublish", () => unpublishPortfolio(portfolioId));
 
   const handleArchive = () => {
     if (
@@ -89,17 +83,30 @@ export function PortfolioLifecycleActions({
           </Button>
         )}
 
+        {/* KEY FIX: already published → allow new version */}
         {status === "published" && (
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={handleUnpublish}
-            loading={isPending && pendingAction === "unpublish"}
-          >
-            {isPending && pendingAction === "unpublish"
-              ? "Unpublishing..."
-              : "Unpublish"}
-          </Button>
+          <>
+            <Button
+              type="button"
+              variant="gradient"
+              onClick={handlePublish}
+              loading={isPending && pendingAction === "publish"}
+            >
+              {isPending && pendingAction === "publish"
+                ? "Publishing..."
+                : "Publish new version"}
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={handleUnpublish}
+              loading={isPending && pendingAction === "unpublish"}
+            >
+              {isPending && pendingAction === "unpublish"
+                ? "Unpublishing..."
+                : "Unpublish"}
+            </Button>
+          </>
         )}
 
         {status !== "archived" && (

@@ -1,0 +1,9 @@
+export { BasicsStep } from "./BasicsStep";
+export { SkillsStep } from "./SkillsStep";
+export { ExperienceStep } from "./ExperienceStep";
+export { ProjectsStep } from "./ProjectsStep";
+export { EducationStep } from "./EducationStep";
+export { CertificatesStep } from "./CertificatesStep";
+export { ResumeStep } from "./ResumeStep";
+export { SeoStep } from "./SeoStep";
+export { ReviewStep } from "./ReviewStep";

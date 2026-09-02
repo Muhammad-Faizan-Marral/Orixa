@@ -9,7 +9,7 @@ const urlOptional = z
   .or(z.literal(""))
   .refine(
     (val) => !val || /^https?:\/\/.+/i.test(val),
-    "URL http:// or https:// se start ho. Example: https://github.com/you",
+    "The URL must start with http:// or https://. Example: https://github.com/you"
   );
 
 const phoneOptional = z
@@ -54,7 +54,7 @@ export const portfolioSkillSchema = z.object({
     .max(40, "Skill max 40 chars")
     .refine(
       (val) => /^[a-zA-Z0-9+#.\-_/ ]+$/.test(val),
-      "Skill me invalid characters hain",
+     "There are invalid characters in the skill field."
     ),
   level: optionalString,
 });

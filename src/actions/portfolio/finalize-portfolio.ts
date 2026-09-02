@@ -7,7 +7,43 @@ import { requireUser } from "@/lib/auth/require-user";
 import { decideDesignWithGemini } from "@/lib/ai/decide-design";
 import { portfolioService } from "@/services/portfolio/portfolio.service";
 import { aiRequestService } from "@/services/portfolio/ai-request.service";
-import { updatePortfolioDataSchema } from "@/validations/portfolio-data.schema";
+import {
+  updatePortfolioDataSchema,
+  type UpdatePortfolioDataInput,
+} from "@/validations/portfolio-data.schema";
+
+type ComponentSelection = UpdatePortfolioDataInput["componentSelection"];
+type DesignPreferences = UpdatePortfolioDataInput["designPreferences"];
+
+function hasRealSelection(value: unknown): boolean {
+  if (!value || typeof value !== "object") return false;
+  return Object.values(value as Record<string, unknown>).some((v) => {
+    if (!v || typeof v !== "object") return false;
+    const variant = (v as { variant?: unknown }).variant;
+    return typeof variant === "string" && variant.length > 0;
+  });
+}
+
+/** DB JSON → schema-shaped object (safe cast after structure check) */
+function asComponentSelection(value: unknown): ComponentSelection | null {
+  if (!hasRealSelection(value)) return null;
+  return value as ComponentSelection;
+}
+
+function asDesignPreferences(value: unknown): DesignPreferences | null {
+  if (!value || typeof value !== "object") return null;
+  const v = value as Record<string, unknown>;
+  // minimal shape check
+  if (
+    typeof v.themeMode !== "string" &&
+    typeof v.layout !== "string" &&
+    typeof v.accentColor !== "string"
+  ) {
+    // still accept partial saved prefs if any key exists
+    if (Object.keys(v).length === 0) return null;
+  }
+  return value as DesignPreferences;
+}
 
 export async function finalizePortfolioAction(input: unknown) {
   try {
@@ -24,6 +60,7 @@ export async function finalizePortfolioAction(input: unknown) {
     }
 
     const data = parsed.data;
+
     const portfolio = await portfolioService.getPortfolioForUser(
       data.portfolioId,
       profile.id,
@@ -37,38 +74,89 @@ export async function finalizePortfolioAction(input: unknown) {
       data.portfolioId,
       profile.id,
     );
-    const existingPrompt = (existing?.data?.prompt as string | null) ?? "";
+    const existingData = existing?.data ?? null;
+
+    // Prompt lock
+    const existingPrompt = (existingData?.prompt as string | null) ?? "";
     const finalPrompt =
       existingPrompt.trim().length > 0 ? existingPrompt : data.prompt;
 
-    const design = await decideDesignWithGemini({
-      prompt: finalPrompt,
-      headline: data.headline,
-      about: data.about,
-    });
+    // Existing design from DB?
+    const savedSelection = asComponentSelection(
+      existingData?.componentSelection,
+    );
+    const savedPrefs = asDesignPreferences(existingData?.designPreferences);
+    const alreadyDesigned = savedSelection !== null;
 
-    if (design.usedAi) {
-      await aiRequestService.recordUsage({
-        portfolioId: data.portfolioId,
-        requestType: "design_decision",
-        model: "meta-llama/llama-3.1-8b-instruct",
-        inputTokens: design.inputTokens,
-        outputTokens: design.outputTokens,
-        latencyMs: design.latencyMs,
-        status: "success",
+    let componentSelection: ComponentSelection = data.componentSelection;
+    let designPreferences: DesignPreferences = data.designPreferences;
+    let usedAi = false;
+    let skippedDesign = false;
+    let designError: string | undefined;
+    let inputTokens = 0;
+    let outputTokens = 0;
+    let latencyMs = 0;
+
+    if (alreadyDesigned && savedSelection) {
+      // EDIT path: keep DB design, do NOT call AI again
+      skippedDesign = true;
+      componentSelection = savedSelection;
+      designPreferences = savedPrefs ?? data.designPreferences;
+    } else {
+      // FIRST save: run design AI
+      const design = await decideDesignWithGemini({
+        prompt: finalPrompt,
+        headline: data.headline,
+        about: data.about,
       });
-    } else if (finalPrompt.trim()) {
-      // Prompt tha lekin AI fail → log as failed
-      await aiRequestService.recordUsage({
-        portfolioId: data.portfolioId,
-        requestType: "design_decision",
-        model: "meta-llama/llama-3.1-8b-instruct",
-        status: "failed",
-      });
+
+      // decideDesign returns typed decision — assign through schema parse for safety
+      const designPayload = updatePortfolioDataSchema
+        .pick({ componentSelection: true, designPreferences: true })
+        .safeParse({
+          componentSelection: design.decision.componentSelection,
+          designPreferences: design.decision.designPreferences,
+        });
+
+      if (designPayload.success) {
+        componentSelection = designPayload.data.componentSelection;
+        designPreferences = designPayload.data.designPreferences;
+      } else {
+        // fallback to whatever decideDesign returned (cast once)
+        componentSelection = design.decision
+          .componentSelection as unknown as ComponentSelection;
+        designPreferences = design.decision
+          .designPreferences as unknown as DesignPreferences;
+      }
+
+      usedAi = design.usedAi;
+      designError = design.errorMessage;
+      inputTokens = design.inputTokens;
+      outputTokens = design.outputTokens;
+      latencyMs = design.latencyMs;
+
+      if (design.usedAi) {
+        await aiRequestService.recordUsage({
+          portfolioId: data.portfolioId,
+          requestType: "design_decision",
+          model: "meta-llama/llama-3.1-8b-instruct",
+          inputTokens,
+          outputTokens,
+          latencyMs,
+          status: "success",
+        });
+      } else if (finalPrompt.trim()) {
+        await aiRequestService.recordUsage({
+          portfolioId: data.portfolioId,
+          requestType: "design_decision",
+          model: "meta-llama/llama-3.1-8b-instruct",
+          status: "failed",
+        });
+      }
     }
 
-    // Never invent avatar from profile — empty stays empty
     const avatarUrl = (data.avatarUrl ?? "").trim();
+    const resumeUrl = (data.resumeUrl ?? "").trim();
 
     const result = await portfolioService.updatePortfolioData(
       data.portfolioId,
@@ -76,9 +164,10 @@ export async function finalizePortfolioAction(input: unknown) {
       {
         ...data,
         avatarUrl,
+        resumeUrl,
         prompt: finalPrompt,
-        componentSelection: design.decision.componentSelection,
-        designPreferences: design.decision.designPreferences,
+        componentSelection,
+        designPreferences,
       },
     );
 
@@ -89,10 +178,11 @@ export async function finalizePortfolioAction(input: unknown) {
       success: true as const,
       data: result,
       designMeta: {
-        usedAi: design.usedAi,
-        componentSelection: design.decision.componentSelection,
-        designPreferences: design.decision.designPreferences,
-        errorMessage: design.errorMessage,
+        usedAi,
+        skippedDesign,
+        componentSelection,
+        designPreferences,
+        errorMessage: designError,
       },
     };
   } catch (error) {
