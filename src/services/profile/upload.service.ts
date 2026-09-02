@@ -164,6 +164,19 @@ export class UploadService {
     return deleted;
   }
 
+  async deleteFileByUrl(params: { url: string; profileId: string }) {
+    const upload = await uploadRepository.findByUrl(params.url, params.profileId);
+
+    if (!upload) return false;
+
+    await this.deleteFile({
+      uploadId: upload.id,
+      profileId: params.profileId,
+    });
+
+    return true;
+  }
+
   async getUploads(profileId: string) {
     const uploads = await uploadRepository.findByProfileId(profileId);
 

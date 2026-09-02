@@ -7,6 +7,7 @@ import { requireUser } from "@/lib/auth/require-user";
 import { decideDesignWithGemini } from "@/lib/ai/decide-design";
 import { portfolioService } from "@/services/portfolio/portfolio.service";
 import { aiRequestService } from "@/services/portfolio/ai-request.service";
+import { uploadService } from "@/services/profile/upload.service";
 import {
   updatePortfolioDataSchema,
   type UpdatePortfolioDataInput,
@@ -158,6 +159,10 @@ export async function finalizePortfolioAction(input: unknown) {
     const avatarUrl = (data.avatarUrl ?? "").trim();
     const resumeUrl = (data.resumeUrl ?? "").trim();
 
+    // If the user replaced an uploaded resume, remove the old upload so it
+    // does not continue consuming the user's storage quota.
+    const existingResumeUrl = (existingData?.resumeUrl ?? "").trim();
+
     const result = await portfolioService.updatePortfolioData(
       data.portfolioId,
       profile.id,
@@ -170,6 +175,19 @@ export async function finalizePortfolioAction(input: unknown) {
         designPreferences,
       },
     );
+
+    if (existingResumeUrl && resumeUrl && existingResumeUrl !== resumeUrl) {
+      try {
+        await uploadService.deleteFileByUrl({
+          url: existingResumeUrl,
+          profileId: profile.id,
+        });
+      } catch (cleanupError) {
+        // Portfolio save succeeded. Log cleanup failure instead of making the
+        // user's successful save look like a failure.
+        console.error("old resume cleanup failed:", cleanupError);
+      }
+    }
 
     revalidatePath(`/dashboard/portfolios/${data.portfolioId}`);
     revalidatePath(`/dashboard/portfolios/${data.portfolioId}/edit`);

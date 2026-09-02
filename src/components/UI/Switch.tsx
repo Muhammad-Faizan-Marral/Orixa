@@ -7,11 +7,13 @@ export function Switch({
   onChange,
   label,
   description,
+  disabled = false,
 }: {
   checked: boolean;
   onChange: (value: boolean) => void;
   label?: string;
   description?: string;
+  disabled?: boolean;
 }) {
   return (
     <label className="flex cursor-pointer items-center justify-between gap-4">
@@ -25,10 +27,13 @@ export function Switch({
         type="button"
         role="switch"
         aria-checked={checked}
+        aria-disabled={disabled}
+        disabled={disabled}
         onClick={() => onChange(!checked)}
         className={cn(
           "relative h-6 w-11 shrink-0 rounded-full transition-colors duration-200",
-          checked ? "bg-gradient-ion" : "bg-surface-3"
+          checked ? "bg-gradient-ion" : "bg-surface-3",
+          disabled && "cursor-not-allowed opacity-50"
         )}
       >
         <span

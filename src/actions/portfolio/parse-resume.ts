@@ -1,18 +1,16 @@
 "use server";
 
-import { requireProfile } from "@/lib/auth/require-profile";
 import { requireUser } from "@/lib/auth/require-user";
-
+import { requireProfile } from "@/lib/auth/require-profile";
 import { portfolioService } from "@/services/portfolio/portfolio.service";
 import { aiRequestService } from "@/services/portfolio/ai-request.service";
-import { uploadService } from "@/services/profile/upload.service";
-
 import {
   extractTextFromPdf,
   parseResumeWithGemini,
 } from "@/lib/ai/parse-resume";
 
 const MAX_RESUME_BYTES = 5 * 1024 * 1024;
+
 
 export async function parseResumeAction(formData: FormData) {
   try {
@@ -104,21 +102,9 @@ export async function parseResumeAction(formData: FormData) {
       };
     }
 
-    // 3) Upload file to storage (optional but useful for download)
-    let resumeUrl = "";
-    try {
-      const uploaded = await uploadService.uploadFile({
-        profileId: profile.id,
-        userId: user.id,
-        portfolioId,
-        type: "resume",
-        file,
-      });
-      resumeUrl = uploaded.url ?? uploaded.upload.url ?? "";
-    } catch (err) {
-      console.error("resume upload after parse:", err);
-      // parse success still return — user form fill ho jaye
-    }
+    // IMPORTANT: the source resume is temporary for parsing only.
+    // Do NOT upload/store it. The browser/server buffer is discarded after
+    // this request finishes, while the extracted data is kept in the form.
 
     // Attach ids for form repeaters
     const withIds = {
@@ -148,7 +134,6 @@ export async function parseResumeAction(formData: FormData) {
         id: crypto.randomUUID(),
         ...c,
       })),
-      resumeUrl,
     };
 
     return {

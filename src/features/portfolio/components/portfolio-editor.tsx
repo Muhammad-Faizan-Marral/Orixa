@@ -1,8 +1,12 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 
 import { updatePortfolioData } from "@/actions/portfolio/update-portfolio-data";
+import { uploadFile } from "@/actions/profile/upload-file";
+import { deleteUpload } from "@/actions/profile/delete-upload";
+import { getUploads } from "@/actions/profile/get-uploads";
+import { generateAndAttachResume } from "@/actions/portfolio/generate-resume";
 import { cn } from "@/lib/utils";
 
 import { Input } from "@/components/UI/Input";
@@ -181,6 +185,17 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
     data?.certificates ?? [],
   );
   const [resumeUrl, setResumeUrl] = useState(data?.resumeUrl ?? "");
+  const [uploadedResumeId, setUploadedResumeId] = useState<string | null>(null);
+  const [uploadedResumeUrl, setUploadedResumeUrl] = useState<string | null>(null);
+  const [hasUploadedResume, setHasUploadedResume] = useState(false);
+  const [attachUploadedResume, setAttachUploadedResume] = useState(
+    Boolean(data?.resumeUrl),
+  );
+  const [autoGenerateResume, setAutoGenerateResume] = useState(
+    !Boolean(data?.resumeUrl),
+  );
+  const [isResumeBusy, setIsResumeBusy] = useState(false);
+
   const [theme, setTheme] = useState(data?.theme ?? "minimal");
   const [animations, setAnimations] = useState(data?.animations ?? true);
 
@@ -202,6 +217,43 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
     borderRadius: (data?.designPreferences?.borderRadius as string) ?? "medium",
     cardStyle: (data?.designPreferences?.cardStyle as string) ?? "bordered",
   });
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const result = await getUploads({
+          type: "resume",
+          portfolioId: portfolio.id,
+        });
+
+        if (cancelled || !result.success) return;
+
+        const current = data?.resumeUrl
+          ? result.data.find((item) => item.url === data.resumeUrl)
+          : null;
+        const latest = current ?? result.data[0] ?? null;
+
+        if (!latest) return;
+
+        setUploadedResumeId(latest.id);
+        setUploadedResumeUrl(latest.url);
+        setHasUploadedResume(true);
+
+        if (data?.resumeUrl && latest.url === data.resumeUrl) {
+          setAttachUploadedResume(true);
+          setAutoGenerateResume(false);
+        }
+      } catch (error) {
+        console.error("load editor resumes:", error);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [portfolio.id, data?.resumeUrl]);
 
   const [seo, setSeo] = useState({
     title: (data?.seo?.title as string) ?? portfolio.title,
@@ -354,37 +406,142 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
     setSeo((current) => ({ ...current, [field]: value }));
   }
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setMessage(null);
+    setIsResumeBusy(autoGenerateResume || attachUploadedResume);
+
+    startTransition(async () => {
+      try {
+        let finalResumeUrl = (data?.resumeUrl ?? resumeUrl ?? "").trim();
+
+        if (autoGenerateResume) {
+          finalResumeUrl = "";
+        } else if (attachUploadedResume) {
+          finalResumeUrl = (uploadedResumeUrl || resumeUrl || "").trim();
+        }
+
+        const result = await updatePortfolioData({
+          portfolioId: portfolio.id,
+          headline,
+          about,
+          projects,
+          experience,
+          skills,
+          education,
+          certificates,
+          resumeUrl: finalResumeUrl,
+          theme,
+          animations,
+          componentSelection,
+          designPreferences,
+          seo,
+        });
+
+        if (!result.success) {
+          setMessage({
+            type: "error",
+            text: result.message ?? "Unable to save portfolio.",
+          });
+          return;
+        }
+
+        if (autoGenerateResume) {
+          const generated = await generateAndAttachResume(
+            portfolio.id,
+            data?.resumeUrl ?? resumeUrl,
+          );
+
+          if (!generated.success || !generated.data?.resumeUrl) {
+            throw new Error(
+              generated.message ?? "Portfolio saved, but resume generation failed.",
+            );
+          }
+
+          setResumeUrl(generated.data.resumeUrl);
+          setAutoGenerateResume(false);
+          setAttachUploadedResume(false);
+        } else if (attachUploadedResume && uploadedResumeUrl) {
+          setResumeUrl(uploadedResumeUrl);
+          setAttachUploadedResume(false);
+        }
+
+        setMessage({ type: "success", text: "Portfolio saved successfully." });
+      } catch (error) {
+        setMessage({
+          type: "error",
+          text: error instanceof Error ? error.message : "Unable to save portfolio.",
+        });
+      } finally {
+        setIsResumeBusy(false);
+      }
+    });
+  }
+
+  function handleResumeUpload(file: File | null, input: HTMLInputElement) {
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("type", "resume");
+    formData.append("portfolioId", portfolio.id);
+
+    setIsResumeBusy(true);
     setMessage(null);
 
     startTransition(async () => {
-      const result = await updatePortfolioData({
-        portfolioId: portfolio.id,
-        headline,
-        about,
-        projects,
-        experience,
-        skills,
-        education,
-        certificates,
-        resumeUrl,
-        theme,
-        animations,
-        componentSelection,
-        designPreferences,
-        seo,
-      });
+      try {
+        const result = await uploadFile(formData);
 
-      if (!result.success) {
+        if (!result.success || !result.data?.url) {
+          throw new Error(result.message ?? "Unable to upload resume.");
+        }
+
+        setUploadedResumeId(result.data.id);
+        setUploadedResumeUrl(result.data.url);
+        setHasUploadedResume(true);
+        setAttachUploadedResume(false);
+        setAutoGenerateResume(false);
+        setMessage({ type: "success", text: "Resume uploaded. Enable attach to use it." });
+      } catch (error) {
         setMessage({
           type: "error",
-          text: result.message ?? "Unable to save portfolio.",
+          text: error instanceof Error ? error.message : "Unable to upload resume.",
         });
-        return;
+      } finally {
+        setIsResumeBusy(false);
+        input.value = "";
       }
+    });
+  }
 
-      setMessage({ type: "success", text: "Portfolio saved successfully." });
+  function handleRemoveUploadedResume() {
+    if (!uploadedResumeId) return;
+
+    setIsResumeBusy(true);
+    setMessage(null);
+
+    startTransition(async () => {
+      try {
+        const result = await deleteUpload(uploadedResumeId);
+        if (!result.success) throw new Error(result.message ?? "Unable to delete resume.");
+
+        const removedCurrent = uploadedResumeUrl && resumeUrl === uploadedResumeUrl;
+        setUploadedResumeId(null);
+        setUploadedResumeUrl(null);
+        setHasUploadedResume(false);
+        setAttachUploadedResume(false);
+        if (removedCurrent) setResumeUrl("");
+        setAutoGenerateResume(true);
+        setMessage({ type: "success", text: "Uploaded resume removed." });
+      } catch (error) {
+        setMessage({
+          type: "error",
+          text: error instanceof Error ? error.message : "Unable to delete resume.",
+        });
+      } finally {
+        setIsResumeBusy(false);
+      }
     });
   }
 
@@ -764,17 +921,106 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
         )}
 
         {activeSection === "resume" && (
-          <section className="surface-card space-y-4 p-6">
-            <h2 className="text-h3">Resume</h2>
-            <p className="text-small">
-              Upload your resume from the Assets panel below — the URL fills in
-              automatically.
-            </p>
-            <Input
-              value={resumeUrl}
-              onChange={(e) => setResumeUrl(e.target.value)}
-              placeholder="Resume URL"
-            />
+          <section className="surface-card space-y-5 p-6">
+            <div>
+              <h2 className="text-h3">Resume</h2>
+              <p className="text-small mt-1 text-muted-foreground">
+                Upload a resume, explicitly attach it, or create one from your
+                portfolio form data.
+              </p>
+            </div>
+
+            {resumeUrl && (
+              <div className="space-y-2 rounded-lg border border-border bg-surface-2 p-4">
+                <p className="text-label">Current resume</p>
+                <a
+                  href={resumeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-small break-all text-primary underline"
+                >
+                  View / download resume
+                </a>
+              </div>
+            )}
+
+            <div className="grid gap-3 md:grid-cols-3">
+              <label className="surface-panel flex cursor-pointer flex-col gap-3 p-4">
+                <div>
+                  <p className="text-label">1. Upload resume</p>
+                  <p className="text-small mt-1 text-muted-foreground">
+                    PDF only · max 5MB. Uploading does not attach it yet.
+                  </p>
+                </div>
+                <input
+                  type="file"
+                  accept="application/pdf,.pdf"
+                  disabled={isResumeBusy}
+                  onChange={(e) => handleResumeUpload(e.target.files?.[0] ?? null, e.target)}
+                  className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-md file:border-0 file:bg-primary/10 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-primary"
+                />
+              </label>
+
+              <div className="surface-panel flex flex-col justify-between gap-4 p-4">
+                <div>
+                  <p className="text-label">2. Attach uploaded resume</p>
+                  <p className="text-small mt-1 text-muted-foreground">
+                    Disabled until a device resume exists.
+                  </p>
+                </div>
+                <Switch
+                  checked={attachUploadedResume}
+                  disabled={!hasUploadedResume || autoGenerateResume || isResumeBusy}
+                  onChange={(value) => {
+                    setAttachUploadedResume(value);
+                    if (value) setAutoGenerateResume(false);
+                  }}
+                  label="Attach this resume to portfolio"
+                />
+              </div>
+
+              <div className="surface-panel flex flex-col justify-between gap-4 p-4">
+                <div>
+                  <p className="text-label">3. Create resume from form data</p>
+                  <p className="text-small mt-1 text-muted-foreground">
+                    Generate and automatically attach a PDF from your saved form data.
+                  </p>
+                </div>
+                <Switch
+                  checked={autoGenerateResume}
+                  disabled={isResumeBusy}
+                  onChange={(value) => {
+                    setAutoGenerateResume(value);
+                    if (value) setAttachUploadedResume(false);
+                  }}
+                  label="Auto-generate resume from form data"
+                />
+              </div>
+            </div>
+
+            {hasUploadedResume && uploadedResumeUrl && (
+              <div className="flex flex-col gap-3 rounded-lg border border-border bg-surface-2 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                  <p className="text-label">Uploaded resume</p>
+                  <a
+                    href={uploadedResumeUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-small break-all text-primary underline"
+                  >
+                    View uploaded PDF
+                  </a>
+                </div>
+                <button
+                  type="button"
+                  disabled={isResumeBusy}
+                  onClick={handleRemoveUploadedResume}
+                  className="shrink-0 rounded-md border border-border px-3 py-2 text-sm font-medium hover:border-destructive hover:text-destructive disabled:opacity-50"
+                >
+                  Remove uploaded resume
+                </button>
+              </div>
+            )}
           </section>
         )}
 

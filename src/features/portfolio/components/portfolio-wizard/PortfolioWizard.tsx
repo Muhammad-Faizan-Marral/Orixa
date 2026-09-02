@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { CreationModeSelect } from "../creation-mode-select";
@@ -11,6 +11,8 @@ import { parseResumeAction } from "@/actions/portfolio/parse-resume";
 import { finalizePortfolioAction } from "@/actions/portfolio/finalize-portfolio";
 import { generateAndAttachResume } from "@/actions/portfolio/generate-resume";
 import { uploadFile } from "@/actions/profile/upload-file";
+import { deleteUpload } from "@/actions/profile/delete-upload";
+import { getUploads } from "@/actions/profile/get-uploads";
 
 import { Button } from "@/components/UI/Button";
 
@@ -104,18 +106,63 @@ export function PortfolioWizard({
   // Resume
   // ---------------------------------------------------------------------------
 
+  // `resumeUrl` is the resume currently attached to the portfolio.
   const [resumeUrl, setResumeUrl] = useState(data?.resumeUrl ?? "");
-  const [hasUploadedResume, setHasUploadedResume] = useState(
-    Boolean(data?.resumeUrl),
+
+  // A device-uploaded resume is kept separately until the user explicitly
+  // enables "Attach this resume to portfolio".
+  const [uploadedResumeId, setUploadedResumeId] = useState<string | null>(null);
+  const [uploadedResumeUrl, setUploadedResumeUrl] = useState<string | null>(null);
+  const [hasUploadedResume, setHasUploadedResume] = useState(false);
+  const [attachUploadedResume, setAttachUploadedResume] = useState(false);
+  const [autoGenerateResume, setAutoGenerateResume] = useState(
+    !Boolean(data?.resumeUrl),
   );
-  const [attachUploadedResume, setAttachUploadedResume] = useState(
-    Boolean(data?.resumeUrl),
-  );
-  const [autoGenerateResume, setAutoGenerateResume] = useState(false);
 
   const [isParsingResume, setIsParsingResume] = useState(false);
   const [isUploadingResume, setIsUploadingResume] = useState(false);
   const [isGeneratingResume, setIsGeneratingResume] = useState(false);
+
+  // Find an existing portfolio-scoped uploaded resume. Generated PDFs are not
+  // stored in `uploads`, so a resume URL with no matching upload is treated as
+  // an auto-generated resume.
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const result = await getUploads({
+          type: "resume",
+          portfolioId: portfolio.id,
+        });
+
+        if (cancelled || !result.success) return;
+
+        const uploads = result.data;
+        const current = data?.resumeUrl
+          ? uploads.find((item) => item.url === data.resumeUrl)
+          : null;
+        const latest = current ?? uploads[0] ?? null;
+
+        if (!latest) return;
+
+        setUploadedResumeId(latest.id);
+        setUploadedResumeUrl(latest.url);
+        setHasUploadedResume(true);
+
+        if (data?.resumeUrl && latest.url === data.resumeUrl) {
+          setAttachUploadedResume(true);
+          setAutoGenerateResume(false);
+        }
+      } catch (error) {
+        console.error("load portfolio resumes:", error);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [portfolio.id, data?.resumeUrl]);
 
   // ---------------------------------------------------------------------------
   // SEO
@@ -245,12 +292,6 @@ export function PortfolioWizard({
         setEducation(parsed.education);
         setCertificates(parsed.certificates);
 
-        if (parsed.resumeUrl) {
-          setResumeUrl(parsed.resumeUrl);
-          setHasUploadedResume(true);
-          setAttachUploadedResume(true);
-        }
-
         setMode("resume");
         setStage("content");
         setCurrentStepIndex(0);
@@ -296,9 +337,13 @@ export function PortfolioWizard({
           throw new Error(result.message || "Failed to upload resume.");
         }
 
-        setResumeUrl(result.data.url);
+        // New device upload is only "available" at first. The user must
+        // explicitly enable the attach toggle before it becomes the portfolio
+        // resume.
+        setUploadedResumeId(result.data.id);
+        setUploadedResumeUrl(result.data.url);
         setHasUploadedResume(true);
-        setAttachUploadedResume(true);
+        setAttachUploadedResume(false);
         setAutoGenerateResume(false);
       } catch (err) {
         const text =
@@ -313,6 +358,34 @@ export function PortfolioWizard({
     },
     [portfolio.id],
   );
+
+  const handleRemoveUploadedResume = useCallback(async () => {
+    if (!uploadedResumeId) return;
+
+    setMessage(null);
+
+    try {
+      const result = await deleteUpload(uploadedResumeId);
+      if (!result.success) {
+        throw new Error(result.message || "Unable to delete resume.");
+      }
+
+      setUploadedResumeId(null);
+      setUploadedResumeUrl(null);
+      setHasUploadedResume(false);
+      setAttachUploadedResume(false);
+      setResumeUrl(
+        uploadedResumeUrl && resumeUrl === uploadedResumeUrl ? "" : resumeUrl,
+      );
+      setAutoGenerateResume(true);
+      setMessage({ type: "success", text: "Uploaded resume removed." });
+    } catch (error) {
+      setMessage({
+        type: "error",
+        text: error instanceof Error ? error.message : "Unable to delete resume.",
+      });
+    }
+  }, [uploadedResumeId, uploadedResumeUrl, resumeUrl]);
 
   // ---------------------------------------------------------------------------
   // Step navigation
@@ -354,14 +427,14 @@ export function PortfolioWizard({
     setIsSubmitting(true);
 
     try {
-      // Resume URL priority: auto-generate (empty for now, filled after
-      // generation) > attach uploaded/parsed resume > none.
-      let finalResumeUrl = "";
+      // Keep the current attached resume unless the user explicitly chooses
+      // auto-generate or attaches a newly uploaded resume.
+      let finalResumeUrl = (data?.resumeUrl ?? resumeUrl ?? "").trim();
 
       if (autoGenerateResume) {
         finalResumeUrl = "";
       } else if (attachUploadedResume) {
-        finalResumeUrl = (resumeUrl || data?.resumeUrl || "").trim();
+        finalResumeUrl = (uploadedResumeUrl || resumeUrl || "").trim();
       }
 
       const keywords = seoKeywords
@@ -418,7 +491,10 @@ export function PortfolioWizard({
       if (autoGenerateResume) {
         setIsGeneratingResume(true);
 
-        const generateResult = await generateAndAttachResume(portfolio.id);
+        const generateResult = await generateAndAttachResume(
+          portfolio.id,
+          data?.resumeUrl ?? resumeUrl,
+        );
 
         if (!generateResult.success) {
           throw new Error(
@@ -429,9 +505,11 @@ export function PortfolioWizard({
 
         if (generateResult.data?.resumeUrl) {
           setResumeUrl(generateResult.data.resumeUrl);
-          setHasUploadedResume(true);
-          setAttachUploadedResume(true);
+          setAttachUploadedResume(false);
           setAutoGenerateResume(false);
+          setUploadedResumeId(null);
+          setUploadedResumeUrl(null);
+          setHasUploadedResume(false);
         }
       }
 
@@ -565,6 +643,7 @@ export function PortfolioWizard({
           <ResumeStep
             mode={mode}
             resumeUrl={resumeUrl}
+            uploadedResumeUrl={uploadedResumeUrl}
             hasUploadedResume={hasUploadedResume}
             attachUploadedResume={attachUploadedResume}
             setAttachUploadedResume={setAttachUploadedResume}
@@ -572,6 +651,7 @@ export function PortfolioWizard({
             setAutoGenerateResume={setAutoGenerateResume}
             parsing={isUploadingResume}
             onResumeFileSelected={handleResumeStepUpload}
+            onRemoveUploadedResume={handleRemoveUploadedResume}
           />
         );
 

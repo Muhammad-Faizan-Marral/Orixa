@@ -6,12 +6,10 @@ import { requireUser } from "@/lib/auth/require-user";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { portfolioService } from "@/services/portfolio/portfolio.service";
 import { generateResumePdf } from "@/lib/resume/generate-resume-pdf";
-import {
-  PRIVATE_UPLOAD_BUCKET,
-  PUBLIC_UPLOAD_BUCKET,
-} from "@/features/profile/upload.constants";
+import { uploadService } from "@/services/profile/upload.service";
+import { PUBLIC_UPLOAD_BUCKET } from "@/features/profile/upload.constants";
 
-export async function generateAndAttachResume(portfolioId: string) {
+export async function generateAndAttachResume(portfolioId: string, previousResumeUrl?: string) {
   try {
     const user = await requireUser();
     const profile = await requireProfile();
@@ -67,6 +65,31 @@ export async function generateAndAttachResume(portfolioId: string) {
       data: { publicUrl },
     } = supabaseAdmin.storage.from(bucket).getPublicUrl(path);
 
+    // Only after the new PDF is safely stored do we remove the previous
+    // generated PDF. Uploaded resumes are tracked separately in `uploads`.
+    const oldResumeUrl =
+      typeof previousResumeUrl === "string" && previousResumeUrl.trim()
+        ? previousResumeUrl.trim()
+        : typeof d.resumeUrl === "string"
+          ? d.resumeUrl.trim()
+          : "";
+    const previousPrefix = `/storage/v1/object/public/${bucket}/portfolios/${user.id}/${portfolioId}/resume/generated-`;
+    if (oldResumeUrl.includes(previousPrefix)) {
+      const marker = `/storage/v1/object/public/${bucket}/`;
+      const markerIndex = oldResumeUrl.indexOf(marker);
+      if (markerIndex >= 0) {
+        const previousPath = decodeURIComponent(
+          oldResumeUrl.slice(markerIndex + marker.length).split("?")[0],
+        );
+        if (previousPath.startsWith(`portfolios/${user.id}/${portfolioId}/resume/generated-`)) {
+          const { error: cleanupError } = await supabaseAdmin.storage
+            .from(bucket)
+            .remove([previousPath]);
+          if (cleanupError) console.error("old generated resume cleanup:", cleanupError);
+        }
+      }
+    }
+
     await portfolioService.updatePortfolioData(portfolioId, profile.id, {
       portfolioId,
       name: (d.name as string) || "",
@@ -89,6 +112,17 @@ export async function generateAndAttachResume(portfolioId: string) {
       designPreferences: (d.designPreferences as any) || {},
       seo: (d.seo as any) || {},
     });
+
+    if (oldResumeUrl && oldResumeUrl !== publicUrl && !oldResumeUrl.includes(previousPrefix)) {
+      try {
+        await uploadService.deleteFileByUrl({
+          url: oldResumeUrl,
+          profileId: profile.id,
+        });
+      } catch (cleanupError) {
+        console.error("old uploaded resume cleanup:", cleanupError);
+      }
+    }
 
     revalidatePath(`/dashboard/portfolios/${portfolioId}`);
     revalidatePath(`/dashboard/portfolios/${portfolioId}/edit`);

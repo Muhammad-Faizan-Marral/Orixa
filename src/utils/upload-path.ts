@@ -1,7 +1,6 @@
 import { randomUUID } from "crypto";
 
 import {
-  PRIVATE_UPLOAD_BUCKET,
   PUBLIC_UPLOAD_BUCKET,
   type UploadType,
 } from "@/features/profile/upload.constants";
@@ -40,8 +39,11 @@ export function createUploadPath(params: {
   }
 
   if (params.type === "resume") {
+    // A resume that the user can attach to a public portfolio must have a
+    // stable public URL. It is still portfolio-scoped and can be deleted
+    // immediately when the user removes it.
     return {
-      bucket: PRIVATE_UPLOAD_BUCKET,
+      bucket: PUBLIC_UPLOAD_BUCKET,
       path: `portfolios/${params.userId}/${params.portfolioId}/resume/${id}.${extension}`,
     };
   }

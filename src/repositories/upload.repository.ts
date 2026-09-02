@@ -108,6 +108,22 @@ export class UploadRepository {
     return upload ?? null;
   }
 
+  async findByUrl(url: string, profileId: string) {
+    const [upload] = await db
+      .select()
+      .from(uploads)
+      .where(
+        and(
+          eq(uploads.profileId, profileId),
+          eq(uploads.url, url),
+          eq(uploads.status, "active"),
+        ),
+      )
+      .limit(1);
+
+    return upload ?? null;
+  }
+
   async findByProfileId(profileId: string) {
     return db
       .select()
