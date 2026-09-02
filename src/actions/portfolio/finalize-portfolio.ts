@@ -24,7 +24,6 @@ export async function finalizePortfolioAction(input: unknown) {
     }
 
     const data = parsed.data;
-    console.log(data);
     const portfolio = await portfolioService.getPortfolioForUser(
       data.portfolioId,
       profile.id,
@@ -52,18 +51,18 @@ export async function finalizePortfolioAction(input: unknown) {
       await aiRequestService.recordUsage({
         portfolioId: data.portfolioId,
         requestType: "design_decision",
-        model: "gemini-3.5-flash-lite",
+        model: "meta-llama/llama-3.1-8b-instruct",
         inputTokens: design.inputTokens,
         outputTokens: design.outputTokens,
         latencyMs: design.latencyMs,
         status: "success",
-      }); 
+      });
     } else if (finalPrompt.trim()) {
       // Prompt tha lekin AI fail → log as failed
       await aiRequestService.recordUsage({
         portfolioId: data.portfolioId,
         requestType: "design_decision",
-        model: "gemini-3.5-flash-lite",
+        model: "meta-llama/llama-3.1-8b-instruct",
         status: "failed",
       });
     }

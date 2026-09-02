@@ -226,12 +226,12 @@ ${clipped}
     };
   } catch (err) {
     console.error("[parseResumeWithGemini]", err);
-    return {
+      return {
       data: null,
       isValid: false,
       errorMessage:
-        err instanceof Error && err.message.includes("GEMINI_API_KEY")
-          ? "GEMINI_API_KEY configure nahi hai."
+        err instanceof Error && err.message.includes("OPENROUTER_API_KEY")
+          ? "OPENROUTER_API_KEY configure nahi hai."
           : err instanceof Error
             ? err.message
             : "Resume AI parse fail. Dobara try karein.",

@@ -50,13 +50,9 @@ function isEnabled(
   return s.enabled !== false;
 }
 
-export function DesignEngine({
-  config,
-  profile,
-}: {
-  config: PortfolioRenderConfig;
-  profile: PublicProfileMeta;
-}) {
+
+export function DesignEngine({ config, profile}: {config: PortfolioRenderConfig;profile: PublicProfileMeta}) {
+
   const selection = resolveSelection(config.componentSelection);
   const design = resolveDesign(config.designPreferences);
   const maxW = layoutMaxWidth(design.layout);

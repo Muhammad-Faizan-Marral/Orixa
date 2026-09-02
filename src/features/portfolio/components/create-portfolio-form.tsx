@@ -109,7 +109,7 @@ export function CreatePortfolioForm() {
         </div>
       </div>
 
-      <Input
+      {/* <Input
         id="headline"
         label="Headline (optional)"
         {...register("headline")}
@@ -124,7 +124,7 @@ export function CreatePortfolioForm() {
         placeholder="Short intro — you can expand this later in the wizard…"
         rows={3}
         error={errors.about?.message}
-      />
+      /> */}
 
       {serverError && (
         <p
