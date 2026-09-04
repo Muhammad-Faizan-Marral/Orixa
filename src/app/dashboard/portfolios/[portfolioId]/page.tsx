@@ -45,6 +45,10 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
   const analytics = await portfolioViewService.getAnalytics( portfolioId,profile.id);
 
   const status = portfolio.status as "draft" | "published" | "archived";
+  const versions = await portfolioService.getPortfolioVersions(portfolioId, profile.id);
+  const currentVersion = versions.find((version) => version.version === portfolio.currentVersion) ?? null;
+  const hasSavedVersion = Boolean(currentVersion);
+  const hasUnpublishedChanges = Boolean(currentVersion && !currentVersion.published);
 
   return (
     <div className="space-y-8">
@@ -77,6 +81,8 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
           <PortfolioLifecycleActions
             portfolioId={portfolio.id}
             status={status}
+            hasSavedVersion={hasSavedVersion}
+            hasUnpublishedChanges={hasUnpublishedChanges}
           />
         </div>
       </div>

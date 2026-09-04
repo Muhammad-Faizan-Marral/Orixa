@@ -1,6 +1,5 @@
 "use server";
 
-import { requireUser } from "@/lib/auth/require-user";
 import { requireProfile } from "@/lib/auth/require-profile";
 import { portfolioService } from "@/services/portfolio/portfolio.service";
 import { aiRequestService } from "@/services/portfolio/ai-request.service";
@@ -10,7 +9,6 @@ import {
 } from "@/lib/ai/parse-resume";
 
 const MAX_RESUME_BYTES = 5 * 1024 * 1024;
-
 
 export async function parseResumeAction(formData: FormData) {
   try {

@@ -13,6 +13,7 @@ import { generateAndAttachResume } from "@/actions/portfolio/generate-resume";
 import { uploadFile } from "@/actions/profile/upload-file";
 import { deleteUpload } from "@/actions/profile/delete-upload";
 import { getUploads } from "@/actions/profile/get-uploads";
+import { createWorkingPortfolioVersion } from "@/actions/portfolio/create-working-version";
 
 import { Button } from "@/components/UI/Button";
 
@@ -513,7 +514,13 @@ export function PortfolioWizard({
         }
       }
 
+      const versionResult = await createWorkingPortfolioVersion(portfolio.id);
+      if (!versionResult.success) {
+        throw new Error(versionResult.message ?? "Portfolio saved, but version creation failed.");
+      }
+
       setMessage({ type: "success", text: "Portfolio saved successfully." });
+      
       router.refresh();
     } catch (err) {
       const text =

@@ -34,9 +34,9 @@ export default async function VersionsPage({ params }: VersionsPageProps) {
           ← {portfolio.title}
         </Link>
         <p className="text-caption text-accent">Version history</p>
-        <h1 className="text-h1 mt-2">Published snapshots</h1>
+        <h1 className="text-h1 mt-2">Version history</h1>
         <p className="text-body mt-1 text-muted-foreground">
-          Every publish creates a new version. Editing never changes a past snapshot.
+          Every successful save creates a new working version. Publishing only changes which existing version is live.
         </p>
       </div>
 
@@ -47,7 +47,7 @@ export default async function VersionsPage({ params }: VersionsPageProps) {
           </span>
           <h3 className="text-h3">No published versions yet</h3>
           <p className="text-body max-w-sm text-muted-foreground">
-            Publish your portfolio to create your first version snapshot.
+            Save your portfolio from the editor to create your first version snapshot.
           </p>
         </div>
       ) : (
@@ -73,6 +73,11 @@ export default async function VersionsPage({ params }: VersionsPageProps) {
                       {version.published && (
                         <Badge variant="success" dot>
                           Live
+                        </Badge>
+                      )}
+                      {version.version === portfolio.currentVersion && !version.published && (
+                        <Badge variant="outline" dot>
+                          Current working version
                         </Badge>
                       )}
                     </div>

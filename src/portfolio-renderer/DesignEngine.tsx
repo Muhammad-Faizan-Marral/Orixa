@@ -26,19 +26,13 @@ import type {
 function resolveSelection(
   incoming?: RendererComponentSelection | null,
 ): RendererComponentSelection {
-  return {
-    ...DEFAULT_COMPONENT_SELECTION,
-    ...(incoming ?? {}),
-  };
+  return { ...DEFAULT_COMPONENT_SELECTION, ...(incoming ?? {}) };
 }
 
 function resolveDesign(
   incoming?: RendererDesignPreferences | null,
 ): RendererDesignPreferences {
-  return {
-    ...DEFAULT_DESIGN_PREFERENCES,
-    ...(incoming ?? {}),
-  };
+  return { ...DEFAULT_DESIGN_PREFERENCES, ...(incoming ?? {}) };
 }
 
 function isEnabled(
@@ -50,9 +44,13 @@ function isEnabled(
   return s.enabled !== false;
 }
 
-
-export function DesignEngine({ config, profile}: {config: PortfolioRenderConfig;profile: PublicProfileMeta}) {
-
+export function DesignEngine({
+  config,
+  profile,
+}: {
+  config: PortfolioRenderConfig;
+  profile: PublicProfileMeta;
+}) {
   const selection = resolveSelection(config.componentSelection);
   const design = resolveDesign(config.designPreferences);
   const maxW = layoutMaxWidth(design.layout);

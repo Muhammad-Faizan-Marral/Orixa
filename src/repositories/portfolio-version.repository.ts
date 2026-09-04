@@ -61,6 +61,166 @@ export class PortfolioVersionRepository {
       .where(eq(portfolioVersions.portfolioId, portfolioId));
   }
 
+  async createWorkingVersion(portfolioId: string, profileId: string) {
+    return db.transaction(async (tx) => {
+      const [portfolio] = await tx
+        .select()
+        .from(portfolios)
+        .where(
+          and(
+            eq(portfolios.id, portfolioId),
+            eq(portfolios.profileId, profileId),
+          ),
+        )
+        .limit(1);
+
+      if (!portfolio) return null;
+
+      const [data] = await tx
+        .select()
+        .from(portfolioData)
+        .where(eq(portfolioData.portfolioId, portfolioId))
+        .limit(1);
+
+      if (!data) {
+        throw new Error("Portfolio data not found.");
+      }
+
+      const [latest] = await tx
+        .select({ version: portfolioVersions.version })
+        .from(portfolioVersions)
+        .where(eq(portfolioVersions.portfolioId, portfolioId))
+        .orderBy(desc(portfolioVersions.version))
+        .limit(1);
+
+      const nextVersion = (latest?.version ?? 0) + 1;
+
+      const configJson = {
+        name: data.name,
+        prompt: data.prompt,
+        avatarUrl: data.avatarUrl,
+        phone: data.phone,
+        linkedinUrl: data.linkedinUrl,
+        githubUrl: data.githubUrl,
+        headline: data.headline,
+        about: data.about,
+        projects: data.projects,
+        experience: data.experience,
+        skills: data.skills,
+        education: data.education,
+        certificates: data.certificates,
+        resumeUrl: data.resumeUrl,
+        theme: data.theme,
+        animations: data.animations,
+        componentSelection: data.componentSelection,
+        designPreferences: data.designPreferences,
+        seo: data.seo,
+      };
+
+      const [version] = await tx
+        .insert(portfolioVersions)
+        .values({
+          portfolioId,
+          version: nextVersion,
+          configJson,
+          // A save creates a working version, not a published version.
+          published: false,
+        })
+        .returning();
+
+      if (!version) {
+        throw new Error("Unable to create portfolio version.");
+      }
+
+      const now = new Date().toISOString();
+      const [updatedPortfolio] = await tx
+        .update(portfolios)
+        .set({
+          currentVersion: nextVersion,
+          updatedAt: now,
+        })
+        .where(
+          and(
+            eq(portfolios.id, portfolioId),
+            eq(portfolios.profileId, profileId),
+          ),
+        )
+        .returning();
+
+      if (!updatedPortfolio) {
+        throw new Error("Unable to update current portfolio version.");
+      }
+
+      return { portfolio: updatedPortfolio, version };
+    });
+  }
+
+  async publishCurrentVersion(portfolioId: string, profileId: string) {
+    return db.transaction(async (tx) => {
+      const [portfolio] = await tx
+        .select()
+        .from(portfolios)
+        .where(
+          and(
+            eq(portfolios.id, portfolioId),
+            eq(portfolios.profileId, profileId),
+          ),
+        )
+        .limit(1);
+
+      if (!portfolio) return null;
+
+      const [version] = await tx
+        .select()
+        .from(portfolioVersions)
+        .where(
+          and(
+            eq(portfolioVersions.portfolioId, portfolioId),
+            eq(portfolioVersions.version, portfolio.currentVersion),
+          ),
+        )
+        .limit(1);
+
+      if (!version) {
+        throw new Error("No saved portfolio version exists to publish.");
+      }
+
+      await tx
+        .update(portfolioVersions)
+        .set({ published: false })
+        .where(eq(portfolioVersions.portfolioId, portfolioId));
+
+      const [publishedVersion] = await tx
+        .update(portfolioVersions)
+        .set({ published: true })
+        .where(eq(portfolioVersions.id, version.id))
+        .returning();
+
+      const now = new Date().toISOString();
+      const [updatedPortfolio] = await tx
+        .update(portfolios)
+        .set({
+          status: "published",
+          currentVersion: version.version,
+          publishedAt: now,
+          updatedAt: now,
+        })
+        .where(
+          and(
+            eq(portfolios.id, portfolioId),
+            eq(portfolios.profileId, profileId),
+          ),
+        )
+        .returning();
+
+      if (!updatedPortfolio || !publishedVersion) {
+        throw new Error("Unable to publish portfolio version.");
+      }
+
+      return { portfolio: updatedPortfolio, version: publishedVersion };
+    });
+  }
+
   async createPublishedVersion(portfolioId: string, configJson: unknown) {
     return db.transaction(async (tx) => {
       const [latest] = await tx
@@ -197,6 +357,7 @@ export class PortfolioVersionRepository {
         .update(portfolios)
         .set({
           status: "draft",
+          currentVersion: selectedVersion.version,
           publishedAt: null,
           updatedAt: new Date().toISOString(),
         })

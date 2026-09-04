@@ -16,11 +16,18 @@ type PortfolioStatus = "draft" | "published" | "archived";
 type PortfolioLifecycleActionsProps = {
   portfolioId: string;
   status: PortfolioStatus;
+  hasSavedVersion: boolean;
+  hasUnpublishedChanges: boolean;
 };
 
 type ActionKey = "publish" | "unpublish" | "archive" | "restore" | null;
 
-export function PortfolioLifecycleActions({portfolioId,status}: PortfolioLifecycleActionsProps) {
+export function PortfolioLifecycleActions({
+  portfolioId,
+  status,
+  hasSavedVersion,
+  hasUnpublishedChanges,
+}: PortfolioLifecycleActionsProps) {
 
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -70,7 +77,7 @@ export function PortfolioLifecycleActions({portfolioId,status}: PortfolioLifecyc
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
-        {status === "draft" && (
+        {status === "draft" && hasSavedVersion && (
           <Button
             type="button"
             variant="gradient"
@@ -84,7 +91,7 @@ export function PortfolioLifecycleActions({portfolioId,status}: PortfolioLifecyc
         )}
 
         {/* KEY FIX: already published → allow new version */}
-        {status === "published" && (
+        {status === "published" && hasUnpublishedChanges && (
           <>
             <Button
               type="button"

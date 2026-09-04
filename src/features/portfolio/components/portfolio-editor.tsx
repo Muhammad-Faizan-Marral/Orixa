@@ -7,6 +7,7 @@ import { uploadFile } from "@/actions/profile/upload-file";
 import { deleteUpload } from "@/actions/profile/delete-upload";
 import { getUploads } from "@/actions/profile/get-uploads";
 import { generateAndAttachResume } from "@/actions/portfolio/generate-resume";
+import { createWorkingPortfolioVersion } from "@/actions/portfolio/create-working-version";
 import { cn } from "@/lib/utils";
 
 import { Input } from "@/components/UI/Input";
@@ -464,6 +465,11 @@ export function PortfolioEditor({ portfolio, data }: PortfolioEditorProps) {
         } else if (attachUploadedResume && uploadedResumeUrl) {
           setResumeUrl(uploadedResumeUrl);
           setAttachUploadedResume(false);
+        }
+
+        const versionResult = await createWorkingPortfolioVersion(portfolio.id);
+        if (!versionResult.success) {
+          throw new Error(versionResult.message ?? "Portfolio saved, but version creation failed.");
         }
 
         setMessage({ type: "success", text: "Portfolio saved successfully." });

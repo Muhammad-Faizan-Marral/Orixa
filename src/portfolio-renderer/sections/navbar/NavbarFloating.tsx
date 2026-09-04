@@ -7,13 +7,8 @@ const LINKS = [
   { id: "contact", label: "Contact" },
 ] as const;
 
-export function NavbarFloating({
-  config,
-  profile,
-}: {
-  config: PortfolioRenderConfig;
-  profile: PublicProfileMeta;
-}) {
+export function NavbarFloating({config,profile,}: {config: PortfolioRenderConfig;profile: PublicProfileMeta;}) {
+  
   const name = config.name || profile.fullName || profile.username;
 
   return (

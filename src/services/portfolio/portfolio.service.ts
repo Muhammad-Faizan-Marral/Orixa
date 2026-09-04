@@ -121,7 +121,7 @@ export class PortfolioService {
       );
     }
 
-    const result = await portfolioRepository.publishWithVersion(id, profileId);
+    const result = await portfolioVersionRepository.publishCurrentVersion(id, profileId);
 
     if (!result) {
       throw new Error("Unable to publish portfolio.");
@@ -255,6 +255,10 @@ export class PortfolioService {
       designPreferences: data.designPreferences,
       seo: data.seo,
     });
+  }
+
+  async createWorkingPortfolioVersion(portfolioId: string, profileId: string) {
+    return portfolioVersionRepository.createWorkingVersion(portfolioId, profileId);
   }
 
   async getPortfolioVersions(portfolioId: string, profileId: string) {
