@@ -10,3 +10,4 @@ export * from "./uploads";
 export * from "./aiRequests";
 export * from "./contactMessages";
 export * from "./relations";
+export * from "./portfolioEvents";

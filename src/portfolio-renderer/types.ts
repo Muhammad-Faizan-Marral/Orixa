@@ -1,3 +1,12 @@
+export type DesignDna =
+  | "editorial"
+  | "soft-luxury"
+  | "tech-dense"
+  | "minimal-airy"
+  | "neo-glass"
+  | "brutalist"
+  | "cinematic";
+
 export type RendererProject = {
   id?: string;
   title: string;
@@ -67,6 +76,9 @@ export type RendererDesignPreferences = {
   fontFamily?: string;
   borderRadius?: "none" | "small" | "medium" | "large";
   cardStyle?: "flat" | "bordered" | "elevated";
+  designDna?: DesignDna;
+  density?: "compact" | "comfortable" | "spacious";
+  sectionSpacing?: "tight" | "normal" | "loose";
 };
 
 export type RendererSEO = {
@@ -95,6 +107,7 @@ export type PortfolioRenderConfig = {
   componentSelection?: RendererComponentSelection;
   designPreferences?: RendererDesignPreferences;
   seo?: RendererSEO;
+  portfolioId?: string;
 };
 
 export type PublicProfileMeta = {

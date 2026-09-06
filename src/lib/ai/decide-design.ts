@@ -7,6 +7,16 @@ import {
 } from "@/features/portfolio/component-variants";
 import { generateGeminiText, parseGeminiJson } from "@/lib/ai/gemini";
 
+const dnas = [
+  "editorial",
+  "soft-luxury",
+  "tech-dense",
+  "minimal-airy",
+  "neo-glass",
+  "brutalist",
+  "cinematic",
+] as const;
+
 export type DesignDecision = {
   componentSelection: ComponentSelection;
   designPreferences: typeof DEFAULT_DESIGN_PREFERENCES;
@@ -56,6 +66,9 @@ export function randomDesignDecision(): DesignDecision {
       fontFamily: randomFrom(fonts),
       borderRadius: randomFrom(["none", "small", "medium", "large"] as const),
       cardStyle: randomFrom(["flat", "bordered", "elevated"] as const),
+      designDna: randomFrom(dnas),
+      density: randomFrom(["compact", "comfortable", "spacious"] as const),
+      sectionSpacing: randomFrom(["tight", "normal", "loose"] as const),
     },
   };
 }
@@ -87,14 +100,38 @@ function sanitizeDecision(raw: Partial<DesignDecision>): DesignDecision {
     ...(raw.designPreferences ?? {}),
   };
 
-  if (dp.themeMode !== "light" && dp.themeMode !== "dark")
-    dp.themeMode = "dark";
-  if (!["standard", "wide", "centered"].includes(dp.layout))
-    dp.layout = "standard";
-  if (!["none", "small", "medium", "large"].includes(dp.borderRadius))
-    dp.borderRadius = "medium";
-  if (!["flat", "bordered", "elevated"].includes(dp.cardStyle))
-    dp.cardStyle = "bordered";
+  // Validate standard preferences
+  if (dp.themeMode !== "light" && dp.themeMode !== "dark") {
+    dp.themeMode = DEFAULT_DESIGN_PREFERENCES.themeMode ?? "dark";
+  }
+  if (!["standard", "wide", "centered"].includes(dp.layout)) {
+    dp.layout = DEFAULT_DESIGN_PREFERENCES.layout ?? "standard";
+  }
+  if (!["none", "small", "medium", "large"].includes(dp.borderRadius)) {
+    dp.borderRadius = DEFAULT_DESIGN_PREFERENCES.borderRadius ?? "medium";
+  }
+  if (!["flat", "bordered", "elevated"].includes(dp.cardStyle)) {
+    dp.cardStyle = DEFAULT_DESIGN_PREFERENCES.cardStyle ?? "bordered";
+  }
+
+  // Validate Extended preferences (designDna, density, sectionSpacing, etc.)
+  if (!dnas.includes(dp.designDna as (typeof dnas)[number])) {
+    dp.designDna = DEFAULT_DESIGN_PREFERENCES.designDna ?? "soft-luxury";
+  }
+  if (!["compact", "comfortable", "spacious"].includes(dp.density)) {
+    dp.density = DEFAULT_DESIGN_PREFERENCES.density ?? "comfortable";
+  }
+  if (!["tight", "normal", "loose"].includes(dp.sectionSpacing)) {
+    dp.sectionSpacing = DEFAULT_DESIGN_PREFERENCES.sectionSpacing ?? "normal";
+  }
+
+  // Fallbacks for string-based fields
+  if (typeof dp.accentColor !== "string" || !dp.accentColor) {
+    dp.accentColor = DEFAULT_DESIGN_PREFERENCES.accentColor ?? "#6c5cff";
+  }
+  if (typeof dp.fontFamily !== "string" || !dp.fontFamily) {
+    dp.fontFamily = DEFAULT_DESIGN_PREFERENCES.fontFamily ?? "Inter";
+  }
 
   return { componentSelection: cs, designPreferences: dp };
 }
@@ -121,7 +158,7 @@ export async function decideDesignWithGemini(params: {
       outputTokens: 0,
       latencyMs: 0,
       usedAi: false,
-      errorMessage: "No design prompt — applied random design.",
+      errorMessage: "No design prompt !",
     };
   }
 
@@ -162,7 +199,10 @@ Return JSON exactly in this shape:
     "accentColor": "#6c5cff",
     "fontFamily": "Inter",
     "borderRadius": "medium",
-    "cardStyle": "bordered"
+    "cardStyle": "bordered",
+    "designDna": "soft-luxury",
+    "density": "comfortable",
+    "sectionSpacing": "normal"
   }
 }`;
 

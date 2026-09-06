@@ -1,10 +1,12 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Bricolage_Grotesque, JetBrains_Mono } from "next/font/google";
+
 import { ThemeProvider } from "@/components/theme-provider";
 import { LocaleProvider } from "@/components/locale-provider";
+import { TimezoneProvider } from "@/components/timezone-provider";
 import { THEME_INIT_SCRIPT } from "@/lib/theme";
 import { LOCALE_INIT_SCRIPT } from "@/i18n/locale";
-import { TimezoneProvider } from "@/components/timezone-provider";
+
 import "./globals.css";
 
 const inter = Inter({
@@ -31,7 +33,7 @@ export const metadata: Metadata = {
     template: "%s · Orixa AI",
   },
   description:
-    "Orixa AI is an AI-powered portfolio builder for developers, designers and students. Create, customize and publish a professional portfolio in minutes — no code required.",
+    "Orixa AI is an AI-powered portfolio builder for developers, designers and students.",
 };
 
 export const viewport: Viewport = {
@@ -54,6 +56,7 @@ export default function RootLayout({
     >
       <head>
         <script
+          suppressHydrationWarning
           dangerouslySetInnerHTML={{
             __html: `${THEME_INIT_SCRIPT}${LOCALE_INIT_SCRIPT}`,
           }}

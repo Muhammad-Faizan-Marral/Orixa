@@ -44,9 +44,11 @@ export async function sendContactMessage(
           : "",
 
       website:
-        typeof formData.get("website") === "string"
-          ? String(formData.get("website"))
-          : "",
+        typeof formData.get("fax_number") === "string"
+          ? String(formData.get("fax_number"))
+          : typeof formData.get("website") === "string"
+            ? String(formData.get("website"))
+            : "",
     });
 
     return {
@@ -56,15 +58,13 @@ export async function sendContactMessage(
   } catch (error) {
     console.error("[CONTACT_FORM]", error);
 
-    /*
-     * Don't expose internal errors to visitor.
-     */
     if (
       error instanceof Error &&
       (error.message.includes("Name must") ||
         error.message.includes("Email") ||
         error.message.includes("Subject") ||
-        error.message.includes("Message"))
+        error.message.includes("Message") ||
+        error.message.includes("Please wait"))
     ) {
       return {
         success: false,

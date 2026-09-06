@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { profileService } from "@/services/profile/profile.service";
 import { portfolioService } from "@/services/portfolio/portfolio.service";
+import { isProfilePublicByUsername } from "@/services/profile/public-access.service";
 import { socialLinkService } from "@/services/profile/social-link.service";
 
 import { SocialLinksRow } from "@/features/public-profile/components/social-links-row";
@@ -16,9 +16,9 @@ export async function generateMetadata({
   params,
 }: PublicProfilePageProps): Promise<Metadata> {
   const { username } = await params;
-  const profile = await profileService.getProfileByUsername(username);
+  const { profile, isPublic } = await isProfilePublicByUsername(username);
 
-  if (!profile) return { title: "Profile not found" };
+  if (!profile || !isPublic) return { title: "Profile not found" };
 
   const name = profile.fullName || profile.username;
 
@@ -34,16 +34,24 @@ export default async function PublicProfilePage({
 }: PublicProfilePageProps) {
   const { username } = await params;
 
-  const profile = await profileService.getProfileByUsername(username);
-  if (!profile) notFound();
+  const { profile, isPublic } = await isProfilePublicByUsername(username);
+
+  // Profile exist na kare ya private ho -> 404 return karein
+  if (!profile || !isPublic) {
+    notFound();
+  }
 
   const [portfolios, socialLinks] = await Promise.all([
     portfolioService.getUserPortfolios(profile.id),
     socialLinkService.getSocialLinks(profile.id),
   ]);
 
-  const publishedPortfolios = portfolios.filter((p) => p.status === "published");
-  const initials = (profile.fullName ?? profile.username).slice(0, 1).toUpperCase();
+  const publishedPortfolios = portfolios.filter(
+    (p) => p.status === "published",
+  );
+  const initials = (profile.fullName ?? profile.username)
+    .slice(0, 1)
+    .toUpperCase();
 
   return (
     <main className="bg-aurora relative min-h-screen overflow-hidden px-4 py-20">

@@ -1,14 +1,24 @@
 export const SECTION_VARIANTS = {
-  navbar: ["minimal", "floating"] as const,
-  hero: ["modern", "minimal", "creative", "centered", "split"] as const,
-  about: ["default", "split", "cards"] as const,
-  skills: ["grid", "list", "tags", "bars"] as const,
-  projects: ["cards", "list", "featured", "masonry"] as const,
-  experience: ["timeline", "cards", "compact"] as const,
-  education: ["simple", "detailed", "timeline"] as const,
-  certificates: ["simple", "grid", "badges"] as const,
-  contact: ["form", "simple", "split"] as const,
-  footer: ["minimal", "detailed"] as const,
+  navbar: ["minimal", "floating", "glass"] as const,
+
+  hero: [ "modern", "minimal", "creative", "centered", "split", "editorial", "cinematic", "brutalist",  ] as const,
+
+  about: [ "default", "split", "cards", "editorial", "story", "portrait",  ] as const,
+
+  skills: [ "grid", "list", "tags", "bars", "cloud", "progress", "cards",  ] as const,
+
+  projects: [ "cards", "list", "featured", "masonry", "showcase", "bento", "cinema",  ] as const,
+
+  experience: [ "timeline", "cards", "compact", "rail", "stack", "editorial",  ] as const,
+
+  education: [ "simple", "detailed", "timeline", "rail", "cards", "editorial",  ] as const,
+
+  certificates: [ "simple", "grid", "badges", "showcase", "wall", "minimal-grid",  ] as const,
+
+  contact: [ "form", "simple", "split", "magnetic", "split-motion", "glass",  ] as const,
+
+  footer: ["minimal", "detailed", "editorial", "mega"] as const,
+  
 } as const;
 
 // DEFAULT_COMPONENT_SELECTION mein add:
@@ -45,6 +55,16 @@ export const DEFAULT_DESIGN_PREFERENCES = {
   fontFamily: "Inter",
   borderRadius: "medium" as "none" | "small" | "medium" | "large",
   cardStyle: "bordered" as "flat" | "bordered" | "elevated",
+  designDna: "soft-luxury" as
+    | "editorial"
+    | "soft-luxury"
+    | "tech-dense"
+    | "minimal-airy"
+    | "neo-glass"
+    | "brutalist"
+    | "cinematic",
+  density: "comfortable" as "compact" | "comfortable" | "spacious",
+  sectionSpacing: "normal" as "tight" | "normal" | "loose",
 };
 
 /** Short list for AI prompt (keep prompt small / cheap) */

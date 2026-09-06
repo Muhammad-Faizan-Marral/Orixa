@@ -312,7 +312,7 @@ export function SettingsForm({ initialSettings }: Props) {
       {/* ---------------------------------------------------------------- */}
       {/* Notifications                                                    */}
       {/* ---------------------------------------------------------------- */}
-      <section className="surface-card p-6">
+      {/* <section className="surface-card p-6">
         <div className="mb-5">
           <p className="text-caption text-accent">Notifications</p>
           <h2 className="text-h3 mt-1">Email alerts</h2>
@@ -332,7 +332,7 @@ export function SettingsForm({ initialSettings }: Props) {
             </div>
           )}
         />
-      </section>
+      </section> */}
 
       {/* ---------------------------------------------------------------- */}
       {/* Save bar                                                         */}

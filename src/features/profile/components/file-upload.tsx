@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 
 import { uploadFile } from "@/actions/profile/upload-file";
 import { deleteUpload } from "@/actions/profile/delete-upload";
@@ -33,7 +34,13 @@ function formatSize(bytes: number) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export function FileUpload({ type, portfolioId, accept, label = "Upload file" }: Props) {
+export function FileUpload({
+  type,
+  portfolioId,
+  accept,
+  label = "Upload file",
+}: Props) {
+  const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -75,7 +82,13 @@ export function FileUpload({ type, portfolioId, accept, label = "Upload file" }:
         setError(result.message);
         return;
       }
+
       refreshFiles();
+
+      if (type === "avatar") {
+        router.refresh();
+      }
+
       if (inputRef.current) inputRef.current.value = "";
     });
   }
@@ -84,6 +97,10 @@ export function FileUpload({ type, portfolioId, accept, label = "Upload file" }:
     startTransition(async () => {
       await deleteUpload(uploadId);
       refreshFiles();
+
+      if (type === "avatar") {
+        router.refresh();
+      }
     });
   }
 
@@ -104,7 +121,9 @@ export function FileUpload({ type, portfolioId, accept, label = "Upload file" }:
         onClick={() => inputRef.current?.click()}
         className={cn(
           "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-6 text-center transition-colors",
-          isDragging ? "border-primary/50 bg-gradient-ion-soft" : "border-border hover:border-border-strong"
+          isDragging
+            ? "border-primary/50 bg-gradient-ion-soft"
+            : "border-border hover:border-border-strong",
         )}
       >
         <input
@@ -122,11 +141,16 @@ export function FileUpload({ type, portfolioId, accept, label = "Upload file" }:
           ↑
         </span>
         <p className="text-label">{isPending ? "Uploading..." : label}</p>
-        <p className="text-small">Drag & drop, or click to browse · up to 5MB</p>
+        <p className="text-small">
+          Drag & drop, or click to browse · up to 5MB
+        </p>
       </div>
 
       {error && (
-        <p role="alert" className="text-small rounded-lg border border-error/20 bg-error/10 px-3 py-2 text-error">
+        <p
+          role="alert"
+          className="text-small rounded-lg border border-error/20 bg-error/10 px-3 py-2 text-error"
+        >
           {error}
         </p>
       )}
@@ -141,7 +165,11 @@ export function FileUpload({ type, portfolioId, accept, label = "Upload file" }:
               <div className="flex min-w-0 items-center gap-3">
                 {upload.mimeType?.startsWith("image/") && upload.url ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={upload.url} alt="" className="h-9 w-9 rounded-md object-cover" />
+                  <img
+                    src={upload.url}
+                    alt=""
+                    className="h-9 w-9 rounded-md object-cover"
+                  />
                 ) : (
                   <span className="flex h-9 w-9 items-center justify-center rounded-md bg-surface-3 text-xs">
                     {upload.mimeType === "application/pdf" ? "PDF" : "FILE"}
@@ -158,9 +186,13 @@ export function FileUpload({ type, portfolioId, accept, label = "Upload file" }:
                       View file
                     </a>
                   ) : (
-                    <span className="text-small block truncate">Processing...</span>
+                    <span className="text-small block truncate">
+                      Processing...
+                    </span>
                   )}
-                  <span className="text-small block">{formatSize(upload.size)}</span>
+                  <span className="text-small block">
+                    {formatSize(upload.size)}
+                  </span>
                 </div>
               </div>
               <button

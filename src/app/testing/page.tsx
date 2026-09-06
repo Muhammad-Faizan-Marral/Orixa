@@ -17,17 +17,46 @@ export default async function Testing() {
     prompt: "green+yellow",
     skills: [
       {
-        id: "961cb0e8-5b5a-411e-9638-0eabda73b2aa",
+        id: "961cba0e8-5b5a-411e-9638-0eabda73b2aa",
         name: "Frontend",
         level: "",
       },
       {
-        id: "41f8cbeb-a430-4b6b-8422-a723bf8c134f",
+        id: "41f8cbdeb-a430-4b6b-8422-a723bf8c134f",
         name: "State Management",
         level: "",
       },
       {
-        id: "be67fa74-852d-4238-89d3-73f9c341d821",
+        id: "be67faa74-852d-4238-89d3-73f9c341d821",
+        name: "Tools",
+        level: "",
+      },
+       {
+        id: "961cb0we8-5b5a-411e-9638-0eabda73b2aa",
+        name: "Frontend",
+        level: "",
+      },
+      {
+        id: "41f8cbeb-a430-4b6b-84e22-a723bf8c134f",
+        name: "State Management",
+        level: "",
+      },
+      {
+        id: "be67fa74-852d-4238-89d3-73f9c34q1d821",
+        name: "Tools",
+        level: "",
+      }, {
+        id: "961cb0e8-5b5a-4q11e-9638-0eabda73b2aa",
+        name: "Frontend",
+        level: "",
+      },
+      {
+        id: "41f8cbeab-a430-4b6b-8422-a723bf8c134f",
+        name: "State Management",
+        level: "",
+      },
+      {
+        id: "be67fax74-852d-4238-89d3-73f9c341d821",
         name: "Tools",
         level: "",
       },
@@ -102,7 +131,37 @@ export default async function Testing() {
         endDate: "07/2024",
         location: "Pakistan",
         startDate: "04/2024",
-        description: "",
+        description: "https://qdbzhkrcowxrmdsaxfio.supabase.co/storage/v1/object/public/portfolio-public/portfolios/22d782f0-0ec0-4f21-8942-cb87b487735d/cd8c0e53-db02-4cac-aeb1-07b3bf857304/resume/generated-1788455168647.pdf",
+      },
+      {
+        id: "80cs8a705-6dd5-4305-b3df-2bd560b96fa9",
+        role: "Web Development Intern",
+        company: "PostgreSQL",
+        current: false,
+        endDate: "07/2024",
+        location: "Pakistan",
+        startDate: "04/2024",
+        description: "https://qdbzhkrcowxrmdsaxfio.supabase.co/storage/v1/object/public/portfolio-public/portfolios/22d782f0-0ec0-4f21-8942-cb87b487735d/cd8c0e53-db02-4cac-aeb1-07b3bf857304/resume/generated-1788455168647.pdf",
+      },
+      {
+        id: "80c8a705-6dd5-4305-b3df-2bd56d0b96fa9",
+        role: "Web Development Intern",
+        company: "PostgreSQL",
+        current: false,
+        endDate: "07/2024",
+        location: "Pakistan",
+        startDate: "04/2024",
+        description: "https://qdbzhkrcowxrmdsaxfio.supabase.co/storage/v1/object/public/portfolio-public/portfolios/22d782f0-0ec0-4f21-8942-cb87b487735d/cd8c0e53-db02-4cac-aeb1-storagestoragestoragestoragestoragestoragestoragestoragestoragestoragestoragestoragestoragestoragestorage07b3bf857304/resume/generated-1788455168647.pdf",
+      },
+      {
+        id: "80c8a705-6dd5-4305-b3df-2bd5a60b96fa9",
+        role: "Web Development Intern",
+        company: "PostgreSQL",
+        current: false,
+        endDate: "07/2024",
+        location: "Pakistan",
+        startDate: "04/2024",
+        description: "https://qdbzhkrcowxrmdsaxfio.supabase.co/storage/v1/object/public/portfolio-public/portfolios/22d782f0-0ec0-4f21-8942-cb87b487735d/cd8c0e53-db02-4cac-aeb1-07b3bf857304/resume/generated-1788455168647.pdf",
       },
     ],
     linkedinUrl: "https://linkedin.com/in/muhammad-faizan-05093b2a4",
@@ -118,29 +177,32 @@ export default async function Testing() {
     designPreferences: {
       layout: "wide",
       cardStyle: "elevated",
-      themeMode: "dark  ",
+      themeMode: "dark",
       fontFamily: "Inter",
       accentColor: "#0000ff",
       borderRadius: "medium",
     },
     componentSelection: {
+      navbar: { enabled: true, variant: "minimal" },
       hero: { enabled: true, variant: "creative" },
       about: { enabled: true, variant: "split" },
-      footer: { enabled: true, variant: "minimal" },
-      navbar: { enabled: true, variant: "minimal" },
-      skills: { enabled: true, variant: "grid" },
-      contact: { enabled: true, variant: "form" },
-      projects: { enabled: true, variant: "cards" },
+      skills: { enabled: true, variant: "cloud" },
+      projects: { enabled: true, variant: "bento" },
+      experience: { enabled: true, variant: "compact" },
       education: { enabled: true, variant: "simple" },
-      experience: { enabled: true, variant: "cards" },
       certificates: { enabled: true, variant: "simple" },
+      contact: { enabled: true, variant: "split-motion" },
+      footer: { enabled: true, variant: "editorial" },
     },
   };
 
   return (
     <>
       <DesignEngine
-        config={pub}
+        config={{
+          ...pub,
+          portfolioId: "cd8c0e53-db02-4cac-aeb1-07b3bf857304",
+        }}
         profile={{
           username: "Faizan",
           fullName: "Fa",

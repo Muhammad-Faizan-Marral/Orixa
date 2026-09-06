@@ -1,22 +1,34 @@
+import React from "react";
 import type { PortfolioRenderConfig, PublicProfileMeta } from "../../types";
-import { NavbarMinimal } from "./NavbarMinimal";
-import { NavbarFloating } from "./NavbarFloating";
 
-export function NavbarSection({
-  variant,
-  config,
-  profile,
-}: {
-  variant?: string;
+// All navbar variants
+import { NavbarFloating } from "./NavbarFloating";
+import { NavbarMinimal } from "./NavbarMinimal";
+import { NavbarGlass } from "./NavbarGlass";
+import { NavbarSidebarTrigger } from "./NavbarSidebarTrigger";
+
+type NavbarSectionProps = {
   config: PortfolioRenderConfig;
   profile: PublicProfileMeta;
-}) {
-  switch (variant) {
-    case "floating":
-      return <NavbarFloating config={config} profile={profile} />;
+  variant?: string;
+};
 
+export const NavbarSection: React.FC<NavbarSectionProps> = ({
+  config,
+  profile,
+  variant = "floating",
+}) => {
+  switch (variant) {
+    case "glass":
+      return <NavbarGlass config={config} profile={profile} />;
+    case "sidebar-trigger":
+      return <NavbarSidebarTrigger config={config} profile={profile} />;
     case "minimal":
-    default:
       return <NavbarMinimal config={config} profile={profile} />;
+    case "floating":
+    default:
+      return <NavbarFloating config={config} profile={profile} />;
   }
-}
+};
+
+export default NavbarSection;

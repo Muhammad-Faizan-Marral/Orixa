@@ -1,5 +1,5 @@
 import { supabaseAdmin } from "@/lib/supabase/admin";
-
+import { profileRepository } from "@/repositories/profile.repository";
 import {
   MAX_USER_FILES,
   MAX_USER_STORAGE,
@@ -97,6 +97,27 @@ export class UploadService {
         throw new Error("Unable to finalize upload.");
       }
 
+      // ✅ Avatar → profiles.avatar_url update
+      if (params.type === "avatar" && url) {
+        try {
+          const current = await profileRepository.findByUserId(params.userId);
+          if (current?.avatarUrl && current.avatarUrl !== url) {
+            await this.deleteFileByUrl({
+              url: current.avatarUrl,
+              profileId: params.profileId,
+            }).catch(() => {
+              // ignore cleanup failure
+            });
+          }
+        } catch {
+          // ignore
+        }
+
+        await profileRepository.update(params.userId, {
+          avatarUrl: url,
+        });
+      }
+
       return {
         upload,
         path: target.path,
@@ -165,7 +186,10 @@ export class UploadService {
   }
 
   async deleteFileByUrl(params: { url: string; profileId: string }) {
-    const upload = await uploadRepository.findByUrl(params.url, params.profileId);
+    const upload = await uploadRepository.findByUrl(
+      params.url,
+      params.profileId,
+    );
 
     if (!upload) return false;
 

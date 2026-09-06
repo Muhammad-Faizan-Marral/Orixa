@@ -54,21 +54,21 @@ export async function uploadFile(formData: FormData) {
     });
 
     revalidatePath("/dashboard/profile");
+    revalidatePath(`/${profile.username}`);
 
     if (portfolioId) {
       revalidatePath(`/dashboard/portfolios/${portfolioId}`);
       revalidatePath(`/dashboard/portfolios/${portfolioId}/edit`);
     }
 
-    // upload-file.ts success return
-return {
-  success: true,
-  message: "File uploaded successfully.",
-  data: {
-    ...result.upload,
-    url: result.url ?? result.upload?.url ?? null,
-  },
-};
+    return {
+      success: true,
+      message: "File uploaded successfully.",
+      data: {
+        ...result.upload,
+        url: result.url ?? result.upload?.url ?? null,
+      },
+    };
   } catch (error) {
     console.error("uploadFile:", error);
 

@@ -55,6 +55,7 @@ export function DesignEngine({
   const design = resolveDesign(config.designPreferences);
   const maxW = layoutMaxWidth(design.layout);
   const themeMode = design.themeMode === "light" ? "light" : "dark";
+  const designDna = design.designDna || "soft-luxury";
 
   return (
     <div
@@ -76,6 +77,7 @@ export function DesignEngine({
         <SectionWrapper
           id="hero"
           maxWidthClass={maxW}
+          designDna={designDna}
           className={
             selection.navbar?.variant === "floating" ? "pt-28" : "pt-16"
           }
@@ -89,13 +91,13 @@ export function DesignEngine({
       )}
 
       {isEnabled(selection, "about") && config.about && (
-        <SectionWrapper id="about" maxWidthClass={maxW}>
+        <SectionWrapper id="about" maxWidthClass={maxW} designDna={designDna}>
           <AboutSection variant={selection.about?.variant} config={config} />
         </SectionWrapper>
       )}
 
       {isEnabled(selection, "skills") && (config.skills?.length ?? 0) > 0 && (
-        <SectionWrapper id="skills" maxWidthClass={maxW}>
+        <SectionWrapper id="skills" maxWidthClass={maxW} designDna={designDna}>
           <SkillsSection
             variant={selection.skills?.variant}
             skills={config.skills || []}
@@ -105,7 +107,11 @@ export function DesignEngine({
 
       {isEnabled(selection, "projects") &&
         (config.projects?.length ?? 0) > 0 && (
-          <SectionWrapper id="projects" maxWidthClass={maxW}>
+          <SectionWrapper
+            id="projects"
+            maxWidthClass={maxW}
+            designDna={designDna}
+          >
             <ProjectsSection
               variant={selection.projects?.variant}
               projects={config.projects || []}
@@ -116,7 +122,11 @@ export function DesignEngine({
 
       {isEnabled(selection, "experience") &&
         (config.experience?.length ?? 0) > 0 && (
-          <SectionWrapper id="experience" maxWidthClass={maxW}>
+          <SectionWrapper
+            id="experience"
+            maxWidthClass={maxW}
+            designDna={designDna}
+          >
             <ExperienceSection
               variant={selection.experience?.variant}
               experience={config.experience || []}
@@ -126,7 +136,11 @@ export function DesignEngine({
 
       {isEnabled(selection, "education") &&
         (config.education?.length ?? 0) > 0 && (
-          <SectionWrapper id="education" maxWidthClass={maxW}>
+          <SectionWrapper
+            id="education"
+            maxWidthClass={maxW}
+            designDna={designDna}
+          >
             <EducationSection
               variant={selection.education?.variant}
               education={config.education || []}
@@ -136,23 +150,25 @@ export function DesignEngine({
 
       {isEnabled(selection, "certificates") &&
         (config.certificates?.length ?? 0) > 0 && (
-          <SectionWrapper id="certificates" maxWidthClass={maxW}>
+          <SectionWrapper
+            id="certificates"
+            maxWidthClass={maxW}
+            designDna={designDna}
+          >
             <CertificatesSection
               variant={selection.certificates?.variant}
               certificates={config.certificates || []}
             />
           </SectionWrapper>
         )}
-
       {isEnabled(selection, "contact") && (
-        <SectionWrapper id="contact" maxWidthClass={maxW}>
+        <SectionWrapper id="contact" maxWidthClass={maxW} designDna={designDna}>
           <ContactSection
             variant={selection.contact?.variant}
             config={config}
           />
         </SectionWrapper>
       )}
-
       {isEnabled(selection, "footer") && (
         <FooterSection
           variant={selection.footer?.variant}

@@ -13,7 +13,10 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { username, portfolioSlug } = await params;
-  const pub = await portfolioService.getPublishedPublic(username, portfolioSlug);
+  const pub = await portfolioService.getPublishedPublic(
+    username,
+    portfolioSlug,
+  );
 
   if (!pub) {
     return { title: "Portfolio not found" };
@@ -49,7 +52,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function PublicPortfolioPage({ params }: Props) {
   const { username, portfolioSlug } = await params;
 
-  const pub = await portfolioService.getPublishedPublic(username, portfolioSlug);
+  const pub = await portfolioService.getPublishedPublic(
+    username,
+    portfolioSlug,
+  );
 
   if (!pub) {
     notFound();
@@ -60,7 +66,10 @@ export default async function PublicPortfolioPage({ params }: Props) {
   return (
     <>
       <DesignEngine
-        config={config}
+        config={{
+          ...config,
+          portfolioId: pub.portfolio.id,
+        }}
         profile={{
           username: pub.profile.username,
           fullName: pub.profile.fullName,

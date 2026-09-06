@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { requireProfile } from "@/lib/auth/require-profile";
 import { requireUser } from "@/lib/auth/require-user";
-
+import { profileRepository } from "@/repositories/profile.repository";
 import { uploadService } from "@/services/profile/upload.service";
 
 export async function deleteUpload(uploadId: string) {
@@ -26,12 +26,19 @@ export async function deleteUpload(uploadId: string) {
   }
 
   try {
-    await uploadService.deleteFile({
+    const deletedUpload = await uploadService.deleteFile({
       uploadId,
       profileId: profile.id,
     });
 
+    if (deletedUpload?.type === "avatar") {
+      await profileRepository.update(profile.id, { avatarUrl: null });
+    }
+
     revalidatePath("/dashboard/profile");
+    if (profile.username) {
+      revalidatePath(`/${profile.username}`);
+    }
 
     return {
       success: true,
