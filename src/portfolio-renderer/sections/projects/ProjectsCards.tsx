@@ -1,14 +1,9 @@
+import { trackProjectClick } from "@/features/portfolio/components/use-portfolio-events";
 import { SectionHeading } from "../../shared/SectionHeading";
 import { cardClass } from "../../theme";
 import type { RendererDesignPreferences, RendererProject } from "../../types";
 
-export function ProjectsCards({
-  projects,
-  design,
-}: {
-  projects: RendererProject[];
-  design?: RendererDesignPreferences;
-}) {
+export function ProjectsCards({ projects, design, portfolioId}: { projects: RendererProject[]; design?: RendererDesignPreferences; portfolioId?: string;}) {
   if (!projects?.length) return null;
 
   return (
@@ -52,6 +47,11 @@ export function ProjectsCards({
                   href={p.url}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => {
+                    if (portfolioId) {
+                      trackProjectClick(portfolioId, p.title);
+                    }
+                  }}
                   className="inline-block pt-1 text-sm font-medium"
                   style={{ color: "var(--pr-accent, #6c5cff)" }}
                 >

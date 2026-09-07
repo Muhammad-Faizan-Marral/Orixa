@@ -44,13 +44,7 @@ function isEnabled(
   return s.enabled !== false;
 }
 
-export function DesignEngine({
-  config,
-  profile,
-}: {
-  config: PortfolioRenderConfig;
-  profile: PublicProfileMeta;
-}) {
+export function DesignEngine({ config, profile,}: { config: PortfolioRenderConfig; profile: PublicProfileMeta;}) {
   const selection = resolveSelection(config.componentSelection);
   const design = resolveDesign(config.designPreferences);
   const maxW = layoutMaxWidth(design.layout);
@@ -116,6 +110,7 @@ export function DesignEngine({
               variant={selection.projects?.variant}
               projects={config.projects || []}
               design={design}
+              portfolioId={config.portfolioId}
             />
           </SectionWrapper>
         )}
@@ -169,6 +164,7 @@ export function DesignEngine({
           />
         </SectionWrapper>
       )}
+
       {isEnabled(selection, "footer") && (
         <FooterSection
           variant={selection.footer?.variant}

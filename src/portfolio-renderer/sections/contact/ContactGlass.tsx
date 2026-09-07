@@ -7,6 +7,7 @@ import {
   type ContactActionState,
 } from "@/actions/contact/send-contact-message";
 import type { PortfolioRenderConfig } from "../../types";
+import { trackContactClick } from "@/features/portfolio/components/use-portfolio-events";
 
 const initialState: ContactActionState = {
   success: false,
@@ -178,6 +179,7 @@ export function ContactGlass({ config }: { config: PortfolioRenderConfig }) {
         )}
 
         <motion.button
+          onFocus={() => trackContactClick(portfolioId)}
           type="submit"
           disabled={isPending}
           whileHover={{ scale: isPending ? 1 : 1.02 }}

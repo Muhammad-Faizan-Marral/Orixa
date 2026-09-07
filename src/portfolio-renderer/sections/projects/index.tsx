@@ -15,10 +15,12 @@ export function ProjectsSection({
   variant,
   projects,
   design,
+  portfolioId
 }: {
   variant?: string;
   projects: RendererProject[];
   design?: RendererDesignPreferences;
+  portfolioId?:string
 }) {
   switch (variant) {
     case "featured":
@@ -35,6 +37,6 @@ export function ProjectsSection({
       return <ProjectsCinema projects={projects} design={design} />;
     case "cards":
     default:
-      return <ProjectsCards projects={projects} design={design} />;
+      return <ProjectsCards projects={projects} design={design} portfolioId={portfolioId} />;
   }
 }

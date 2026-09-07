@@ -149,6 +149,75 @@ export class PortfolioViewRepository {
 
     return portfolio ?? null;
   }
+  async getUniqueVisitors(portfolioId: string) {
+    const [result] = await db
+      .select({
+        count: sql<number>`count(distinct ${portfolioViews.ipHash})`,
+      })
+      .from(portfolioViews)
+      .where(
+        and(
+          eq(portfolioViews.portfolioId, portfolioId),
+          sql`${portfolioViews.ipHash} IS NOT NULL`,
+        ),
+      );
+
+    return Number(result?.count ?? 0);
+  }
+
+  async getCountryCount(portfolioId: string) {
+    const [result] = await db
+      .select({
+        count: sql<number>`count(distinct ${portfolioViews.country})`,
+      })
+      .from(portfolioViews)
+      .where(
+        and(
+          eq(portfolioViews.portfolioId, portfolioId),
+          sql`${portfolioViews.country} IS NOT NULL`,
+        ),
+      );
+
+    return Number(result?.count ?? 0);
+  }
+
+  async getViewsByDay(portfolioId: string, days = 30) {
+    const since = new Date();
+    since.setDate(since.getDate() - days);
+
+    return db
+      .select({
+        day: sql<string>`date_trunc('day', ${portfolioViews.visitedAt})::date`,
+        views: count(),
+      })
+      .from(portfolioViews)
+      .where(
+        and(
+          eq(portfolioViews.portfolioId, portfolioId),
+          gte(portfolioViews.visitedAt, since.toISOString()),
+        ),
+      )
+      .groupBy(sql`date_trunc('day', ${portfolioViews.visitedAt})::date`)
+      .orderBy(sql`date_trunc('day', ${portfolioViews.visitedAt})::date`);
+  }
+
+  async getTopDevices(portfolioId: string) {
+    return db
+      .select({
+        device: portfolioViews.device,
+        views: count(),
+      })
+      .from(portfolioViews)
+      .where(
+        and(
+          eq(portfolioViews.portfolioId, portfolioId),
+          sql`${portfolioViews.device} IS NOT NULL`,
+        ),
+      )
+      .groupBy(portfolioViews.device)
+      .orderBy(desc(count()))
+      .limit(5);
+  }
 }
 
 export const portfolioViewRepository = new PortfolioViewRepository();

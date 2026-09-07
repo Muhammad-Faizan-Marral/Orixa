@@ -29,6 +29,13 @@ export async function recordPortfolioView(input: RecordPortfolioViewInput) {
     const device = getDevice(userAgent);
 
     const os = getOperatingSystem(userAgent);
+    const country =
+      input.country ||
+      requestHeaders.get("x-vercel-ip-country") ||
+      requestHeaders.get("cf-ipcountry") ||
+      null;
+
+    const city = input.city || requestHeaders.get("x-vercel-ip-city") || null;
 
     await portfolioViewService.recordView({
       portfolioId: input.portfolioId,
