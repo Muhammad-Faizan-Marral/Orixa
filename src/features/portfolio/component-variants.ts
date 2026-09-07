@@ -21,8 +21,6 @@ export const SECTION_VARIANTS = {
   
 } as const;
 
-// DEFAULT_COMPONENT_SELECTION mein add:
-// navbar: { enabled: true, variant: "minimal" },
 
 export type SectionKey = keyof typeof SECTION_VARIANTS;
 

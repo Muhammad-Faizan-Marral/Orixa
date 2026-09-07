@@ -7,6 +7,7 @@ import {
   extractTextFromPdf,
   parseResumeWithGemini,
 } from "@/lib/ai/parse-resume";
+import { requireUser } from "@/lib/auth/require-user";
 
 const MAX_RESUME_BYTES = 5 * 1024 * 1024;
 
@@ -146,8 +147,8 @@ export async function parseResumeAction(formData: FormData) {
       success: false as const,
       message:
         error instanceof Error && error.message.includes("GEMINI_API_KEY")
-          ? "Gemini API key configure nahi hai."
-          : "Resume process nahi ho saki. Dobara try karein.",
+          ? "Gemini API key is not configure."
+          : "Resume is not process . please try karein.",
     };
   }
 }
