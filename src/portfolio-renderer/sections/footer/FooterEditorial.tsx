@@ -3,6 +3,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
+import { trackContactClick } from "@/features/portfolio/components/use-portfolio-events";
 
 export type FooterEditorialProps = {
   name?: string | null;
@@ -11,6 +12,7 @@ export type FooterEditorialProps = {
   githubUrl?: string | null;
   linkedinUrl?: string | null;
   phone?: string | null;
+  portfolioId?: string;
 };
 
 type NavLink = {
@@ -34,6 +36,7 @@ export const FooterEditorial: React.FC<FooterEditorialProps> = ({
   githubUrl,
   linkedinUrl,
   phone,
+  portfolioId,
 }) => {
   const year = new Date().getFullYear();
   const displayName = name || username;
@@ -120,6 +123,7 @@ export const FooterEditorial: React.FC<FooterEditorialProps> = ({
               <nav className="flex flex-col gap-2.5" aria-label="Social links">
                 {socials.map((link) => (
                   <a
+                    onFocus={() => trackContactClick(portfolioId)}
                     key={link.key}
                     href={link.href}
                     target="_blank"

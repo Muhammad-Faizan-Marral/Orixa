@@ -16,6 +16,7 @@ export function FooterSection({
   linkedinUrl,
   phone,
   resumeUrl,
+  portfolioId,
 }: {
   variant?: string;
   name?: string | null;
@@ -26,6 +27,7 @@ export function FooterSection({
   linkedinUrl?: string | null;
   phone?: string | null;
   resumeUrl?: string | null;
+  portfolioId?: string;
 }) {
   switch (variant) {
     case "detailed":
@@ -47,6 +49,8 @@ export function FooterSection({
           githubUrl={githubUrl}
           linkedinUrl={linkedinUrl}
           phone={phone}
+          portfolioId={portfolioId}
+
         />
       );
 
@@ -61,17 +65,13 @@ export function FooterSection({
           linkedinUrl={linkedinUrl}
           phone={phone}
           resumeUrl={resumeUrl}
+          portfolioId={portfolioId}
         />
       );
 
     case "minimal":
     default:
-      return (
-        <FooterMinimal
-          name={name ?? undefined}
-          username={username}
-        />
-      );
+      return <FooterMinimal name={name ?? undefined} username={username} />;
   }
 }
 

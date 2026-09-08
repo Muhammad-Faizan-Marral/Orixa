@@ -1,3 +1,4 @@
+"use client"
 import { trackProjectClick } from "@/features/portfolio/components/use-portfolio-events";
 import { SectionHeading } from "../../shared/SectionHeading";
 import { cardClass } from "../../theme";

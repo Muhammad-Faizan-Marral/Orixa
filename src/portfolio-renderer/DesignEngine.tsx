@@ -170,6 +170,8 @@ export function DesignEngine({ config, profile,}: { config: PortfolioRenderConfi
           variant={selection.footer?.variant}
           name={config.name || undefined}
           username={profile.username}
+              portfolioId={config.portfolioId}
+
         />
       )}
     </div>

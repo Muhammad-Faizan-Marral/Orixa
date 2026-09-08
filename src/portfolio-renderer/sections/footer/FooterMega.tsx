@@ -41,6 +41,7 @@ export const FooterMega: React.FC<FooterMegaProps> = ({
   linkedinUrl,
   phone,
   resumeUrl,
+  portfolioId
 }) => {
   const year = new Date().getFullYear();
   const displayName = name || username;

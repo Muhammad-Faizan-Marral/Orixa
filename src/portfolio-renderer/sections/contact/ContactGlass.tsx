@@ -179,7 +179,7 @@ export function ContactGlass({ config }: { config: PortfolioRenderConfig }) {
         )}
 
         <motion.button
-          onFocus={() => trackContactClick(portfolioId)}
+         
           type="submit"
           disabled={isPending}
           whileHover={{ scale: isPending ? 1 : 1.02 }}
