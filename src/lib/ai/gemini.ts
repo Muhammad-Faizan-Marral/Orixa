@@ -1,5 +1,11 @@
+import { setDefaultResultOrder } from "node:dns";
+import { setGlobalDispatcher, Agent } from "undici";
+
+setDefaultResultOrder("ipv4first");
+setGlobalDispatcher(new Agent({ connect: { family: 4 } })); 
+
 const OPENROUTER_MODEL = "meta-llama/llama-3.1-8b-instruct";
-const OPENROUTER_FALLBACK_MODEL = "meta-llama/llama-3.2-3b-instruct";
+const OPENROUTER_FALLBACK_MODEL = "qwen/qwen-2.5-7b-instruct";
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 const REQUEST_TIMEOUT_MS = 20_000;
@@ -77,7 +83,7 @@ export async function generateGeminiText(params: {
 
   const body: Record<string, unknown> = {
     // OpenRouter tries these in order — if the first is down/rate-limited, it auto-falls back
-    models: [OPENROUTER_MODEL, OPENROUTER_MODEL],
+    models: [OPENROUTER_MODEL, OPENROUTER_FALLBACK_MODEL],
     messages,
     temperature: params.temperature ?? 0.4,
     max_tokens: params.maxOutputTokens ?? 4096,

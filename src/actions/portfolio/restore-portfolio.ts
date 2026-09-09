@@ -1,19 +1,35 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 
-import { requireUser } from "@/lib/auth/require-user";
 import { requireProfile } from "@/lib/auth/require-profile";
 import { portfolioService } from "@/services/portfolio/portfolio.service";
 
-export async function restorePortfolio(portfolioId: string) {
-  try {
-    await requireUser();
+const schema = z.object({
+  portfolioId: z.string().uuid(),
+});
 
+export type RestorePortfolioState = {
+  success: boolean;
+  message?: string;
+  portfolio?: any;
+};
+
+export async function restorePortfolio(
+  portfolioId: string,
+): Promise<RestorePortfolioState> {
+  const parsed = schema.safeParse({ portfolioId });
+
+  if (!parsed.success) {
+    return { success: false, message: "Invalid portfolio ID" };
+  }
+
+  try {
     const profile = await requireProfile();
 
     const portfolio = await portfolioService.restorePortfolio(
-      portfolioId,
+      parsed.data.portfolioId,
       profile.id,
     );
 
@@ -21,11 +37,9 @@ export async function restorePortfolio(portfolioId: string) {
     revalidatePath("/dashboard/portfolios");
     revalidatePath(`/dashboard/portfolios/${portfolioId}`);
 
-    return {
-      success: true,
-      portfolio,
-    };
+    return { success: true, portfolio };
   } catch (error) {
+    console.error("[restorePortfolio] Error:", error);
     return {
       success: false,
       message:

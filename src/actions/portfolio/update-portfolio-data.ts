@@ -1,60 +1,60 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 
 import { requireProfile } from "@/lib/auth/require-profile";
-import { requireUser } from "@/lib/auth/require-user";
-
 import { portfolioService } from "@/services/portfolio/portfolio.service";
-
 import { updatePortfolioDataSchema } from "@/validations/portfolio-data.schema";
 
-export async function updatePortfolioData(input: unknown) {
-  try {
-    const user = await requireUser();
+const inputSchema = z.object({
+  portfolioId: z.string().uuid(),
+  data: updatePortfolioDataSchema,
+});
 
+export type UpdatePortfolioDataState = {
+  success: boolean;
+  message?: string;
+};
+
+export async function updatePortfolioData(
+  portfolioId: string,
+  data: unknown,
+): Promise<UpdatePortfolioDataState> {
+  const parsed = inputSchema.safeParse({ portfolioId, data });
+
+  if (!parsed.success) {
+    return {
+      success: false,
+      message: parsed.error.issues[0]?.message || "Invalid data",
+    };
+  }
+
+  try {
     const profile = await requireProfile();
 
-    const parsed = updatePortfolioDataSchema.safeParse(input);
-
-    if (!parsed.success) {
-      return {
-        success: false,
-        message: "Invalid portfolio data.",
-        fieldErrors: parsed.error.flatten().fieldErrors,
-      };
-    }
-
-    const result = await portfolioService.updatePortfolioData(
+    await portfolioService.updatePortfolioData(
       parsed.data.portfolioId,
       profile.id,
-      parsed.data,
+      parsed.data.data,
     );
 
-    if (!result) {
-      return {
-        success: false,
-        message: "Portfolio not found.",
-      };
-    }
+    // Revalidate both dashboard and public page
+    revalidatePath(`/dashboard/portfolios/${portfolioId}`);
+    revalidatePath(`/dashboard/portfolios/${portfolioId}/edit`);
+    revalidatePath("/dashboard/portfolios");
+    revalidatePath(`/${profile.username}`);
 
-    revalidatePath(`/dashboard/portfolios/${parsed.data.portfolioId}`);
-
-    revalidatePath(`/dashboard/portfolios/${parsed.data.portfolioId}/edit`);
-
-    return {
-      success: true,
-      data: result,
-    };
+    return { success: true };
   } catch (error) {
-    console.error("updatePortfolioData error:", error);
+    console.error("[updatePortfolioData] Error:", error);
 
     return {
       success: false,
       message:
         error instanceof Error
           ? error.message
-          : "Unable to update portfolio data.",
+          : "Failed to save portfolio data.",
     };
   }
 }

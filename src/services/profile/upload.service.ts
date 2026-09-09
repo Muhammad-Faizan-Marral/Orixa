@@ -4,6 +4,7 @@ import {
   MAX_USER_FILES,
   MAX_USER_STORAGE,
   PRIVATE_UPLOAD_BUCKET,
+  PUBLIC_UPLOAD_BUCKET,
   type UploadType,
 } from "@/features/profile/upload.constants";
 
@@ -65,13 +66,15 @@ export class UploadService {
     let storageUploaded = false;
 
     try {
-      const { error } = await supabaseAdmin.storage
-        .from(target.bucket)
-        .upload(target.path, Buffer.from(validation.buffer), {
-          contentType: validation.mimeType,
-          cacheControl: "31536000",
-          upsert: false,
-        });
+     const { error } = await supabaseAdmin.storage
+  .from(target.bucket)
+  .upload(target.path, Buffer.from(validation.buffer), {
+    contentType: validation.mimeType,
+    upsert: false,
+    cacheControl: target.bucket === PUBLIC_UPLOAD_BUCKET 
+      ? "public, max-age=31536000, immutable"   // 1 year CDN cache
+      : "private, max-age=3600",
+  });
 
       if (error) {
         throw new Error("Unable to upload file.");

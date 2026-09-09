@@ -1,22 +1,53 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { z } from "zod";
+import { revalidatePath, revalidateTag } from "next/cache";
 
-import { requireUser } from "@/lib/auth/require-user";
 import { requireProfile } from "@/lib/auth/require-profile";
 import { portfolioService } from "@/services/portfolio/portfolio.service";
 
-export async function unpublishPortfolio(portfolioId: string) {
-  try {
-    await requireUser();
+const unpublishSchema = z.object({
+  portfolioId: z.string().uuid("Invalid portfolio ID"),
+});
 
+export type UnpublishPortfolioState = {
+  success: boolean;
+  message?: string;
+  portfolio?: unknown;
+};
+
+export async function unpublishPortfolio(
+  portfolioId: string,
+): Promise<UnpublishPortfolioState> {
+  const parsed = unpublishSchema.safeParse({ portfolioId });
+
+  if (!parsed.success) {
+    return {
+      success: false,
+      message: parsed.error.issues[0]?.message || "Invalid portfolio ID",
+    };
+  }
+
+  try {
     const profile = await requireProfile();
 
     const portfolio = await portfolioService.unpublishPortfolio(
-      portfolioId,
+      parsed.data.portfolioId,
       profile.id,
     );
 
+    // Revalidate tags using profile/cache profile argument
+    if (portfolio?.slug) {
+      const portfolioTag = `portfolio:${profile.username}:${portfolio.slug}`;
+      const userTag = `user:${profile.username}`;
+
+      revalidateTag(portfolioTag, "max");
+      revalidateTag(userTag, "max");
+
+      revalidatePath(`/${profile.username}/${portfolio.slug}`);
+    }
+
+    revalidatePath(`/${profile.username}`);
     revalidatePath("/dashboard");
     revalidatePath("/dashboard/portfolios");
     revalidatePath(`/dashboard/portfolios/${portfolioId}`);
@@ -26,6 +57,8 @@ export async function unpublishPortfolio(portfolioId: string) {
       portfolio,
     };
   } catch (error) {
+    console.error("[unpublishPortfolio] Error:", error);
+
     return {
       success: false,
       message:

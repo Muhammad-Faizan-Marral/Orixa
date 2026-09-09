@@ -488,7 +488,7 @@ export class PortfolioRepository {
       };
     }
 
-    // Fallback: current portfolio_data (edge case)
+    // Fallback: current f (edge case)
     const [data] = await db
       .select()
       .from(portfolioData)

@@ -4312,6 +4312,11 @@ undici-types@~8.3.0:
   resolved "https://registry.npmmirror.com/undici-types/-/undici-types-8.3.0.tgz#44e9fc9f3244648cdea35e4f9bb2d681e9410809"
   integrity sha512-j375ScV60dom+YkPFIfTLcOiPxkN/buHz5GobjLhixFuANaNs3C9l4GmrWqejgXWJ7BbJcFYpTEUkS1Ge8bpZQ==
 
+undici@^8.10.2:
+  version "8.10.2"
+  resolved "https://registry.npmmirror.com/undici/-/undici-8.10.2.tgz#960bcb0b43c267f86910ea7ca408ada843a44bc7"
+  integrity sha512-/y4/bH9YNU5hi9NIrpOuvGXFcxrj3CMrV+/AYpowAYTpHn8gX/XPFjNy766FPoYY0miQhdW977JFWKGNhBdwyQ==
+
 unpdf@^1.8.1:
   version "1.8.1"
   resolved "https://registry.npmmirror.com/unpdf/-/unpdf-1.8.1.tgz#9fb1ccc04817dc03fc5668e346edeccddec504be"

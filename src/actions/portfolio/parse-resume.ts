@@ -76,7 +76,7 @@ export async function parseResumeAction(formData: FormData) {
       return {
         success: false as const,
         message:
-          "PDF read nahi ho saki. File corrupt ho sakti hai — dusri PDF try karein.",
+          "PDF is not readable . please try again ",
       };
     }
 
@@ -86,7 +86,7 @@ export async function parseResumeAction(formData: FormData) {
     await aiRequestService.recordUsage({
       portfolioId,
       requestType: "resume_parse",
-      model: "gemini-3.5-flash-lite",
+      model: "LLMA",
       inputTokens: parsed.inputTokens,
       outputTokens: parsed.outputTokens,
       latencyMs: parsed.latencyMs,
@@ -97,7 +97,7 @@ export async function parseResumeAction(formData: FormData) {
       return {
         success: false as const,
         message:
-          parsed.errorMessage || "Aap ka resume sahi nahi hai ya empty hai.",
+          parsed.errorMessage || "your uploaded resume is not correct or maybe empty.",
       };
     }
 

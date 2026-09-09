@@ -133,7 +133,7 @@ export async function parseResumeWithGemini(rawText: string): Promise<{
       data: null,
       isValid: false,
       errorMessage:
-        "Resume text empty / too short. Text-based PDF upload karein.",
+        "Resume text empty / too short. Text-based PDF upload .",
       inputTokens: 0,
       outputTokens: 0,
       latencyMs: 0,

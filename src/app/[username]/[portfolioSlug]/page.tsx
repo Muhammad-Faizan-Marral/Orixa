@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { unstable_cache } from "next/cache";
 
 import { portfolioService } from "@/services/portfolio/portfolio.service";
-
 import type { PortfolioRenderConfig } from "@/portfolio-renderer/types";
 import { PortfolioViewTracker } from "@/features/portfolio/components/portfolio-view-tracker";
 import { DesignEngine } from "@/portfolio-renderer/DesignEngine";
@@ -11,10 +11,21 @@ type Props = {
   params: Promise<{ username: string; portfolioSlug: string }>;
 };
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+const getCachedPublishedPortfolio = (username: string, portfolioSlug: string) =>
+  unstable_cache(
+    async () => {
+      return portfolioService.getPublishedPublic(username, portfolioSlug);
+    },
+    ["published-portfolio", username, portfolioSlug],
+    {
+      tags: [`portfolio:${username}:${portfolioSlug}`, `user:${username}`],
+      revalidate: 3600, // 1 hour
+    },
+  )();
 
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { username, portfolioSlug } = await params;
-  const pub = await portfolioService.getPublishedPublic(username,portfolioSlug,);
+  const pub = await getCachedPublishedPortfolio(username, portfolioSlug);
 
   if (!pub) {
     return { title: "Portfolio not found" };
@@ -44,13 +55,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description,
     keywords: seo.keywords,
     robots: seo.noIndex ? { index: false, follow: false } : undefined,
+    openGraph: {
+      title,
+      description,
+      type: "website",
+    },
   };
 }
 
 export default async function PublicPortfolioPage({ params }: Props) {
   const { username, portfolioSlug } = await params;
 
-  const pub = await portfolioService.getPublishedPublic(username,portfolioSlug,);
+  const pub = await getCachedPublishedPortfolio(username, portfolioSlug);
 
   if (!pub) {
     notFound();
@@ -61,7 +77,7 @@ export default async function PublicPortfolioPage({ params }: Props) {
   return (
     <>
       <DesignEngine
-       config={{
+        config={{
           ...config,
           portfolioId: pub.portfolio.id,
         }}
