@@ -10,6 +10,7 @@ export class PortfolioViewService {
   async recordView(data: {
     portfolioId: string;
     country?: string | null;
+    userAgent?: string | null;
     city?: string | null;
     browser?: string | null;
     device?: string | null;
