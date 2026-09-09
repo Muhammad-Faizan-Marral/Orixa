@@ -1,8 +1,8 @@
 "use server";
 
 import { redirect } from "next/navigation";
-
 import { createClient } from "@/lib/supabase/server";
+import { resetPasswordSchema } from "@/validations/auth.schema";
 
 export type ResetPasswordState = {
   error?: string;
@@ -12,30 +12,20 @@ export async function resetPassword(
   _previousState: ResetPasswordState,
   formData: FormData,
 ): Promise<ResetPasswordState> {
-  const password = formData.get("password");
-  const confirmPassword = formData.get("confirmPassword");
+  const raw = {
+    password: formData.get("password"),
+    confirmPassword: formData.get("confirmPassword"),
+  };
 
-  if (
-    typeof password !== "string" ||
-    typeof confirmPassword !== "string"
-  ) {
+  const parsed = resetPasswordSchema.safeParse(raw);
+
+  if (!parsed.success) {
     return {
-      error: "Invalid form data.",
+      error: parsed.error.issues[0]?.message || "Invalid form data.",
     };
   }
 
-  if (password.length < 8) {
-    return {
-      error: "Password must be at least 8 characters.",
-    };
-  }
-
-  if (password !== confirmPassword) {
-    return {
-      error: "Passwords do not match.",
-    };
-  }
-
+  const { password } = parsed.data;
   const supabase = await createClient();
 
   const { error } = await supabase.auth.updateUser({
@@ -43,15 +33,15 @@ export async function resetPassword(
   });
 
   if (error) {
-    if (error.code === "session_not_found" || error.message.toLowerCase().includes("session missing")) {
+    if (
+      error.code === "session_not_found" ||
+      error.message.toLowerCase().includes("session missing")
+    ) {
       return {
         error: "This reset link has expired. Please request a new one.",
       };
     }
-
-    return {
-      error: error.message,
-    };
+    return { error: error.message };
   }
 
   redirect("/auth/login?reset=success");

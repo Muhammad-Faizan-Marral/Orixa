@@ -1,42 +1,40 @@
-type MemoryEntry = {
+type RateLimitEntry = {
   count: number;
   resetAt: number;
 };
 
-const memoryStore = new Map<string, MemoryEntry>();
+const store = new Map<string, RateLimitEntry>();
 
-/**
- * In-memory limiter (best-effort).
- * Can reset on HMR / serverless — use DB check as source of truth.
- */
-export function rateLimit(options: {
-  key: string;
-  limit: number;
-  windowMs: number;
-}): { success: boolean; retryAfterMs: number } {
+// Clean old entries every 5 minutes
+setInterval(
+  () => {
+    const now = Date.now();
+    for (const [key, entry] of store.entries()) {
+      if (entry.resetAt < now) {
+        store.delete(key);
+      }
+    }
+  },
+  5 * 60 * 1000,
+);
+
+export function rateLimit(
+  key: string,
+  limit: number = 5,
+  windowMs: number = 60 * 1000, // 1 minute
+): { success: boolean; remaining: number } {
   const now = Date.now();
-  const existing = memoryStore.get(options.key);
+  const entry = store.get(key);
 
-  if (!existing || existing.resetAt <= now) {
-    memoryStore.set(options.key, {
-      count: 1,
-      resetAt: now + options.windowMs,
-    });
-    return { success: true, retryAfterMs: 0 };
+  if (!entry || entry.resetAt < now) {
+    store.set(key, { count: 1, resetAt: now + windowMs });
+    return { success: true, remaining: limit - 1 };
   }
 
-  if (existing.count >= options.limit) {
-    return {
-      success: false,
-      retryAfterMs: Math.max(0, existing.resetAt - now),
-    };
+  if (entry.count >= limit) {
+    return { success: false, remaining: 0 };
   }
 
-  existing.count += 1;
-  memoryStore.set(options.key, existing);
-  return { success: true, retryAfterMs: 0 };
-}
-
-export function secondsLeft(retryAfterMs: number) {
-  return Math.max(1, Math.ceil(retryAfterMs / 1000));
+  entry.count += 1;
+  return { success: true, remaining: limit - entry.count };
 }

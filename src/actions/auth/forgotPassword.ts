@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { forgotPasswordSchema } from "@/validations/auth.schema";
 
 export type ForgotPasswordState = {
   error?: string;
@@ -11,30 +12,29 @@ export async function forgotPassword(
   _previousState: ForgotPasswordState,
   formData: FormData,
 ): Promise<ForgotPasswordState> {
-  const email = formData.get("email");
+  const raw = {
+    email: formData.get("email"),
+  };
 
-  if (typeof email !== "string" || !email.trim()) {
+  const parsed = forgotPasswordSchema.safeParse(raw);
+
+  if (!parsed.success) {
     return {
-      error: "Please enter your email address.",
+      error: parsed.error.issues[0]?.message || "Please enter a valid email.",
     };
   }
 
+  const { email } = parsed.data;
   const supabase = await createClient();
 
-  const { error } = await supabase.auth.resetPasswordForEmail(
-    email.trim(),
-    {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=/auth/reset-password`,
-    },
-  );
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=/auth/reset-password`,
+  });
 
   if (error) {
-    return {
-      error: error.message,
-    };
+
+    console.error("Forgot password error:", error.message);
   }
 
-  return {
-    success: true,
-  };
+  return { success: true };
 }

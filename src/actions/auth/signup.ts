@@ -1,6 +1,8 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { signupSchema } from "@/validations/auth.schema";
+import { rateLimit } from "@/lib/rate-limit";
 
 export type SignupState = {
   error?: string;
@@ -11,18 +13,28 @@ export async function signup(
   _previousState: SignupState,
   formData: FormData,
 ): Promise<SignupState> {
-  const name = formData.get("name")?.toString().trim();
-  const email = formData.get("email")?.toString().trim();
-  const password = formData.get("password")?.toString();
+  const raw = {
+    name: formData.get("name"),
+    email: formData.get("email"),
+    password: formData.get("password"),
+  };
 
-  if (!name || !email || !password) {
-    return { error: "Name, email, and password are required." };
+  const parsed = signupSchema.safeParse(raw);
+
+  if (!parsed.success) {
+    return {
+      error: parsed.error.issues[0]?.message || "Invalid form data.",
+    };
   }
 
-  if (password.length < 8) {
-    return { error: "Password must be at least 8 characters long." };
-  }
+  const { name, email, password } = parsed.data;
+  const rate = rateLimit(`signup:${parsed.data.email}`, 3, 60 * 1000); // 3 signups per minute
 
+  if (!rate.success) {
+    return {
+      error: "Too many signup attempts. Please try again later.",
+    };
+  }
   const supabase = await createClient();
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
@@ -31,50 +43,38 @@ export async function signup(
     password,
     options: {
       data: {
-        username:name,
+        full_name: name,
+        username: name.toLowerCase().replace(/\s+/g, ""),
       },
-      emailRedirectTo: `${siteUrl}/auth/confirm?next=/dashboard`,
+      emailRedirectTo: `${siteUrl}/auth/callback?next=/dashboard`,
     },
   });
 
   if (error) {
-    // Full diagnostic detail server-side only — the auth-js error message
-    // is unreliable when the Auth server returns a body with no
-    // msg/message/error fields (you'll see "{}"), so status + code are
-    // what actually tell you what happened. Check these against
-    // Supabase Dashboard -> Logs -> Auth Logs to confirm.
     console.error("Supabase signUp failed:", {
       status: error.status,
       code: error.code,
-      name: error.name,
       message: error.message,
     });
 
     if (error.code === "user_already_exists") {
       return { error: "An account with this email already exists." };
     }
-
     if (error.code === "weak_password") {
       return { error: "Please choose a stronger password." };
     }
-
     if (error.status && error.status >= 500) {
       return {
         error:
-          "Our sign-up service is temporarily unavailable. Please try again in a moment.",
+          "Our sign-up service is temporarily unavailable. Please try again.",
       };
     }
-
-    if (!error.status || error.message === "{}") {
-      return {
-        error:
-          "We couldn't reach the authentication service. Please check your connection and try again.",
-      };
-    }
-
-    return { error: error.message };
+    return {
+      error: error.message || "Something went wrong. Please try again.",
+    };
   }
 
+  // Extra safety: some cases return empty identities
   if (data.user && data.user.identities && data.user.identities.length === 0) {
     return { error: "An account with this email already exists." };
   }
