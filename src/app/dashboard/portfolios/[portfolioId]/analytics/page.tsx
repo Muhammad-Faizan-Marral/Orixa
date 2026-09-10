@@ -49,7 +49,6 @@ export default async function AnalyticsPage({ params }: Props) {
   );
   if (!analytics) notFound();
 
-  // ✅ Safe defaults — kabhi undefined.map crash nahi hoga
   const countries = analytics.countries ?? [];
   const trafficSources = analytics.trafficSources ?? [];
   const devices = analytics.devices ?? [];
@@ -63,7 +62,7 @@ export default async function AnalyticsPage({ params }: Props) {
 
   const maxCountry = Math.max(
     0,
-    ...countries.map((c) => Number(c.views) || 0),
+    ...countries.map((c: { views?: number | string }) => Number(c.views) || 0),
   );
 
   const maxSource = Math.max(
@@ -130,9 +129,7 @@ export default async function AnalyticsPage({ params }: Props) {
 
         <div className="surface-card p-6">
           <p className="text-caption text-accent">Most viewed project</p>
-          <h3 className="text-h3 mt-2">
-            {insights.mostViewedProject ?? "—"}
-          </h3>
+          <h3 className="text-h3 mt-2">{insights.mostViewedProject ?? "—"}</h3>
           <p className="text-small mt-1 text-muted-foreground">
             Based on project link clicks
           </p>
@@ -140,9 +137,7 @@ export default async function AnalyticsPage({ params }: Props) {
 
         <div className="surface-card p-6">
           <p className="text-caption text-accent">Most active country</p>
-          <h3 className="text-h3 mt-2">
-            {insights.mostActiveCountry ?? "—"}
-          </h3>
+          <h3 className="text-h3 mt-2">{insights.mostActiveCountry ?? "—"}</h3>
           <p className="text-small mt-1 text-muted-foreground">
             Highest visitor share
           </p>
@@ -223,7 +218,7 @@ export default async function AnalyticsPage({ params }: Props) {
                 </p>
               ) : (
                 <ul className="space-y-3">
-                  {countries.map((item) => {
+                  {countries.map((item: { country?: string | null; views?: number | string }) => {
                     const views = Number(item.views) || 0;
                     const width = barWidth(views, maxCountry);
                     return (
@@ -268,19 +263,21 @@ export default async function AnalyticsPage({ params }: Props) {
                 </p>
               ) : (
                 <ul className="space-y-3">
-                  {topProjects.map((item: { label?: string | null; count?: number }) => (
-                    <li
-                      key={item.label || "project"}
-                      className="flex items-center justify-between gap-3 border-b border-border/60 py-2.5 last:border-0"
-                    >
-                      <span className="text-small truncate font-medium">
-                        {item.label || "Untitled"}
-                      </span>
-                      <span className="text-caption tabular-nums text-muted-foreground">
-                        {Number(item.count) || 0}
-                      </span>
-                    </li>
-                  ))}
+                  {topProjects.map(
+                    (item: { label?: string | null; count?: number }) => (
+                      <li
+                        key={item.label || "project"}
+                        className="flex items-center justify-between gap-3 border-b border-border/60 py-2.5 last:border-0"
+                      >
+                        <span className="text-small truncate font-medium">
+                          {item.label || "Untitled"}
+                        </span>
+                        <span className="text-caption tabular-nums text-muted-foreground">
+                          {Number(item.count) || 0}
+                        </span>
+                      </li>
+                    ),
+                  )}
                 </ul>
               )}
             </div>
@@ -292,17 +289,19 @@ export default async function AnalyticsPage({ params }: Props) {
               <p className="text-caption text-accent">Technology</p>
               <h2 className="text-h3 mt-1">Devices</h2>
               <ul className="mt-5 flex flex-wrap gap-3">
-                {devices.map((d: { device?: string | null; views?: number }) => (
-                  <li
-                    key={d.device || "other"}
-                    className="rounded-lg border border-border bg-surface-2 px-4 py-2 text-sm"
-                  >
-                    <span className="font-medium">{d.device || "Other"}</span>
-                    <span className="ml-2 text-muted-foreground">
-                      {Number(d.views) || 0}
-                    </span>
-                  </li>
-                ))}
+                {devices.map(
+                  (d: { device?: string | null; views?: number }) => (
+                    <li
+                      key={d.device || "other"}
+                      className="rounded-lg border border-border bg-surface-2 px-4 py-2 text-sm"
+                    >
+                      <span className="font-medium">{d.device || "Other"}</span>
+                      <span className="ml-2 text-muted-foreground">
+                        {Number(d.views) || 0}
+                      </span>
+                    </li>
+                  ),
+                )}
               </ul>
             </section>
           )}

@@ -6,7 +6,11 @@ import { portfolioEventRepository } from "@/repositories/portfolio-event.reposit
 import { normalizeTrafficSource } from "@/lib/analytics/referrer";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
+const MS_PER_DAY = 86_400_000;
+
 export class PortfolioViewService {
+  private readonly hashSecret = process.env.VIEW_HASH_SECRET;
+
   async recordView(data: {
     portfolioId: string;
     country?: string | null;
@@ -22,14 +26,7 @@ export class PortfolioViewService {
       data.portfolioId,
     );
 
-    if (!portfolio) {
-      return null;
-    }
-
-    // Only published portfolios should receive public analytics.
-    if (portfolio.status !== "published") {
-      return null;
-    }
+    if (!portfolio || portfolio.status !== "published") return null;
 
     const ipHash = data.ip ? this.hashIp(data.ip) : null;
 
@@ -52,10 +49,9 @@ export class PortfolioViewService {
     );
     if (!portfolio) return null;
 
-    const since7 = new Date();
-    since7.setDate(since7.getDate() - 7);
-    const since30 = new Date();
-    since30.setDate(since30.getDate() - 30);
+    const now = Date.now();
+    const since7 = new Date(now - 7 * MS_PER_DAY).toISOString();
+    const since30 = new Date(now - 30 * MS_PER_DAY).toISOString();
 
     const [
       total,
@@ -71,10 +67,11 @@ export class PortfolioViewService {
       contactClicks,
       topProjects,
       messages,
+      recentViews,
     ] = await Promise.all([
       portfolioViewRepository.getTotalViews(portfolioId),
-      portfolioViewRepository.getViewsSince(portfolioId, since7.toISOString()),
-      portfolioViewRepository.getViewsSince(portfolioId, since30.toISOString()),
+      portfolioViewRepository.getViewsSince(portfolioId, since7),
+      portfolioViewRepository.getViewsSince(portfolioId, since30),
       portfolioViewRepository.getUniqueVisitors(portfolioId),
       portfolioViewRepository.getCountryCount(portfolioId),
       portfolioViewRepository.getTopCountries(portfolioId),
@@ -84,23 +81,26 @@ export class PortfolioViewService {
       portfolioEventRepository.countByType(portfolioId, "project_click"),
       portfolioEventRepository.countByType(portfolioId, "contact_click"),
       portfolioEventRepository.topLabels(portfolioId, "project_click", 5),
-      // messages for this portfolio
       supabaseAdmin
         .from("contact_messages")
         .select("id", { count: "exact", head: true })
         .eq("portfolio_id", portfolioId)
         .then((r) => r.count ?? 0)
         .catch(() => 0),
+      portfolioViewRepository.getRecentViews(portfolioId),
     ]);
 
-    // normalize sources + percentages
+    let sourcesTotal = 0;
     const sourceMap = new Map<string, number>();
+
     for (const row of referrers) {
       const name = normalizeTrafficSource(row.referrer);
-      sourceMap.set(name, (sourceMap.get(name) ?? 0) + Number(row.views));
+      const count = (sourceMap.get(name) ?? 0) + Number(row.views);
+      sourceMap.set(name, count);
+      sourcesTotal += Number(row.views);
     }
-    const sourcesTotal =
-      [...sourceMap.values()].reduce((a, b) => a + b, 0) || 1;
+
+    if (sourcesTotal === 0) sourcesTotal = 1;
     const trafficSources = [...sourceMap.entries()]
       .map(([name, views]) => ({
         name,
@@ -109,10 +109,6 @@ export class PortfolioViewService {
       }))
       .sort((a, b) => b.views - a.views)
       .slice(0, 8);
-
-    const topSource = trafficSources[0] ?? null;
-    const topCountry = countries[0]?.country ?? null;
-    const mostViewedProject = topProjects[0]?.label ?? null;
 
     return {
       total,
@@ -124,28 +120,27 @@ export class PortfolioViewService {
       contactClicks,
       messages: Number(messages),
       countries: countries ?? [],
-      trafficSources: trafficSources ?? [],
+      trafficSources,
       devices: devices ?? [],
       viewsByDay: viewsByDay ?? [],
       topProjects: topProjects ?? [],
-      recentViews:
-        (await portfolioViewRepository.getRecentViews(portfolioId)) ?? [],
+      recentViews: recentViews ?? [],
       insights: {
-        topSource,
-        mostViewedProject,
-        mostActiveCountry: topCountry,
+        topSource: trafficSources[0] ?? null,
+        mostViewedProject: topProjects[0]?.label ?? null,
+        mostActiveCountry: countries[0]?.country ?? null,
       },
     };
   }
 
-  private hashIp(ip: string) {
-    const secret = process.env.VIEW_HASH_SECRET;
-
-    if (!secret) {
+  private hashIp(ip: string): string {
+    if (!this.hashSecret) {
       throw new Error("VIEW_HASH_SECRET is not configured.");
     }
-
-    return crypto.createHmac("sha256", secret).update(ip).digest("hex");
+    return crypto
+      .createHmac("sha256", this.hashSecret)
+      .update(ip)
+      .digest("hex");
   }
 }
 

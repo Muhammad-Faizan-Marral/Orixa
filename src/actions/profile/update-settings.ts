@@ -6,14 +6,9 @@ import { requireProfile } from "@/lib/auth/require-profile";
 import { requireUser } from "@/lib/auth/require-user";
 
 import { settingsService } from "@/services/profile/settings.service";
+import { UpdateSettingsInput } from "@/validations/settings.schema";
 
-export async function updateSettings(input: {
-  language: string;
-  timezone?: string | null;
-  publicProfile: boolean;
-  emailNotifications: boolean;
-  themeMode?: "light" | "dark" | "system" | null;
-}) {
+export async function updateSettings(input:UpdateSettingsInput) {
   await requireUser();
 
   const profile = await requireProfile();
