@@ -11,6 +11,14 @@ import type {
   CreatePortfolioInput,
   UpdatePortfolioInput,
 } from "@/validations/portfolio.schema";
+import {
+  CertificateItem,
+  Education,
+  Experience,
+  Project,
+  Skill,
+} from "@/features/portfolio/components/portfolio-wizard/types";
+
 
 export class PortfolioRepository {
   async findById(id: string) {
@@ -186,7 +194,29 @@ export class PortfolioRepository {
 
     return {
       portfolio,
-      data: data ?? null,
+      data: data
+        ? {
+            name: data.name ?? null,
+          prompt: data.prompt ?? null,
+          avatarUrl: data.avatarUrl ?? null,
+          phone: data.phone ?? null,
+          linkedinUrl: data.linkedinUrl ?? null,
+          githubUrl: data.githubUrl ?? null,
+          headline: data.headline ?? null,
+          about: data.about ?? null,
+          projects: (data.projects as unknown as Project[]) ?? null,
+          experience: (data.experience as unknown as Experience[]) ?? null,
+          skills: (data.skills as unknown as Skill[]) ?? null,
+          education: (data.education as unknown as Education[]) ?? null,
+          certificates: (data.certificates as unknown as CertificateItem[]) ?? null,
+          resumeUrl: data.resumeUrl ?? null,
+          theme: data.theme ?? null,
+          animations: data.animations ?? null,
+          componentSelection: (data.componentSelection as Record<string, unknown>) ?? null,
+          designPreferences: (data.designPreferences as Record<string, unknown>) ?? null,
+          seo: (data.seo as Record<string, unknown>) ?? null,
+          }
+        : null,
     };
   }
 
