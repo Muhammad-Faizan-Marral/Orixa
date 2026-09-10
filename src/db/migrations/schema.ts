@@ -14,8 +14,15 @@ import {
   boolean,
   numeric,
   bigint,
+  pgSchema,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
+
+export const authSchema = pgSchema("auth");
+
+export const usersInAuth = authSchema.table("users", {
+  id: uuid("id").primaryKey().notNull(),
+});
 
 export const profiles = pgTable(
   "profiles",
@@ -38,7 +45,7 @@ export const profiles = pgTable(
   (table) => [
     foreignKey({
       columns: [table.userId],
-      foreignColumns: [users.id],
+      foreignColumns: [usersInAuth.id],
       name: "profiles_user_id_fkey",
     }).onDelete("cascade"),
     unique("profiles_user_id_key").on(table.userId),

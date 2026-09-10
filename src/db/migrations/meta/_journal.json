@@ -8,6 +8,13 @@
       "when": 1785484604249,
       "tag": "0000_solid_ulik",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789065168434,
+      "tag": "0001_illegal_gamma_corps",
+      "breakpoints": true
     }
   ]
 }
