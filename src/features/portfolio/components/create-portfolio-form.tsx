@@ -27,13 +27,7 @@ export function CreatePortfolioForm() {
     formState: { errors, isSubmitting },
   } = useForm<CreatePortfolioInput>({
     resolver: zodResolver(createPortfolioSchema),
-    mode: "onChange", // immediate validation
-    defaultValues: {
-      title: "",
-      slug: "",
-      headline: "",
-      about: "",
-    },
+    mode: "onChange", // immediate validation defaultValues: {   title: "",   slug: "",   headline: "",   about: "", },
   });
 
   const slug = watch("slug");
@@ -50,9 +44,11 @@ export function CreatePortfolioForm() {
     }
 
     const result = await createPortfolio(data);
-    console.log(result, "Portfolio Create Result");
+
     if (result?.success === false) {
-      setServerError(result.message);
+      setServerError(
+        result.message || "Failed to create portfolio. Please try again.",
+      );
     }
   };
 

@@ -3,6 +3,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
+import { trackContactClick } from "@/features/portfolio/components/use-portfolio-events";
 
 export type FooterMegaProps = {
   name?: string | null;
@@ -13,6 +14,7 @@ export type FooterMegaProps = {
   linkedinUrl?: string | null;
   phone?: string | null;
   resumeUrl?: string | null;
+  portfolioId?:string
 };
 
 type LinkItem = {
@@ -41,7 +43,7 @@ export const FooterMega: React.FC<FooterMegaProps> = ({
   linkedinUrl,
   phone,
   resumeUrl,
-  portfolioId
+  portfolioId,
 }) => {
   const year = new Date().getFullYear();
   const displayName = name || username;
@@ -155,6 +157,11 @@ export const FooterMega: React.FC<FooterMegaProps> = ({
               <nav className="flex flex-col gap-2.5" aria-label="Social links">
                 {socials.map((link) => (
                   <a
+                    onFocus={() => {
+                      if (portfolioId) {
+                        trackContactClick(portfolioId);
+                      }
+                    }}
                     key={link.key}
                     href={link.href}
                     target={link.external ? "_blank" : undefined}

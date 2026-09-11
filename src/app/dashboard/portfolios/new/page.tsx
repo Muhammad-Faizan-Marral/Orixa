@@ -16,9 +16,7 @@ export default function NewPortfolioPage() {
       <div className="mb-8">
         <p className="text-caption text-accent">New portfolio</p>
 
-        <h1 className="text-h1 mt-2">
-          Create your portfolio
-        </h1>
+        <h1 className="text-h1 mt-2">Create your portfolio</h1>
 
         <p className="text-body mt-2 text-muted-foreground">
           Give it a title and a URL — you can add projects, experience and the
@@ -32,4 +30,3 @@ export default function NewPortfolioPage() {
     </div>
   );
 }
-

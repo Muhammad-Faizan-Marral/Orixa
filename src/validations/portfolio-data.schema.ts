@@ -9,7 +9,7 @@ const urlOptional = z
   .or(z.literal(""))
   .refine(
     (val) => !val || /^https?:\/\/.+/i.test(val),
-    "The URL must start with http:// or https://. Example: https://github.com/you"
+    "The URL must start with http:// or https://. Example: https://github.com/you",
   );
 
 const phoneOptional = z
@@ -27,10 +27,7 @@ export const portfolioProjectSchema = z.object({
   title: z.string().trim().min(2, "Project title min 2 chars").max(120),
   description: z.string().trim().max(5000).optional().or(z.literal("")),
   url: urlOptional,
-  technologies: z
-    .array(z.string().trim().min(1).max(60))
-    .max(30)
-    .default([]),
+  technologies: z.array(z.string().trim().min(1).max(60)).max(30).default([]),
   imageUrl: optionalString,
 });
 
@@ -54,7 +51,7 @@ export const portfolioSkillSchema = z.object({
     .max(40, "Skill max 40 chars")
     .refine(
       (val) => /^[a-zA-Z0-9+#.\-_/ ]+$/.test(val),
-     "There are invalid characters in the skill field."
+      "There are invalid characters in the skill field.",
     ),
   level: optionalString,
 });
@@ -110,7 +107,7 @@ const designPreferencesSchema = z
     cardStyle: z.enum(["flat", "bordered", "elevated"]).default("bordered"),
   })
   .passthrough()
-  .default({});
+ 
 
 const seoSchema = z.object({
   title: z.string().trim().max(70, "SEO title max 70 chars").default(""),
@@ -149,7 +146,12 @@ export const updatePortfolioDataSchema = z.object({
 
   componentSelection: componentSelectionSchema,
   designPreferences: designPreferencesSchema,
-  seo: seoSchema.default({}),
+  seo: seoSchema.default({
+    title: "",
+    description: "",
+    keywords: [],
+    noIndex: false,
+  }),
 });
 
 export type UpdatePortfolioDataInput = z.infer<

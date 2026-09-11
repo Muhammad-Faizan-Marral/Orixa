@@ -101,7 +101,7 @@ export class PortfolioService {
       slug,
       headline: input.headline,
       about: input.about,
-      theme: input.theme,
+     
     });
   }
 

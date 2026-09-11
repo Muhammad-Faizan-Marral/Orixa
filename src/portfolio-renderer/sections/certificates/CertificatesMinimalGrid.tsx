@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
+import { motion,Variants } from "framer-motion";
 
 export type CertificatesMinimalGridProps = {
   certificates: Array<{
@@ -13,7 +13,7 @@ export type CertificatesMinimalGridProps = {
   }>;
 };
 
-const rowVariants = {
+const rowVariants:Variants = {
   hidden: { opacity: 0 },
   visible: (i: number) => ({
     opacity: 1,
@@ -47,10 +47,7 @@ const ExternalIcon: React.FC = () => (
 export const CertificatesMinimalGrid: React.FC<CertificatesMinimalGridProps> = ({
   certificates,
 }) => {
-  if (!certificates || certificates.length === 0) return null;
 
-  // Group by issuer for richer scannable structure
-  // If all issuers are unique / absent, just render flat
   const grouped = React.useMemo(() => {
     const map = new Map<string, typeof certificates>();
     for (const cert of certificates) {
@@ -60,6 +57,7 @@ export const CertificatesMinimalGrid: React.FC<CertificatesMinimalGridProps> = (
     }
     return Array.from(map.entries());
   }, [certificates]);
+  if (!certificates || certificates.length === 0) return null;
 
   const useGroups = grouped.length > 1 && grouped.some(([k]) => k !== "");
 

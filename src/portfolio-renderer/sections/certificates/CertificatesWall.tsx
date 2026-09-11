@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
+import { motion,Variants } from "framer-motion";
 
 export type CertificatesWallProps = {
   certificates: Array<{
@@ -20,7 +20,7 @@ const containerVariants = {
   },
 };
 
-const chipVariants = {
+const chipVariants:Variants = {
   hidden: { opacity: 0, scale: 0.95 },
   visible: {
     opacity: 1,

@@ -86,6 +86,11 @@ const es: Dictionary = {
     memberSince: "Miembro desde",
     publicUrl: "URL pública",
     viewPublicProfile: "Ver perfil público",
+    themeOptions: {
+    system: "Sistema",
+    light: "Claro",
+    dark: "Oscuro",
+  },
   },
 
   portfolios: {

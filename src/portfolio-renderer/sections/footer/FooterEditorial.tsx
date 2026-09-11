@@ -123,7 +123,11 @@ export const FooterEditorial: React.FC<FooterEditorialProps> = ({
               <nav className="flex flex-col gap-2.5" aria-label="Social links">
                 {socials.map((link) => (
                   <a
-                    onFocus={() => trackContactClick(portfolioId)}
+                    onFocus={() => {
+                      if (portfolioId) {
+                        trackContactClick(portfolioId);
+                      }
+                    }}
                     key={link.key}
                     href={link.href}
                     target="_blank"

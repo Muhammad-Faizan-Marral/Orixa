@@ -81,12 +81,20 @@ export class PortfolioViewService {
       portfolioEventRepository.countByType(portfolioId, "project_click"),
       portfolioEventRepository.countByType(portfolioId, "contact_click"),
       portfolioEventRepository.topLabels(portfolioId, "project_click", 5),
-      supabaseAdmin
-        .from("contact_messages")
-        .select("id", { count: "exact", head: true })
-        .eq("portfolio_id", portfolioId)
-        .then((r) => r.count ?? 0)
-        .catch(() => 0),
+
+      // 👈 Fix: Use async IIFE for clean try/catch
+      (async () => {
+        try {
+          const { count } = await supabaseAdmin
+            .from("contact_messages")
+            .select("id", { count: "exact", head: true })
+            .eq("portfolio_id", portfolioId);
+          return count ?? 0;
+        } catch {
+          return 0;
+        }
+      })(),
+
       portfolioViewRepository.getRecentViews(portfolioId),
     ]);
 

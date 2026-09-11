@@ -124,15 +124,14 @@ export function SettingsForm({ initialSettings }: Props) {
   } = useForm<UpdateSettingsInput>({
     resolver: zodResolver(updateSettingsSchema),
     defaultValues: {
-      language: initialSettings.language ?? "en",
+      language: (initialSettings.language as "en" | "es") ?? "en",
       timezone: initialSettings.timezone ?? "UTC",
-      publicProfile: initialSettings.publicProfile,
-      emailNotifications: initialSettings.emailNotifications,
+      publicProfile: Boolean(initialSettings.publicProfile),
+      emailNotifications: Boolean(initialSettings.emailNotifications),
       themeMode:
         (initialSettings.themeMode as "light" | "dark" | "system") ?? "system",
     },
   });
-
   const onSubmit = async (data: UpdateSettingsInput) => {
     setStatus(null);
 

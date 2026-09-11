@@ -2,7 +2,7 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
+import { motion,Variants } from "framer-motion";
 import { cardClass } from "../../theme";
 import type { RendererExperience } from "../../types";
 
@@ -30,7 +30,7 @@ const container = {
   },
 };
 
-const item = {
+const item:Variants = {
   hidden: { opacity: 0, x: -16 },
   show: {
     opacity: 1,

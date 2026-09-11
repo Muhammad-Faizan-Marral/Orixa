@@ -84,6 +84,11 @@ const en = {
     memberSince: "Member since",
     publicUrl: "Public URL",
     viewPublicProfile: "View public profile",
+    themeOptions: {
+    system: "System",
+    light: "Light",
+    dark: "Dark",
+  }
   },
 
   portfolios: {

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
+import { motion,Variants } from "framer-motion";
 
 export type EducationRailProps = {
   education: Array<{
@@ -29,7 +29,7 @@ function formatDegreeField(degree?: string, field?: string): string | null {
   return null;
 }
 
-const itemVariants = {
+const itemVariants:Variants = {
   hidden: { opacity: 0, y: 20 },
   visible: (i: number) => ({
     opacity: 1,

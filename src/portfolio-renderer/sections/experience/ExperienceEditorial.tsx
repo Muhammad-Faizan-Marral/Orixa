@@ -2,7 +2,7 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
+import { motion,Variants } from "framer-motion";
 import type { RendererExperience } from "../../types";
 
 export type ExperienceEditorialProps = {
@@ -29,7 +29,7 @@ const container = {
   },
 };
 
-const item = {
+const item:Variants = {
   hidden: { opacity: 0, y: 24 },
   show: {
     opacity: 1,

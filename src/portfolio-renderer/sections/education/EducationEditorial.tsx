@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
+import { motion,Variants } from "framer-motion";
 
 export type EducationEditorialProps = {
   education: Array<{
@@ -22,7 +22,7 @@ function formatDateRange(startDate?: string, endDate?: string): string | null {
   return null;
 }
 
-const rowVariants = {
+const rowVariants:Variants = {
   hidden: { opacity: 0 },
   visible: (i: number) => ({
     opacity: 1,

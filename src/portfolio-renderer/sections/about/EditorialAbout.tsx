@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
+import { motion ,Variants} from "framer-motion";
 
 type EditorialAboutProps = {
   config: {
@@ -13,14 +13,19 @@ type EditorialAboutProps = {
   };
 };
 
-const fadeUp = {
+const fadeUp: Variants = {
   hidden: { opacity: 0, y: 24 },
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: i * 0.1 },
+    transition: { 
+      duration: 0.6, 
+      ease: [0.22, 1, 0.36, 1],
+      delay: i * 0.1 
+    },
   }),
 };
+
 
 export const EditorialAbout: React.FC<EditorialAboutProps> = ({ config }) => {
   const { name, about, avatarUrl, phone, location } = config;

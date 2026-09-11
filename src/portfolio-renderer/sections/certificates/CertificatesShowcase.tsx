@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
+import { motion,Variants } from "framer-motion";
 
 export type CertificatesShowcaseProps = {
   certificates: Array<{
@@ -13,7 +13,7 @@ export type CertificatesShowcaseProps = {
   }>;
 };
 
-const cardVariants = {
+const cardVariants:Variants = {
   hidden: { opacity: 0, y: 24 },
   visible: (i: number) => ({
     opacity: 1,
@@ -27,12 +27,13 @@ const cardVariants = {
 };
 
 // Small verified-seal SVG — replaces generic arrow icons
-const SealIcon: React.FC<{ className?: string }> = ({ className }) => (
+const SealIcon: React.FC<{ className?: string ,style?: React.CSSProperties}> = ({ className, style}) => (
   <svg
     viewBox="0 0 20 20"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
     className={className}
+    style={style}
     aria-hidden="true"
   >
     <path

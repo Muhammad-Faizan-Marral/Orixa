@@ -44,7 +44,7 @@ export function ProfileEditForm({ profile }: ProfileEditFormProps) {
     const result = await updateProfile(data);
 
     if (!result.success) {
-      setStatus({ type: "error", message: result.message });
+      setStatus({ type: "error", message: result.message||"Unable to update profile." });
       return;
     }
 

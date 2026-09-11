@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
+import { motion, Variants } from "framer-motion";
 
 type PortraitAboutProps = {
   config: {
@@ -20,7 +20,7 @@ const stagger = {
   },
 };
 
-const fadeSlide = {
+const fadeSlide: Variants = {
   hidden: { opacity: 0, y: 18 },
   visible: {
     opacity: 1,
@@ -60,7 +60,6 @@ export const PortraitAbout: React.FC<PortraitAboutProps> = ({ config }) => {
       aria-label="About"
     >
       <div className="grid grid-cols-1 md:grid-cols-[minmax(0,320px)_1fr] gap-0 items-stretch">
-
         {/* ── Left: tall portrait card ── */}
         <motion.div
           className="relative overflow-hidden"
@@ -193,7 +192,10 @@ export const PortraitAbout: React.FC<PortraitAboutProps> = ({ config }) => {
 
           {/* Metadata grid */}
           {(location || phone) && (
-            <motion.div variants={stagger} className="flex flex-col gap-0 mt-auto">
+            <motion.div
+              variants={stagger}
+              className="flex flex-col gap-0 mt-auto"
+            >
               {location && <MetaRow label="Location" value={location} />}
               {phone && <MetaRow label="Contact" value={phone} />}
               {/* Decorative bottom cap */}

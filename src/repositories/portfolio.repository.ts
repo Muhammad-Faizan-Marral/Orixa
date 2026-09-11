@@ -102,7 +102,7 @@ export class PortfolioRepository {
         githubUrl: null,
         headline: data.headline || null,
         about: data.about || null,
-        theme: data.theme || "minimal",
+        
         animations: true,
         projects: [],
         experience: [],
@@ -147,7 +147,7 @@ export class PortfolioRepository {
       .set({
         headline: data.headline || null,
         about: data.about || null,
-        theme: data.theme || "minimal",
+       
         updatedAt: new Date().toISOString(),
       })
       .where(eq(portfolioData.portfolioId, portfolioId));

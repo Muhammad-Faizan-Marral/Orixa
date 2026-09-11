@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
+import { motion,Variants } from "framer-motion";
 
 export type EducationCardsProps = {
   education: Array<{
@@ -29,7 +29,7 @@ function fieldWash(field?: string, degree?: string): string {
   return source.split(/\s+/).slice(0, 2).join(" ");
 }
 
-const cardVariants = {
+const cardVariants:Variants = {
   hidden: { opacity: 0, y: 28 },
   visible: (i: number) => ({
     opacity: 1,
