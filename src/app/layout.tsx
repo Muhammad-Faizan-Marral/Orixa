@@ -4,6 +4,8 @@ import { Inter, Bricolage_Grotesque, JetBrains_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { LocaleProvider } from "@/components/locale-provider";
 import { TimezoneProvider } from "@/components/timezone-provider";
+import { NetworkStatusBanner } from "@/components/network-status-banner";
+import { ToastProvider } from "@/components/toast";
 import { THEME_INIT_SCRIPT } from "@/lib/theme";
 import { LOCALE_INIT_SCRIPT } from "@/i18n/locale";
 
@@ -69,7 +71,12 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-background text-foreground font-sans">
         <ThemeProvider>
           <LocaleProvider>
-            <TimezoneProvider>{children}</TimezoneProvider>
+            <TimezoneProvider>
+             
+                
+                {children}
+            
+            </TimezoneProvider>
           </LocaleProvider>
         </ThemeProvider>
       </body>

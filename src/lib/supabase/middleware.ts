@@ -10,7 +10,7 @@ const GUEST_ONLY_PREFIXES = [
 ];
 
 export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request});
+  let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -36,7 +36,9 @@ export async function updateSession(request: NextRequest) {
   );
 
   // IMPORTANT: getUser() is required for security (never use getSession() alone)
-  const { data: { user }, } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
   const isAuthenticated = !!user;
@@ -59,6 +61,20 @@ export async function updateSession(request: NextRequest) {
   if (isGuestOnly && isAuthenticated) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
+
+  // Set CDN Cache Control Headers
+  supabaseResponse.headers.set(
+    "Cache-Control",
+    "public, s-maxage=3600, stale-while-revalidate=86400",
+  );
+  supabaseResponse.headers.set(
+    "CDN-Cache-Control",
+    "public, s-maxage=3600, stale-while-revalidate=86400",
+  );
+  supabaseResponse.headers.set(
+    "Vercel-CDN-Cache-Control",
+    "public, s-maxage=3600, stale-while-revalidate=86400",
+  );
 
   return supabaseResponse;
 }

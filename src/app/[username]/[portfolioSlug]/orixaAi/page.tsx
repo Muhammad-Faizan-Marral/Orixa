@@ -11,10 +11,6 @@ type Props = {
   params: Promise<{ username: string; portfolioSlug: string }>;
 };
 
-// Direct number assign karein taake Next.js static evaluation pass ho jaye
-export const revalidate = 3600;
-export const dynamicParams = true;
-
 const getCachedPublishedPortfolio = (username: string, portfolioSlug: string) =>
   unstable_cache(
     async () => {
@@ -67,7 +63,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function PublicPortfolioPage({ params }: Props) {
+/**
+ * Canonical public portfolio URL:
+ *   /{username}/{portfolioSlug}/orixaAi
+ * Example: /faizan/merndeveloper/orixaAi
+ */
+export default async function PublicPortfolioBrandedPage({ params }: Props) {
   const { username, portfolioSlug } = await params;
 
   const pub = await getCachedPublishedPortfolio(username, portfolioSlug);

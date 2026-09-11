@@ -3308,6 +3308,7 @@ export function PortfolioWizard({
             "Portfolio saved, but version creation failed.",
         );
       setMessage({ type: "success", text: "Portfolio saved successfully." });
+      router.push(`/dashboard/portfolios/${portfolio.id}`);
       router.refresh();
     } catch (err) {
       setMessage({

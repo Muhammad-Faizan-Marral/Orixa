@@ -4,6 +4,8 @@ import { LocaleSync } from "@/components/locale-sync";
 import { requireProfile } from "@/lib/auth/require-profile";
 import { settingsService } from "@/services/profile/settings.service";
 import { TimezoneSync } from "@/components/timezone-sync";
+import { NetworkStatusBanner } from "@/components/network-status-banner";
+import { ToastProvider } from "@/components/toast";
 
 export default async function DashboardLayout({
   children,
@@ -23,7 +25,8 @@ export default async function DashboardLayout({
           avatarUrl: profile.avatarUrl,
         }}
       >
-        {children}
+        <NetworkStatusBanner />
+        <ToastProvider>{children}</ToastProvider>
       </DashboardShell>
     </>
   );

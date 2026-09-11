@@ -5,6 +5,7 @@ import { revalidatePath, revalidateTag } from "next/cache";
 
 import { requireProfile } from "@/lib/auth/require-profile";
 import { portfolioService } from "@/services/portfolio/portfolio.service";
+import { revalidatePublicPortfolio } from "@/lib/cache/portfolio-public";
 
 const unpublishSchema = z.object({
   portfolioId: z.string().uuid("Invalid portfolio ID"),
@@ -51,7 +52,7 @@ export async function unpublishPortfolio(
     revalidatePath("/dashboard");
     revalidatePath("/dashboard/portfolios");
     revalidatePath(`/dashboard/portfolios/${portfolioId}`);
-
+    revalidatePublicPortfolio(profile.username, portfolio.slug);
     return {
       success: true,
       portfolio,
