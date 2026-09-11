@@ -10,8 +10,7 @@ export async function signInWithOAuth(
   const supabase = await createClient();
 
   const origin =
-    process.env.NEXT_PUBLIC_SITE_URL ??
-    "http://localhost:3000";
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://orixa-one.vercel.app/";
 
   const { data, error } =
     await supabase.auth.signInWithOAuth({
