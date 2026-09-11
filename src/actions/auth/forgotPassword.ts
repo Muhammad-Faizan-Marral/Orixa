@@ -23,12 +23,17 @@ export async function forgotPassword(
       error: parsed.error.issues[0]?.message || "Please enter a valid email.",
     };
   }
+  const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
+  (process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL.replace(/\/$/, "")}`
+    : "http://localhost:3000");
 
   const { email } = parsed.data;
   const supabase = await createClient();
 
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=/auth/reset-password`,
+    redirectTo: `${siteUrl}/auth/callback?next=/auth/reset-password`,
   });
 
   if (error) {

@@ -4,21 +4,26 @@ import { createClient } from "@/lib/supabase/server";
 
 export type OAuthProvider = "google" | "github";
 
-export async function signInWithOAuth(
-  provider: OAuthProvider,
-) {
+function getSiteOrigin() {
+  const fromEnv = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
+  if (fromEnv) return fromEnv;
+  // Production pe kabhi localhost fallback mat use karo
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL.replace(/\/$/, "")}`;
+  }
+  return "http://localhost:3000";
+}
+
+export async function signInWithOAuth(provider: OAuthProvider) {
   const supabase = await createClient();
+  const origin = getSiteOrigin();
 
-  const origin =
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://orixa-one.vercel.app/";
-
-  const { data, error } =
-    await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: `${origin}/auth/callback?next=/dashboard`,
-      },
-    });
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider,
+    options: {
+      redirectTo: `${origin}/auth/callback?next=/dashboard`,
+    },
+  });
 
   if (error) {
     throw new Error(error.message);
