@@ -1,21 +1,4 @@
-/**
- * Canonical public URL helpers for Orixa.
- *
- * Display + Copy + Share (pretty path, brand/domain last):
- *   developer/developer/orixaai.me
- *
- * Real browser URL after deploy:
- *   https://orixaai.me/developer/developer
- *
- * Local dev:
- *   http://localhost:3000/developer/developer
- *
- * Set in production .env:
- *   NEXT_PUBLIC_SITE_URL=https://orixaai.me
- */
-
 export const BRAND_DOMAIN = "orixaai.me";
-/** @deprecated path brand segment no longer required in canonical URL */
 export const BRAND_SEGMENT = "orixaAi";
 
 const FALLBACK_ORIGIN = `https://${BRAND_DOMAIN}`;
@@ -30,10 +13,7 @@ export function getSiteOrigin(): string {
   return FALLBACK_ORIGIN;
 }
 
-/**
- * Pretty path for UI display, clipboard, and share text.
- * Example: developer/developer/orixaai.me
- */
+/** Display / copy / share: developer/developer/orixaai.me */
 export function publicPathDisplay(
   username: string,
   portfolioSlug?: string | null,
@@ -44,10 +24,6 @@ export function publicPathDisplay(
   return `${username}/${BRAND_DOMAIN}`;
 }
 
-/**
- * Same as publicPathDisplay — share/copy must match display.
- * Example: developer/developer/orixaai.me
- */
 export function publicSharePath(
   username: string,
   portfolioSlug?: string | null,
@@ -55,11 +31,7 @@ export function publicSharePath(
   return publicPathDisplay(username, portfolioSlug);
 }
 
-/**
- * Real absolute URL that opens the portfolio in a browser.
- * Production: https://orixaai.me/developer/developer
- * Local:      http://localhost:3000/developer/developer
- */
+/** Real browser URL: https://orixaai.me/developer/developer */
 export function publicAbsoluteUrl(
   username: string,
   portfolioSlug?: string | null,
@@ -67,10 +39,6 @@ export function publicAbsoluteUrl(
   return `${getSiteOrigin()}${publicInternalPath(username, portfolioSlug)}`;
 }
 
-/**
- * Internal Next.js route path (no brand domain in path).
- * Example: /developer/developer
- */
 export function publicInternalPath(
   username: string,
   portfolioSlug?: string | null,

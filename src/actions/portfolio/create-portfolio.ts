@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 
 import { requireProfile } from "@/lib/auth/require-profile";
 import { portfolioService } from "@/services/portfolio/portfolio.service";
@@ -11,13 +10,17 @@ import {
 } from "@/validations/portfolio.schema";
 
 export type CreatePortfolioState = {
-  success?: boolean;
+  success: boolean;
   message?: string;
+  portfolioId?: string;
 };
 
+/**
+ * No redirect() — client navigates.
+ */
 export async function createPortfolio(
   data: CreatePortfolioInput,
-): Promise<CreatePortfolioState | void> {
+): Promise<CreatePortfolioState> {
   const parsed = createPortfolioSchema.safeParse(data);
 
   if (!parsed.success) {
@@ -27,9 +30,8 @@ export async function createPortfolio(
     };
   }
 
-  const profile = await requireProfile();
-
   try {
+    const profile = await requireProfile();
     const portfolio = await portfolioService.createPortfolio(
       profile.id,
       parsed.data,
@@ -38,18 +40,11 @@ export async function createPortfolio(
     revalidatePath("/dashboard");
     revalidatePath("/dashboard/portfolios");
 
-    redirect(`/dashboard/portfolios/${portfolio.id}/edit`);
+    return {
+      success: true,
+      portfolioId: portfolio.id,
+    };
   } catch (error) {
-    if (
-      typeof error === "object" &&
-      error !== null &&
-      "digest" in error &&
-      typeof (error as { digest?: unknown }).digest === "string" &&
-      (error as { digest: string }).digest.startsWith("NEXT_REDIRECT")
-    ) {
-      throw error;
-    }
-
     console.error("[createPortfolio] Error:", error);
 
     return {

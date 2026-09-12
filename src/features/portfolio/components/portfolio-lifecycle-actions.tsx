@@ -48,13 +48,14 @@ export function PortfolioLifecycleActions({
         return;
       }
 
-      if (key === "publish") {
+         if (key === "publish") {
         setJustPublished(true);
         setTimeout(() => setJustPublished(false), 2400);
       }
 
       setPendingAction(null);
       router.refresh();
+      setTimeout(() => router.refresh(), 400);
     });
   };
 

@@ -1,31 +1,18 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { unstable_cache } from "next/cache";
 
-import { portfolioService } from "@/services/portfolio/portfolio.service";
 import type { PortfolioRenderConfig } from "@/portfolio-renderer/types";
 import { PortfolioViewTracker } from "@/features/portfolio/components/portfolio-view-tracker";
 import { DesignEngine } from "@/portfolio-renderer/DesignEngine";
+import { getCachedPublishedPortfolio } from "@/lib/cache/portfolio-public";
 
 type Props = {
   params: Promise<{ username: string; portfolioSlug: string }>;
 };
 
-// Direct number assign karein taake Next.js static evaluation pass ho jaye
+// Revalidate set to 3600 seconds (1 hour) directly
 export const revalidate = 3600;
 export const dynamicParams = true;
-
-const getCachedPublishedPortfolio = (username: string, portfolioSlug: string) =>
-  unstable_cache(
-    async () => {
-      return portfolioService.getPublishedPublic(username, portfolioSlug);
-    },
-    ["published-portfolio", username, portfolioSlug],
-    {
-      tags: [`portfolio:${username}:${portfolioSlug}`, `user:${username}`],
-      revalidate: 3600,
-    },
-  )();
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { username, portfolioSlug } = await params;

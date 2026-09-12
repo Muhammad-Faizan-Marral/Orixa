@@ -1,8 +1,9 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 
 import { createProfile } from "@/actions/profile/create-profile";
@@ -30,8 +31,10 @@ const STEP_FIELDS: (keyof OnboardingFormValues)[][] = [
 const transition = { duration: 0.35, ease: [0.16, 1, 0.3, 1] as const };
 
 export function OnboardingForm() {
+  const router = useRouter();
   const [step, setStep] = useState(0);
   const [serverError, setServerError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
 
   const form = useForm<OnboardingFormValues>({
     resolver: zodResolver(createProfileSchema),
@@ -66,7 +69,7 @@ export function OnboardingForm() {
     setStep((s) => Math.max(s - 1, 0));
   }
 
-  const onSubmit = async (data: OnboardingFormValues) => {
+const onSubmit = async (data: OnboardingFormValues) => {
     setServerError(null);
 
     if (!usernameCheck.isAvailable) {
@@ -81,15 +84,21 @@ export function OnboardingForm() {
     try {
       const result = await createProfile(data);
 
-      if (result?.success === false) {
-        setServerError(result.message);
+      if (!result?.success) {
+        setServerError(result?.message || "Unable to create your profile.");
+        return;
       }
-    } catch {
+
+      router.replace("/dashboard");
+      router.refresh();
+    } catch (err) {
+      console.error("[onboarding] createProfile", err);
       setServerError("Unable to create your profile. Please try again.");
     }
-  };
+  }
 
   const values = form.getValues();
+  const isSubmitting = form.formState.isSubmitting || isPending;
 
   return (
     <div>
@@ -128,7 +137,7 @@ export function OnboardingForm() {
               <IdentityFields
                 register={form.register}
                 errors={form.formState.errors}
-                disabled={form.formState.isSubmitting}
+                disabled={isSubmitting}
               />
             )}
 
@@ -137,7 +146,7 @@ export function OnboardingForm() {
                 registration={form.register("username")}
                 value={username}
                 error={form.formState.errors.username?.message}
-                disabled={form.formState.isSubmitting}
+                disabled={isSubmitting}
               />
             )}
 
@@ -145,7 +154,7 @@ export function OnboardingForm() {
               <ProfessionalFields
                 register={form.register}
                 errors={form.formState.errors}
-                disabled={form.formState.isSubmitting}
+                disabled={isSubmitting}
               />
             )}
 
@@ -166,7 +175,9 @@ export function OnboardingForm() {
                   </div>
                   <div className="flex justify-between gap-4">
                     <dt className="text-muted-foreground">Headline</dt>
-                    <dd className="text-right font-medium">{values.headline || "—"}</dd>
+                    <dd className="text-right font-medium">
+                      {values.headline || "—"}
+                    </dd>
                   </div>
                 </dl>
               </div>
@@ -175,27 +186,41 @@ export function OnboardingForm() {
         </AnimatePresence>
 
         {serverError && (
-          <p role="alert" className="mt-4 rounded-lg border border-error/20 bg-error/10 px-3 py-2.5 text-sm text-error">
+          <p
+            role="alert"
+            className="mt-4 rounded-lg border border-error/20 bg-error/10 px-3 py-2.5 text-sm text-error"
+          >
             {serverError}
           </p>
         )}
 
         <div className="mt-8 flex items-center gap-3">
           {step > 0 && (
-            <Button type="button" variant="secondary" onClick={goBack}>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={goBack}
+              disabled={isSubmitting}
+            >
               Back
             </Button>
           )}
 
           {!isLastStep ? (
-            <Button type="button" variant="gradient" className="flex-1" onClick={goNext}>
+            <Button
+              type="button"
+              variant="gradient"
+              className="flex-1"
+              onClick={goNext}
+              disabled={isSubmitting}
+            >
               {step === 0 ? "Get started" : "Continue"}
             </Button>
           ) : (
             <div className="flex-1">
               <SubmitButton
-                pending={form.formState.isSubmitting}
-                disabled={form.formState.isSubmitting || !usernameCheck.isAvailable}
+                pending={isSubmitting}
+                disabled={isSubmitting || !usernameCheck.isAvailable}
               />
             </div>
           )}

@@ -1,7 +1,7 @@
 "use server";
 
 import { z } from "zod";
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidatePath } from "next/cache";
 
 import { requireProfile } from "@/lib/auth/require-profile";
 import { portfolioService } from "@/services/portfolio/portfolio.service";
@@ -37,22 +37,16 @@ export async function unpublishPortfolio(
       profile.id,
     );
 
-    // Revalidate tags using profile/cache profile argument
     if (portfolio?.slug) {
-      const portfolioTag = `portfolio:${profile.username}:${portfolio.slug}`;
-      const userTag = `user:${profile.username}`;
-
-      revalidateTag(portfolioTag, "max");
-      revalidateTag(userTag, "max");
-
-      revalidatePath(`/${profile.username}/${portfolio.slug}`);
+      revalidatePublicPortfolio(profile.username, portfolio.slug);
+    } else {
+      revalidatePath(`/${profile.username}`);
     }
 
-    revalidatePath(`/${profile.username}`);
     revalidatePath("/dashboard");
     revalidatePath("/dashboard/portfolios");
     revalidatePath(`/dashboard/portfolios/${portfolioId}`);
-    revalidatePublicPortfolio(profile.username, portfolio.slug);
+
     return {
       success: true,
       portfolio,

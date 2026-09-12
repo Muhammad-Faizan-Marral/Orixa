@@ -30,7 +30,14 @@ const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   display: "swap",
   adjustFontFallback: true,
-  fallback: ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "monospace"],
+  fallback: [
+    "ui-monospace",
+    "SFMono-Regular",
+    "Menlo",
+    "Monaco",
+    "Consolas",
+    "monospace",
+  ],
 });
 
 export const metadata: Metadata = {
@@ -72,10 +79,9 @@ export default function RootLayout({
         <ThemeProvider>
           <LocaleProvider>
             <TimezoneProvider>
-             
-                
+              
                 {children}
-            
+              
             </TimezoneProvider>
           </LocaleProvider>
         </ThemeProvider>

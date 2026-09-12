@@ -3,9 +3,8 @@ import { revalidatePath, revalidateTag } from "next/cache";
 
 import { portfolioService } from "@/services/portfolio/portfolio.service";
 
-/** ISR / CDN window — 1 hour fresh, then SWR */
-export const PORTFOLIO_REVALIDATE_SECONDS = 3600;
-export const PORTFOLIO_SWR_SECONDS = 86_400; // 24h stale-while-revalidate
+export const PORTFOLIO_REVALIDATE_SECONDS = 60;
+export const PORTFOLIO_SWR_SECONDS = 300;
 
 export function portfolioCacheTag(username: string, slug: string) {
   return `portfolio:${username}:${slug}`;
@@ -16,18 +15,25 @@ export function userCacheTag(username: string) {
 }
 
 /**
- * Cached published portfolio fetch.
- * First visitor hits DB; later visitors get cached data.
+ * Cache ONLY successful published payloads.
+ * Null/not-found is not stored as a sticky cache entry.
  */
-export function getCachedPublishedPortfolio(
+export async function getCachedPublishedPortfolio(
   username: string,
   portfolioSlug: string,
 ) {
-  return unstable_cache(
+  const loadCachedHit = unstable_cache(
     async () => {
-      return portfolioService.getPublishedPublic(username, portfolioSlug);
+      const result = await portfolioService.getPublishedPublic(
+        username,
+        portfolioSlug,
+      );
+      if (!result) {
+        throw new Error("PORTFOLIO_NOT_PUBLISHED");
+      }
+      return result;
     },
-    ["published-portfolio", username, portfolioSlug],
+    ["published-portfolio-v3", username, portfolioSlug],
     {
       tags: [
         portfolioCacheTag(username, portfolioSlug),
@@ -35,12 +41,17 @@ export function getCachedPublishedPortfolio(
       ],
       revalidate: PORTFOLIO_REVALIDATE_SECONDS,
     },
-  )();
+  );
+
+  try {
+    return await loadCachedHit();
+  } catch {
+    return portfolioService.getPublishedPublic(username, portfolioSlug);
+  }
 }
 
-/** CDN + browser headers (Vercel / Cloudflare / most CDNs) */
 export function publicPageCacheHeaders(): Record<string, string> {
-  const value = `public, s-maxage=${PORTFOLIO_REVALIDATE_SECONDS}, stale-while-revalidate=${PORTFOLIO_SWR_SECONDS}, stale-if-error=86400`;
+  const value = `public, s-maxage=${PORTFOLIO_REVALIDATE_SECONDS}, stale-while-revalidate=${PORTFOLIO_SWR_SECONDS}, stale-if-error=30`;
   return {
     "Cache-Control": value,
     "CDN-Cache-Control": value,
@@ -49,8 +60,14 @@ export function publicPageCacheHeaders(): Record<string, string> {
   };
 }
 
-/** Publish / unpublish ke baad saari layers bust */
-/** Publish / unpublish ke baad saari layers bust */
+export function publicErrorCacheHeaders(): Record<string, string> {
+  return {
+    "Cache-Control": "private, no-store, max-age=0, must-revalidate",
+    "CDN-Cache-Control": "no-store",
+    "Vercel-CDN-Cache-Control": "no-store",
+  };
+}
+
 export function revalidatePublicPortfolio(username: string, slug: string) {
   revalidateTag(portfolioCacheTag(username, slug), "max");
   revalidateTag(userCacheTag(username), "max");

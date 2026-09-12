@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,10 +14,10 @@ import {
 } from "@/validations/portfolio.schema";
 
 import { Input } from "@/components/UI/Input";
-import { Textarea } from "@/components/UI/Textarea";
 import { Button } from "@/components/UI/Button";
 
 export function CreatePortfolioForm() {
+  const router = useRouter();
   const [serverError, setServerError] = useState("");
 
   const {
@@ -27,7 +28,13 @@ export function CreatePortfolioForm() {
     formState: { errors, isSubmitting },
   } = useForm<CreatePortfolioInput>({
     resolver: zodResolver(createPortfolioSchema),
-    mode: "onChange", // immediate validation defaultValues: {   title: "",   slug: "",   headline: "",   about: "", },
+    mode: "onChange",
+    defaultValues: {
+      title: "",
+      slug: "",
+      headline: "",
+      about: "",
+    },
   });
 
   const slug = watch("slug");
@@ -45,10 +52,16 @@ export function CreatePortfolioForm() {
 
     const result = await createPortfolio(data);
 
-    if (result?.success === false) {
+    if (!result?.success) {
       setServerError(
-        result.message || "Failed to create portfolio. Please try again.",
+        result?.message || "Failed to create portfolio. Please try again.",
       );
+      return;
+    }
+
+    if (result.portfolioId) {
+      router.push(`/dashboard/portfolios/${result.portfolioId}/edit`);
+      router.refresh();
     }
   };
 
@@ -83,8 +96,9 @@ export function CreatePortfolioForm() {
         <div className="mt-1.5 text-small min-h-[1.1rem]">
           {slug && (
             <p className="text-subtle-foreground">
-              orixa.ai/your-username/
+              your-username/
               <span className="font-medium text-foreground">{slug}</span>
+              /orixaai.me
             </p>
           )}
           {checking && (
@@ -104,23 +118,6 @@ export function CreatePortfolioForm() {
           )}
         </div>
       </div>
-
-      {/* <Input
-        id="headline"
-        label="Headline (optional)"
-        {...register("headline")}
-        placeholder="Full Stack Developer · Next.js & Node"
-        error={errors.headline?.message}
-      />
-
-      <Textarea
-        id="about"
-        label="About (optional)"
-        {...register("about")}
-        placeholder="Short intro — you can expand this later in the wizard…"
-        rows={3}
-        error={errors.about?.message}
-      /> */}
 
       {serverError && (
         <p
