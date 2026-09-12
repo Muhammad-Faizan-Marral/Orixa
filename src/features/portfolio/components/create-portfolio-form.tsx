@@ -78,7 +78,7 @@ export function CreatePortfolioForm() {
       <div>
         <Input
           id="slug"
-          label="Portfolio URL"
+          label="Slug URL"
           {...register("slug")}
           placeholder="developer"
           error={errors.slug?.message}

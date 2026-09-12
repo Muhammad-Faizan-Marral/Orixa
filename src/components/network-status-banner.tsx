@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect, useState, useCallback, type CSSProperties } from "react";
+import { useEffect, useRef, useState, useCallback, type CSSProperties } from "react";
 import { cn } from "@/lib/utils";
 
 type ConnectionQuality = "online" | "offline" | "slow";
 
 // ─── Tunables ────────────────────────────────────────────────────────────────
 const PING_TIMEOUT_MS = 4_000;
-const SLOW_RTT_MS = 1_800;
-const CHECK_INTERVAL_MS = 5_000; // was 15 000 — now 5 s for snappy detection
+const SLOW_RTT_MS     = 1_800;
+const CHECK_INTERVAL_MS = 5_000;
 // ─────────────────────────────────────────────────────────────────────────────
 
 type NavWithConn = Navigator & {
@@ -20,7 +20,7 @@ type NavWithConn = Navigator & {
   };
 };
 
-/** Actual round-trip ping against the app's own origin — CORS-safe, no extra infra. */
+/** Actual RTT probe against the app's own origin — CORS-safe, no extra infra. */
 async function pingCheck(): Promise<ConnectionQuality> {
   if (typeof window === "undefined") return "online";
   if (!navigator.onLine) return "offline";
@@ -44,7 +44,7 @@ async function pingCheck(): Promise<ConnectionQuality> {
   }
 }
 
-/** Fast (sync) read of Network Information API. Returns null when unavailable. */
+/** Fast sync read of Network Information API. Returns null when unavailable. */
 function readNetworkApi(): ConnectionQuality | null {
   if (typeof navigator === "undefined") return null;
   const conn = (navigator as NavWithConn).connection;
@@ -89,66 +89,33 @@ const TOKEN = {
 // ─── Icons ────────────────────────────────────────────────────────────────────
 function IconOffline({ style }: { style?: CSSProperties }) {
   return (
-    <svg
-      style={style}
-      className="w-4 h-4 shrink-0"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={1.8}
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072M12 12h.01M3 3l18 18"
-      />
+    <svg style={style} className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072M12 12h.01M3 3l18 18" />
     </svg>
   );
 }
 
 function IconSlow({ style }: { style?: CSSProperties }) {
   return (
-    <svg
-      style={style}
-      className="w-4 h-4 shrink-0"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={1.8}
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-      />
+    <svg style={style} className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
   );
 }
 
 function IconX({ className }: { className?: string }) {
   return (
-    <svg
-      className={className}
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2.5}
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M6 18L18 6M6 6l12 12"
-      />
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
     </svg>
   );
 }
 
-// ─── Sync initializer (runs before first render, client-only) ─────────────────
+// ─── Sync initializer (runs before first render) ───────────────────────────────
 type BannerState = { status: ConnectionQuality; visible: boolean };
 
 function deriveInitialState(): BannerState {
-  if (typeof navigator === "undefined")
-    return { status: "online", visible: false };
+  if (typeof navigator === "undefined") return { status: "online", visible: false };
   if (!navigator.onLine) return { status: "offline", visible: true };
   const apiQ = readNetworkApi();
   if (apiQ === "slow") return { status: "slow", visible: true };
@@ -157,43 +124,61 @@ function deriveInitialState(): BannerState {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export function NetworkStatusBanner() {
-  // Initializer runs once synchronously — correct state from frame 0, no flash.
-  const [{ status, visible }, setBanner] =
-    useState<BannerState>(deriveInitialState);
+  const [{ status, visible }, setBanner] = useState<BannerState>(deriveInitialState);
   const [dismissed, setDismissed] = useState(false);
+
+  // ── Transition-aware dismissal ─────────────────────────────────────────────
+  // The bug: old code called setDismissed(false) on every 5-second poll while
+  // slow, so users could never permanently dismiss the banner.
+  //
+  // Fix: track the *previous* status and only reset dismissed on real transitions.
+  //
+  //   *       → online  : reset dismissed (fresh slate — next event gets a banner)
+  //   online  → offline : reset dismissed (critical — user must see this)
+  //   offline → offline : keep dismissed  (already saw it, don't nag)
+  //   *       → slow    : NEVER reset dismissed (non-critical, user opted out)
+  const prevStatusRef = useRef<ConnectionQuality>(deriveInitialState().status);
 
   const evaluate = useCallback(async () => {
     if (typeof navigator === "undefined") return;
 
-    // 1. Instant offline signal
+    const prev = prevStatusRef.current;
+
+    // 1. Instant offline (sync, no network call needed)
     if (!navigator.onLine) {
+      prevStatusRef.current = "offline";
       setBanner({ status: "offline", visible: true });
-      setDismissed(false);
+      if (prev !== "offline") setDismissed(false); // only on transition
       return;
     }
 
-    // 2. Fast sync check via Network Information API
+    // 2. Network Information API (sync fast-path)
     const apiQ = readNetworkApi();
     if (apiQ === "slow") {
+      prevStatusRef.current = "slow";
       setBanner({ status: "slow", visible: true });
-      setDismissed(false);
+      // intentionally no setDismissed(false) here
       return;
     }
 
-    // 3. Async fetch-based latency probe (most accurate)
+    // 3. Actual RTT probe (async, most accurate)
     const quality = await pingCheck();
+    prevStatusRef.current = quality;
+
     if (quality === "online") {
       setBanner({ status: "online", visible: false });
+      setDismissed(false); // clear so next offline/slow event gets fresh banner
+    } else if (quality === "offline") {
+      setBanner({ status: "offline", visible: true });
+      if (prev !== "offline") setDismissed(false);
     } else {
-      setBanner({ status: quality, visible: true });
-      setDismissed(false);
+      // slow detected via RTT — same no-reset rule
+      setBanner({ status: "slow", visible: true });
     }
   }, []);
 
   useEffect(() => {
-    // ⚠️  Do NOT call evaluate() directly here — it calls setState synchronously
-    // in its offline branch, which cascades renders inside the effect body.
-    // Schedule it deferred so the effect body itself is setState-free.
+    // Deferred so effect body itself never calls setState synchronously.
     const initPing = window.setTimeout(evaluate, 0);
 
     window.addEventListener("online", evaluate);
@@ -245,32 +230,24 @@ export function NetworkStatusBanner() {
           boxShadow: `0 4px 32px ${t.shadow}`,
         }}
       >
-        {/* Colored left accent */}
+        {/* Left accent bar */}
         <span
           className="absolute left-0 inset-y-0 w-[3px] rounded-r-full"
           style={{ background: t.accent }}
           aria-hidden
         />
 
-        {/* Message row */}
+        {/* Message */}
         <span className="flex items-center gap-3 ml-3">
-          {/* Live-pulse dot */}
           <span className="relative flex h-2 w-2 shrink-0" aria-hidden>
-            <span
-              className={cn(
-                "animate-ping absolute inset-0 rounded-full opacity-50",
-                t.ping,
-              )}
-            />
+            <span className={cn("animate-ping absolute inset-0 rounded-full opacity-50", t.ping)} />
             <span className={cn("relative rounded-full h-2 w-2", t.dot)} />
           </span>
 
-          {/* Icon */}
-          {isOffline ? (
-            <IconOffline style={{ color: t.accent }} />
-          ) : (
-            <IconSlow style={{ color: t.accent }} />
-          )}
+          {isOffline
+            ? <IconOffline style={{ color: t.accent }} />
+            : <IconSlow    style={{ color: t.accent }} />
+          }
 
           <span className="leading-snug">
             {isOffline
