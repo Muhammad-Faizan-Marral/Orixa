@@ -16,19 +16,25 @@ const initialState: SignupState = {};
 export default function SignupPage() {
   const [state, formAction, pending] = useActionState(signup, initialState);
 
-  if (state.success) {
+   if (state.success) {
     return (
       <AuthLayout
-        title="Check your email"
-        subtitle="We sent you a verification link."
+        title="Confirm your email"
+        subtitle="We sent a secure link to your inbox."
       >
-        <div className="surface-panel p-5 text-sm text-muted-foreground">
-          Verify your email before logging in. You can close this tab once
-          you&apos;ve confirmed.
+        <div className="surface-panel space-y-3 p-5 text-sm text-muted-foreground">
+          <p>
+            Open the email from <strong className="text-foreground">Orixa AI</strong> and
+            click the confirmation link to activate your account.
+          </p>
+          <p>
+            Didn&apos;t get it? Check spam or promotions. The link expires after a
+            short time for your security.
+          </p>
         </div>
         <Link href="/auth/login" className="mt-6 block">
           <Button variant="secondary" className="w-full">
-            Go to login
+            Back to login
           </Button>
         </Link>
       </AuthLayout>

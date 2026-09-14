@@ -1,7 +1,5 @@
 "use client";
 
-import { Button } from "@/components/UI/Button";
-
 type CreationModeSelectProps = {
   onSelect: (mode: "resume" | "manual") => void;
 };
@@ -13,8 +11,8 @@ export function CreationModeSelect({ onSelect }: CreationModeSelectProps) {
         <p className="text-caption text-accent">New portfolio</p>
         <h1 className="text-h1 mt-2">How do you want to start?</h1>
         <p className="text-body mt-2 text-muted-foreground">
-          Upload a resume and we&apos;ll extract your details, or fill
-          everything in manually.
+          Upload a resume and we&apos;ll turn it into a polished portfolio, or
+          build everything yourself step by step.
         </p>
       </div>
 
@@ -41,10 +39,10 @@ export function CreationModeSelect({ onSelect }: CreationModeSelectProps) {
             </svg>
           </div>
           <div>
-            <p className="text-h3">Upload Resume</p>
+            <p className="text-h3">Upload resume</p>
             <p className="text-small mt-1 text-muted-foreground">
-              PDF resume se data extract + rewrite. Phir form auto-fill ho
-              jayega.
+              We read your PDF, understand your experience, and pre-fill the
+              form so you can review and publish faster.
             </p>
           </div>
           <span className="text-small mt-auto text-primary opacity-0 transition-opacity group-hover:opacity-100">
@@ -74,9 +72,10 @@ export function CreationModeSelect({ onSelect }: CreationModeSelectProps) {
             </svg>
           </div>
           <div>
-            <p className="text-h3">Start Manually</p>
+            <p className="text-h3">Start manually</p>
             <p className="text-small mt-1 text-muted-foreground">
-              Khud saari fields fill karo — projects, skills, experience, sab.
+              Fill in projects, skills, and experience yourself. Full control at
+              every step.
             </p>
           </div>
           <span className="text-small mt-auto text-primary opacity-0 transition-opacity group-hover:opacity-100">

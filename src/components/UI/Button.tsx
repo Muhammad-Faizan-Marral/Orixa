@@ -13,8 +13,7 @@ export type ButtonVariant =
 
 export type ButtonSize = "sm" | "md" | "lg" | "icon";
 
-export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
   loading?: boolean;
@@ -52,8 +51,16 @@ const sizes: Record<ButtonSize, string> = {
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   (
-    { className, variant = "primary", size = "md", loading, disabled, children, ...props },
-    ref
+    {
+      className,
+      variant = "primary",
+      size = "md",
+      loading,
+      disabled,
+      children,
+      ...props
+    },
+    ref,
   ) => {
     return (
       <button
@@ -88,7 +95,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {children}
       </button>
     );
-  }
+  },
 );
 
 Button.displayName = "Button";

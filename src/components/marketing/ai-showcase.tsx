@@ -27,18 +27,17 @@ export function AiShowcase() {
             You bring the story. <span className="text-gradient-ion">Orixa</span> finds
             the words.
           </h2>
-          <p className="text-body-lg mt-5 max-w-md text-balance">
-            Stuck on how to phrase your headline or a project description? One
-            click rewrites, improves, or expands what you&rsquo;ve written —
-            you always review and approve before it&rsquo;s saved.
+                   <p className="text-body-lg mt-5 max-w-md text-balance">
+            Orixa reads what you share — role, projects, resume — and helps you
+            present it clearly. You always review before anything goes live.
           </p>
 
           <ul className="mt-8 space-y-3">
             {[
-              "Generate a headline from your role and skills",
-              "Improve tone and clarity of your About section",
-              "Sharpen project descriptions for recruiters",
-              "You always review results before they're saved",
+              "Understands your experience and highlights what matters",
+              "Suggests clearer headlines and project summaries",
+              "Builds a layout that fits your content, not a random theme",
+              "You review and approve before anything is published",
             ].map((item) => (
               <li key={item} className="flex items-start gap-3 text-sm text-muted-foreground">
                 <span className="mt-1 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-gradient-ion-soft text-[0.6rem] text-primary">

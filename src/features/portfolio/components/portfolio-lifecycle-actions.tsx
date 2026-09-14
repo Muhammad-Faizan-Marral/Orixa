@@ -101,7 +101,7 @@ export function PortfolioLifecycleActions({
   const handleArchive = () => {
     if (
       !window.confirm(
-        "Archive this portfolio? It will no longer be publicly accessible.",
+       "Archive this portfolio? It will be removed from the public web until you restore it.",
       )
     )
       return;
@@ -117,6 +117,7 @@ export function PortfolioLifecycleActions({
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
+
         {status === "draft" && hasSavedVersion && (
           <Button
             type="button"
@@ -127,7 +128,7 @@ export function PortfolioLifecycleActions({
           >
             {isPending && pendingAction === "publish"
               ? "Publishing..."
-              : "Publish"}
+              : "Publish live"}
           </Button>
         )}
 
@@ -196,7 +197,7 @@ export function PortfolioLifecycleActions({
           >
             {isPending && pendingAction === "restore"
               ? "Restoring..."
-              : "Restore"}
+              : "Restore draft"}
           </Button>
         )}
 
@@ -209,7 +210,7 @@ export function PortfolioLifecycleActions({
               transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
               className="bg-gradient-ion-soft border-primary/25 text-small inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-primary"
             >
-              ✦ Published — live now
+             ✦ Live — your portfolio is public
             </motion.span>
           )}
         </AnimatePresence>

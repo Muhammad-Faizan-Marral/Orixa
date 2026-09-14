@@ -7,10 +7,12 @@ import { portfolioService } from "@/services/portfolio/portfolio.service";
 import { portfolioViewService } from "@/services/portfolio/portfolio-view.service";
 import { PublicLinkCard } from "@/features/portfolio/components/public-link-card";
 import { PortfolioLifecycleActions } from "@/features/portfolio/components/portfolio-lifecycle-actions";
+import { LifecycleGuide } from "@/features/portfolio/components/lifecycle-guide";
 import { PortfolioViewTracker } from "@/features/portfolio/components/portfolio-view-tracker";
 import { Badge } from "@/components/UI/Badge";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { FormatDate } from "@/components/format-date";
+import { PortfolioTour } from "@/features/portfolio/components/portfolio-tour";
 
 type PortfolioPageProps = {
   params: Promise<{ portfolioId: string }>;
@@ -36,7 +38,7 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
   await requireUser();
   const profile = await requireProfile();
   const { portfolioId } = await params;
-  // Parallel fetch
+
   const [result, analytics, versions] = await Promise.all([
     portfolioService.getPortfolioWithData(portfolioId, profile.id),
     portfolioViewService.getAnalytics(portfolioId, profile.id),
@@ -49,41 +51,52 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
 
   const status = portfolio.status as "draft" | "published" | "archived";
   const currentVersion =
-    versions.find((version) => version.version === portfolio.currentVersion) ??
-    null;
+    versions.find((v) => v.version === portfolio.currentVersion) ?? null;
   const hasSavedVersion = Boolean(currentVersion);
   const hasUnpublishedChanges = Boolean(
     currentVersion && !currentVersion.published,
   );
 
   return (
-    <div className="space-y-8">
-      <div>
-        <Link
-          href="/dashboard/portfolios"
-          className="text-small mb-4 inline-flex items-center gap-1 hover:text-foreground"
-        >
-          ← Portfolios
-        </Link>
+    <div className="space-y-10">
+      {/* ── Back link ── */}
+      <Link
+        href="/dashboard/portfolios"
+        className="text-small inline-flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-foreground"
+      >
+        <span aria-hidden>←</span> Portfolios
+      </Link>
 
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-h1">{portfolio.title}</h1>
-              <Badge variant={STATUS_VARIANT[status]} dot>
-                {status}
-              </Badge>
-            </div>
-            <p className="text-small mt-1 text-primary/80">
-              orixaAi/{profile.username}/{portfolio.slug}
-            </p>
-            {portfolio.publishedAt && (
-              <p className="text-small mt-1">
-                Last published <FormatDate value={portfolio.publishedAt} />
-              </p>
-            )}
+      {/* ── Header ── */}
+      <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+        {/* Identity */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-3">
+            <h1 className="text-h1 leading-none">{portfolio.title}</h1>
+            <Badge variant={STATUS_VARIANT[status]} dot>
+              {status}
+            </Badge>
           </div>
 
+          {/* Quiet meta line */}
+          <p className="font-mono text-xs tracking-wide text-muted-foreground/60">
+            orixaAi / {profile.username} / {portfolio.slug}
+          </p>
+
+          {portfolio.publishedAt && (
+            <p className="text-small text-muted-foreground">
+              Published <FormatDate value={portfolio.publishedAt} />
+            </p>
+          )}
+        </div>
+
+        {/* Actions column */}
+        <div className="flex w-full flex-col gap-2.5 sm:max-w-xs">
+          <LifecycleGuide
+            status={status}
+            hasSavedVersion={hasSavedVersion}
+            hasUnpublishedChanges={hasUnpublishedChanges}
+          />
           <PortfolioLifecycleActions
             portfolioId={portfolio.id}
             status={status}
@@ -93,23 +106,33 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
         </div>
       </div>
 
-      <nav className="flex flex-wrap gap-2 border-b border-border pb-4">
+      <PortfolioTour />
+
+      {/* ── Navigation ── */}
+      <nav
+        className="flex flex-wrap gap-1.5 border-b border-border/50 pb-5"
+        aria-label="Portfolio sections"
+      >
         {NAV_LINKS(portfolio.id).map((link) => (
           <Link
             key={link.href}
             href={link.href}
-            className="text-small rounded-full border border-border-strong px-3.5 py-1.5 hover:bg-surface-2 hover:text-foreground"
+            className="text-small rounded-full px-4 py-1.5 font-medium text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground"
           >
             {link.label}
           </Link>
         ))}
       </nav>
+
+      {/* ── Public link ── */}
       <PublicLinkCard
         username={profile.username}
         portfolioSlug={portfolio.slug}
         isPublished={status === "published"}
       />
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+
+      {/* ── Stats ── */}
+      <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         <StatCard label="Total views" value={analytics?.total ?? 0} accent />
         <StatCard label="Last 7 days" value={analytics?.last7Days ?? 0} />
         <StatCard label="Last 30 days" value={analytics?.last30Days ?? 0} />
@@ -117,11 +140,31 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
         <StatCard label="Projects" value={data?.projects?.length ?? 0} />
       </section>
 
-      <section className="surface-card space-y-3 p-6">
-        <h2 className="text-h3">{data?.headline || "No headline yet"}</h2>
-        <p className="text-body text-muted-foreground">
-          {data?.about || "Add an About section from the editor."}
-        </p>
+      {/* ── Content preview ── */}
+      <section className="surface-card overflow-hidden rounded-xl border border-border/60">
+        {/* Card header stripe */}
+        <div className="border-b border-border/50 px-6 py-3">
+          <p className="text-small font-medium text-muted-foreground">
+            Preview
+          </p>
+        </div>
+
+        <div className="space-y-3 p-6">
+          <h2 className="text-h3 leading-snug">
+            {data?.headline || (
+              <span className="text-muted-foreground/50 italic">
+                No headline yet
+              </span>
+            )}
+          </h2>
+          <p className="text-body max-w-prose leading-relaxed text-muted-foreground">
+            {data?.about || (
+              <span className="text-muted-foreground/40 italic">
+                Add an About section from the editor.
+              </span>
+            )}
+          </p>
+        </div>
       </section>
 
       <PortfolioViewTracker portfolioId={portfolio.id} />

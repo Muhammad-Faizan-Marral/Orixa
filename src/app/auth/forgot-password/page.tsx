@@ -20,8 +20,12 @@ export default function ForgotPasswordPage() {
   if (state.success) {
     return (
       <AuthLayout title="Check your email" subtitle="If an account exists, a reset link is on its way.">
-        <div className="surface-panel p-5 text-sm text-muted-foreground">
-          Follow the link in the email to set a new password.
+        <div className="surface-panel space-y-3 p-5 text-sm text-muted-foreground">
+          <p>
+            The message comes from <strong className="text-foreground">Orixa AI</strong>.
+            Open the link to choose a new password.
+          </p>
+          <p>If you don&apos;t see it within a few minutes, check spam.</p>
         </div>
         <Link href="/auth/login" className="mt-6 block">
           <Button variant="secondary" className="w-full">
@@ -35,7 +39,7 @@ export default function ForgotPasswordPage() {
   return (
     <AuthLayout
       title="Forgot your password?"
-      subtitle="Enter your email and we'll send you a reset link."
+           subtitle="Enter your email and we’ll send a secure link to reset your password."
     >
       <form action={formAction} className="space-y-4">
         <Input id="email" name="email" type="email" label="Email" autoComplete="email" required />

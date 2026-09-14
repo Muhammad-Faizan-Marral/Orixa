@@ -1621,8 +1621,9 @@ function BasicsStepUI({
         </div>
       </div>
 
-            <div className="pw-group-label" style={{ marginTop: 8 }}>
-        Social links <span style={{ opacity: 0.6, fontWeight: 400 }}>(optional)</span>
+      <div className="pw-group-label" style={{ marginTop: 8 }}>
+        Social links{" "}
+        <span style={{ opacity: 0.6, fontWeight: 400 }}>(optional)</span>
       </div>
 
       <div className="pw-grid-2">
@@ -1661,49 +1662,31 @@ function BasicsStepUI({
       </div>
 
       <div className="pw-group-label" style={{ marginTop: 8 }}>
-        AI design prompt
+        How should your portfolio feel?
       </div>
 
       <div className={promptLocked ? "pw-prompt-locked" : ""}>
-        <Field
-          label="Design prompt"
-          hint={
-            promptLocked
-              ? "Locked — prompts cannot be changed after first save."
-              : "Describe the look you want. AI uses this to pick your layout, colors, and style."
-          }
-        >
-          <PwTextarea
+        <Field label="Style direction" error={undefined}>
+          <p className="pw-field-hint" style={{ marginBottom: 8 }}>
+            {promptLocked
+              ? "Locked after first save — your portfolio already has a design direction."
+              : "Describe the vibe you want. We use this to shape layout, colors, and section style around your content — not a random template."}
+          </p>
+          <textarea
+            className="pw-textarea"
             value={prompt}
             onChange={(e) => {
               if (!promptLocked) setPrompt(e.target.value);
             }}
-            placeholder="Modern dark theme, focused on full-stack projects with subtle animations..."
             rows={3}
             disabled={promptLocked}
+            placeholder="Example: Clean and minimal, dark theme, focus on projects, subtle animations…"
           />
         </Field>
         {promptLocked && (
-          <span className="pw-locked-badge">
-            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-              <rect
-                x="2"
-                y="4.5"
-                width="6"
-                height="4.5"
-                rx="1"
-                stroke="currentColor"
-                strokeWidth="1.25"
-              />
-              <path
-                d="M3.5 4.5V3a1.5 1.5 0 013 0v1.5"
-                stroke="currentColor"
-                strokeWidth="1.25"
-                strokeLinecap="round"
-              />
-            </svg>
-            Locked
-          </span>
+          <p className="pw-field-hint" style={{ marginTop: 6 }}>
+            You can refine content anytime. Design direction stays consistent.
+          </p>
         )}
       </div>
     </div>
