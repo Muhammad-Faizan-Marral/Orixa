@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useOptimistic } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -24,43 +24,79 @@ type ActionKey = "publish" | "unpublish" | "archive" | "restore" | null;
 
 export function PortfolioLifecycleActions({
   portfolioId,
-  status,
+  status: initialStatus,
   hasSavedVersion,
-  hasUnpublishedChanges,
+  hasUnpublishedChanges: initialHasUnpublishedChanges,
 }: PortfolioLifecycleActionsProps) {
-
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [pendingAction, setPendingAction] = useState<ActionKey>(null);
   const [error, setError] = useState<string | null>(null);
   const [justPublished, setJustPublished] = useState(false);
 
-  const runAction = (key: Exclude<ActionKey, null>, action: () => Promise<{ success: boolean; message?: string }>) => {
+  // Optimistic status — UI instantly update hoti hai
+  const [optimisticStatus, setOptimisticStatus] = useOptimistic(
+    initialStatus,
+    (_current, next: PortfolioStatus) => next,
+  );
+
+  const [optimisticHasUnpublished, setOptimisticHasUnpublished] = useOptimistic(
+    initialHasUnpublishedChanges,
+    (_current, next: boolean) => next,
+  );
+
+  const runAction = (
+    key: Exclude<ActionKey, null>,
+    action: () => Promise<{ success: boolean; message?: string }>,
+    optimisticNext: PortfolioStatus,
+    clearUnpublished = false,
+  ) => {
     setError(null);
     setPendingAction(key);
 
     startTransition(async () => {
+      // Instant UI update
+      setOptimisticStatus(optimisticNext);
+      if (clearUnpublished) {
+        setOptimisticHasUnpublished(false);
+      }
+
       const result = await action();
 
       if (!result.success) {
+        // Revert on failure (refresh will restore real state)
         setError(result.message ?? "Something went wrong.");
         setPendingAction(null);
+        router.refresh();
         return;
       }
 
-         if (key === "publish") {
+      if (key === "publish") {
         setJustPublished(true);
-        setTimeout(() => setJustPublished(false), 2400);
+        setTimeout(() => setJustPublished(false), 2200);
       }
 
       setPendingAction(null);
+      // Single refresh only — no double refresh
       router.refresh();
-      setTimeout(() => router.refresh(), 400);
     });
   };
 
-  const handlePublish = () => runAction("publish", () => publishPortfolio(portfolioId));
-  const handleUnpublish = () => runAction("unpublish", () => unpublishPortfolio(portfolioId));
+  const handlePublish = () =>
+    runAction(
+      "publish",
+      () => publishPortfolio(portfolioId),
+      "published",
+      true,
+    );
+
+  const handleUnpublish = () =>
+    runAction(
+      "unpublish",
+      () => unpublishPortfolio(portfolioId),
+      "draft",
+      true,
+    );
 
   const handleArchive = () => {
     if (
@@ -69,11 +105,14 @@ export function PortfolioLifecycleActions({
       )
     )
       return;
-    runAction("archive", () => archivePortfolio(portfolioId));
+    runAction("archive", () => archivePortfolio(portfolioId), "archived");
   };
 
   const handleRestore = () =>
-    runAction("restore", () => restorePortfolio(portfolioId));
+    runAction("restore", () => restorePortfolio(portfolioId), "draft");
+
+  const status = optimisticStatus;
+  const hasUnpublishedChanges = optimisticHasUnpublished;
 
   return (
     <div className="space-y-3">
@@ -84,6 +123,7 @@ export function PortfolioLifecycleActions({
             variant="gradient"
             onClick={handlePublish}
             loading={isPending && pendingAction === "publish"}
+            disabled={isPending}
           >
             {isPending && pendingAction === "publish"
               ? "Publishing..."
@@ -91,7 +131,6 @@ export function PortfolioLifecycleActions({
           </Button>
         )}
 
-        {/* KEY FIX: already published → allow new version */}
         {status === "published" && hasUnpublishedChanges && (
           <>
             <Button
@@ -99,6 +138,7 @@ export function PortfolioLifecycleActions({
               variant="gradient"
               onClick={handlePublish}
               loading={isPending && pendingAction === "publish"}
+              disabled={isPending}
             >
               {isPending && pendingAction === "publish"
                 ? "Publishing..."
@@ -109,6 +149,7 @@ export function PortfolioLifecycleActions({
               variant="secondary"
               onClick={handleUnpublish}
               loading={isPending && pendingAction === "unpublish"}
+              disabled={isPending}
             >
               {isPending && pendingAction === "unpublish"
                 ? "Unpublishing..."
@@ -117,12 +158,27 @@ export function PortfolioLifecycleActions({
           </>
         )}
 
+        {status === "published" && !hasUnpublishedChanges && (
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={handleUnpublish}
+            loading={isPending && pendingAction === "unpublish"}
+            disabled={isPending}
+          >
+            {isPending && pendingAction === "unpublish"
+              ? "Unpublishing..."
+              : "Unpublish"}
+          </Button>
+        )}
+
         {status !== "archived" && (
           <Button
             type="button"
             variant="outline"
             onClick={handleArchive}
             loading={isPending && pendingAction === "archive"}
+            disabled={isPending}
           >
             {isPending && pendingAction === "archive"
               ? "Archiving..."
@@ -136,6 +192,7 @@ export function PortfolioLifecycleActions({
             variant="gradient"
             onClick={handleRestore}
             loading={isPending && pendingAction === "restore"}
+            disabled={isPending}
           >
             {isPending && pendingAction === "restore"
               ? "Restoring..."
@@ -152,7 +209,7 @@ export function PortfolioLifecycleActions({
               transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
               className="bg-gradient-ion-soft border-primary/25 text-small inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-primary"
             >
-              ✦ Published — new version live
+              ✦ Published — live now
             </motion.span>
           )}
         </AnimatePresence>

@@ -36,25 +36,18 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
   await requireUser();
   const profile = await requireProfile();
   const { portfolioId } = await params;
-
-  const result = await portfolioService.getPortfolioWithData(
-    portfolioId,
-    profile.id,
-  );
+  // Parallel fetch
+  const [result, analytics, versions] = await Promise.all([
+    portfolioService.getPortfolioWithData(portfolioId, profile.id),
+    portfolioViewService.getAnalytics(portfolioId, profile.id),
+    portfolioService.getPortfolioVersions(portfolioId, profile.id),
+  ]);
 
   if (!result) notFound();
 
   const { portfolio, data } = result;
-  const analytics = await portfolioViewService.getAnalytics(
-    portfolioId,
-    profile.id,
-  );
 
   const status = portfolio.status as "draft" | "published" | "archived";
-  const versions = await portfolioService.getPortfolioVersions(
-    portfolioId,
-    profile.id,
-  );
   const currentVersion =
     versions.find((version) => version.version === portfolio.currentVersion) ??
     null;

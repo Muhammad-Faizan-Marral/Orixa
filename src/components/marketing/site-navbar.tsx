@@ -64,7 +64,7 @@ export function SiteNavbar() {
               Log in
             </Button>
           </Link>
-          <Link href="/auth/signup">
+          <Link href="/dashboard">
             <Button variant="gradient" size="sm">
               Start building
             </Button>
@@ -119,7 +119,7 @@ export function SiteNavbar() {
                 Log in
               </Button>
             </Link>
-            <Link href="/auth/signup" onClick={() => setMobileOpen(false)}>
+            <Link href="/dashboard" onClick={() => setMobileOpen(false)}>
               <Button variant="gradient" className="w-full">
                 Start building
               </Button>

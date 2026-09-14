@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/UI/Skeleton";
 
 export default function DashboardLoading() {
   return (
-    <div className="space-y-6">
+    <div className="animate-in fade-in duration-200 space-y-6">
       <div className="space-y-2">
         <Skeleton className="h-7 w-48" />
         <Skeleton className="h-4 w-72" />

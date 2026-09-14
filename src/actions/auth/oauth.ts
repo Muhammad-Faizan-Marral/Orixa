@@ -7,7 +7,6 @@ export type OAuthProvider = "google" | "github";
 function getSiteOrigin() {
   const fromEnv = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
   if (fromEnv) return fromEnv;
-  // Production pe kabhi localhost fallback mat use karo
   if (process.env.VERCEL_URL) {
     return `https://${process.env.VERCEL_URL.replace(/\/$/, "")}`;
   }
