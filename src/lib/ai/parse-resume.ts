@@ -93,31 +93,45 @@ const SCHEMA_HINT = `{
 }`;
 
 export async function extractTextFromPdf(buffer: Buffer): Promise<string> {
-  try {
+  const tryExtract = async () => {
     const { extractText } = await import("unpdf");
-
     const { text } = await extractText(new Uint8Array(buffer), {
       mergePages: true,
     });
-
     const joined = Array.isArray(text) ? text.join("\n") : String(text ?? "");
-    const cleaned = joined.trim();
+    return joined.replace(/\u0000/g, "").trim();
+  };
 
-    if (!cleaned || cleaned.length < 20) {
-      throw new Error(
-        "PDF me readable text nahi mila (scanned/image-only PDF ho sakti hai). Text-based PDF try karein.",
-      );
+  let lastError: unknown;
+
+  // One automatic retry — covers transient unpdf / worker hiccups
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const cleaned = await tryExtract();
+
+      if (!cleaned || cleaned.length < 20) {
+        throw new Error(
+          "No readable text found in this PDF (it may be scanned/image-only). Use a text-based PDF or fill the form manually.",
+        );
+      }
+
+      // Cap for memory + Gemini cost (scalable)
+      return cleaned.length > 50000 ? cleaned.slice(0, 50000) : cleaned;
+    } catch (err) {
+      lastError = err;
+      if (attempt === 0) {
+        await new Promise((r) => setTimeout(r, 150));
+        continue;
+      }
     }
-
-    return cleaned;
-  } catch (err) {
-    console.error("[extractTextFromPdf]", err);
-    throw new Error(
-      err instanceof Error
-        ? err.message
-        : "PDF read nahi ho saki. Dusri text-based PDF try karein.",
-    );
   }
+
+  console.error("[extractTextFromPdf]", lastError);
+  throw new Error(
+    lastError instanceof Error
+      ? lastError.message
+      : "Could not read this PDF. Try another text-based PDF.",
+  );
 }
 
 export async function parseResumeWithGemini(rawText: string): Promise<{

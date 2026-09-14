@@ -13,7 +13,7 @@ const MAX_RESUME_BYTES = 5 * 1024 * 1024;
 
 export async function parseResumeAction(formData: FormData) {
   try {
-    const user = await requireUser();
+    await requireUser();
     const profile = await requireProfile();
 
     const portfolioId = formData.get("portfolioId");
@@ -22,38 +22,35 @@ export async function parseResumeAction(formData: FormData) {
     if (typeof portfolioId !== "string" || !portfolioId) {
       return { success: false as const, message: "Portfolio ID required." };
     }
-
     if (!(file instanceof File)) {
       return { success: false as const, message: "Please select a PDF file." };
     }
 
-    if (
-      file.type !== "application/pdf" &&
-      !file.name.toLowerCase().endsWith(".pdf")
-    ) {
+    const name = (file.name || "").toLowerCase();
+    const type = (file.type || "").toLowerCase().trim();
+
+    const looksPdf =
+      type === "application/pdf" ||
+      type === "application/x-pdf" ||
+      type === "application/octet-stream" ||
+      type === "binary/octet-stream" ||
+      type === "" ||
+      name.endsWith(".pdf");
+
+    if (!looksPdf) {
       return {
         success: false as const,
-        message: "Only PDF resumes are allowed.",
+        message: "Only PDF resumes are allowed. Example: resume.pdf",
       };
     }
 
     if (file.size <= 0 || file.size > MAX_RESUME_BYTES) {
       return {
         success: false as const,
-        message: `PDF must be between 1 byte and 5MB. Your file is ${(file.size / (1024 * 1024)).toFixed(2)}MB.`,
-      };
-    }
-
-    // Some browsers send empty type for PDF — name extension se allow karo
-    const looksPdf =
-      file.type === "application/pdf" ||
-      file.type === "" ||
-      file.name.toLowerCase().endsWith(".pdf");
-
-    if (!looksPdf) {
-      return {
-        success: false as const,
-        message: "Only PDF resumes are allowed. Example: resume.pdf",
+        message:
+          file.size <= 0
+            ? "File is empty or still downloading. Download from Google Drive first, then upload."
+            : `PDF must be 5MB or less. Yours is ${(file.size / (1024 * 1024)).toFixed(2)}MB.`,
       };
     }
 
@@ -72,11 +69,13 @@ export async function parseResumeAction(formData: FormData) {
     let rawText = "";
     try {
       rawText = await extractTextFromPdf(buffer);
-    } catch {
+    } catch (err) {
       return {
         success: false as const,
         message:
-          "PDF is not readable . please try again ",
+          err instanceof Error
+            ? err.message
+            : "Could not read this PDF. Try a text-based PDF from your device.",
       };
     }
 
@@ -97,7 +96,8 @@ export async function parseResumeAction(formData: FormData) {
       return {
         success: false as const,
         message:
-          parsed.errorMessage || "your uploaded resume is not correct or maybe empty.",
+          parsed.errorMessage ||
+          "Your uploaded resume is not correct or maybe empty.",
       };
     }
 
@@ -147,8 +147,8 @@ export async function parseResumeAction(formData: FormData) {
       success: false as const,
       message:
         error instanceof Error && error.message.includes("GEMINI_API_KEY")
-          ? "Gemini API key is not configure."
-          : "Resume is not process . please try karein.",
+          ? "LLMA API key is not configured."
+          : "Resume cannot be processed. Please try again.",
     };
   }
 }

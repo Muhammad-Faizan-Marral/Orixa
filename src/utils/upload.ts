@@ -4,9 +4,11 @@ import {
   type UploadType,
 } from "@/features/profile/upload.constants";
 
+/** Content-based MIME detection (trust bytes, not browser type). */
 function detectFileMimeType(buffer: ArrayBuffer): string | null {
   const bytes = new Uint8Array(buffer);
 
+  // JPEG
   if (
     bytes.length >= 3 &&
     bytes[0] === 0xff &&
@@ -16,6 +18,7 @@ function detectFileMimeType(buffer: ArrayBuffer): string | null {
     return "image/jpeg";
   }
 
+  // PNG
   if (
     bytes.length >= 8 &&
     bytes[0] === 0x89 &&
@@ -30,6 +33,7 @@ function detectFileMimeType(buffer: ArrayBuffer): string | null {
     return "image/png";
   }
 
+  // GIF
   if (
     bytes.length >= 6 &&
     bytes[0] === 0x47 &&
@@ -42,6 +46,7 @@ function detectFileMimeType(buffer: ArrayBuffer): string | null {
     return "image/gif";
   }
 
+  // WEBP
   if (
     bytes.length >= 12 &&
     bytes[0] === 0x52 &&
@@ -56,30 +61,41 @@ function detectFileMimeType(buffer: ArrayBuffer): string | null {
     return "image/webp";
   }
 
-  if (
-    bytes.length >= 5 &&
-    bytes[0] === 0x25 &&
-    bytes[1] === 0x50 &&
-    bytes[2] === 0x44 &&
-    bytes[3] === 0x46 &&
-    bytes[4] === 0x2d
-  ) {
-    return "application/pdf";
+  // PDF — %PDF anywhere in first 1KB (handles BOM / leading junk from some cloud exports)
+  const scanLen = Math.min(bytes.length, 1024);
+  for (let i = 0; i < scanLen - 4; i++) {
+    if (
+      bytes[i] === 0x25 && // %
+      bytes[i + 1] === 0x50 && // P
+      bytes[i + 2] === 0x44 && // D
+      bytes[i + 3] === 0x46 // F
+    ) {
+      return "application/pdf";
+    }
   }
 
   return null;
 }
 
-export async function validateUpload(
-  file: File,
-  type: UploadType,
-) {
+const LOOSE_BROWSER_TYPES = new Set([
+  "",
+  "application/octet-stream",
+  "binary/octet-stream",
+  "application/x-pdf",
+  "application/acrobat",
+  "applications/vnd.pdf",
+  "text/plain", // rare mislabel from some pickers
+]);
+
+export async function validateUpload(file: File, type: UploadType) {
   if (!(file instanceof File)) {
     throw new Error("Invalid file.");
   }
 
   if (file.size <= 0) {
-    throw new Error("File is empty.");
+    throw new Error(
+      "File is empty or still downloading. If this is from Google Drive, download it first, then upload.",
+    );
   }
 
   if (file.size > MAX_UPLOAD_SIZE) {
@@ -88,26 +104,66 @@ export async function validateUpload(
 
   const allowed =
     type === "resume"
-      ? ALLOWED_UPLOAD_TYPES.resume
-      : ALLOWED_UPLOAD_TYPES.image;
+      ? (ALLOWED_UPLOAD_TYPES.resume as readonly string[])
+      : (ALLOWED_UPLOAD_TYPES.image as readonly string[]);
 
-  if (!allowed.includes(file.type as never)) {
-    throw new Error("This file type is not allowed.");
+  // Read bytes first — source of truth
+  let buffer: ArrayBuffer;
+  try {
+    buffer = await file.arrayBuffer();
+  } catch {
+    throw new Error(
+      "Could not read the file. Download it to your device and try again.",
+    );
   }
 
-  const buffer = await file.arrayBuffer();
+  if (!buffer || buffer.byteLength <= 0) {
+    throw new Error(
+      "File is empty or still downloading. Save it locally, then upload.",
+    );
+  }
+
+  // Size mismatch = incomplete cloud download
+  if (file.size > 0 && buffer.byteLength < file.size * 0.9) {
+    throw new Error(
+      "File did not finish downloading (common with Google Drive). Download the PDF to your device, then upload.",
+    );
+  }
+
   const detectedMimeType = detectFileMimeType(buffer);
 
   if (!detectedMimeType) {
-    throw new Error("Unable to verify the file type.");
+    throw new Error(
+      type === "resume"
+        ? "This does not look like a valid PDF. Please upload a real PDF resume."
+        : "Unable to verify the file type. Please use JPEG, PNG, WebP, or GIF.",
+    );
   }
 
-  if (!allowed.includes(detectedMimeType as never)) {
-    throw new Error("The actual file type is not allowed.");
+  if (!allowed.includes(detectedMimeType)) {
+    throw new Error(
+      type === "resume"
+        ? "Only PDF resumes are allowed."
+        : "This image type is not allowed.",
+    );
   }
 
-  if (detectedMimeType !== file.type) {
-    throw new Error("File MIME type does not match its content.");
+  // Browser MIME is advisory only. Allow empty / octet-stream / mismatch
+  // as long as magic bytes match (fixes Google Drive, iCloud, OneDrive pickers).
+  const browserType = (file.type || "").toLowerCase().trim();
+  if (
+    browserType &&
+    !LOOSE_BROWSER_TYPES.has(browserType) &&
+    !allowed.includes(browserType) &&
+    browserType !== detectedMimeType
+  ) {
+    // Soft warning path: still accept if content is valid
+    // (some Android browsers send image/jpg instead of image/jpeg etc.)
+    const normalized =
+      browserType === "image/jpg" ? "image/jpeg" : browserType;
+    if (!allowed.includes(normalized) && normalized !== detectedMimeType) {
+      // Content wins — do not reject
+    }
   }
 
   return {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+
 import { useRouter } from "next/navigation";
 
 import { CreationModeSelect } from "../creation-mode-select";
@@ -27,7 +28,7 @@ import type {
   ValidationState,
 } from "./types";
 import { validateStep } from "./validation";
-import { assertValidResumeFile, isPortfolioEmpty } from "./utils";
+import { assertValidResumeFile, isPortfolioEmpty,materializeFile } from "./utils";
 
 import {
   BasicsStep,
@@ -3112,12 +3113,18 @@ export function PortfolioWizard({
       try {
         assertValidResumeFile(file);
         setIsParsingResume(true);
+
+        // Fully load file (fixes Google Drive / cloud pickers)
+        const stableFile = await materializeFile(file);
+
         const formData = new FormData();
-        formData.append("file", file);
+        formData.append("file", stableFile);
         formData.append("portfolioId", portfolio.id);
+
         const result = await parseResumeAction(formData);
         if (!result.success || !result.data)
           throw new Error(result.message || "Failed to parse resume.");
+
         const parsed = result.data;
         setName(parsed.name);
         setHeadline(parsed.headline);
@@ -3159,25 +3166,35 @@ export function PortfolioWizard({
       try {
         assertValidResumeFile(file);
         setIsUploadingResume(true);
+
+        const stableFile = await materializeFile(file);
+
         const formData = new FormData();
-        formData.append("file", file);
+        formData.append("file", stableFile);
         formData.append("type", "resume");
         formData.append("portfolioId", portfolio.id);
+
         const result = await uploadFile(formData);
         if (!result.success || !result.data?.url)
           throw new Error(result.message || "Failed to upload resume.");
+
         setUploadedResumeId(result.data.id);
         setUploadedResumeUrl(result.data.url);
         setHasUploadedResume(true);
-        setAttachUploadedResume(false);
+        setAttachUploadedResume(true);
+        setResumeUrl(result.data.url);
         setAutoGenerateResume(false);
-      } catch (err) {
+        setMessage({
+          type: "success",
+          text: "Resume uploaded successfully.",
+        });
+      } catch (error) {
         setMessage({
           type: "error",
           text:
-            err instanceof Error
-              ? err.message
-              : "Something went wrong while uploading the resume.",
+            error instanceof Error
+              ? error.message
+              : "Unable to upload resume.",
         });
       } finally {
         setIsUploadingResume(false);
