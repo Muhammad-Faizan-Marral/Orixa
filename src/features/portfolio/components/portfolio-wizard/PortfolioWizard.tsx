@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-
 import { useRouter } from "next/navigation";
 
 import { CreationModeSelect } from "../creation-mode-select";
@@ -28,7 +27,12 @@ import type {
   ValidationState,
 } from "./types";
 import { validateStep } from "./validation";
-import { assertValidResumeFile, isPortfolioEmpty,materializeFile } from "./utils";
+import {
+  assertValidResumeFile,
+  isPortfolioEmpty,
+  materializeFile,
+  ensureHttpsUrl,
+} from "./utils";
 
 import {
   BasicsStep,
@@ -1617,8 +1621,8 @@ function BasicsStepUI({
         </div>
       </div>
 
-      <div className="pw-group-label" style={{ marginTop: 8 }}>
-        Social links
+            <div className="pw-group-label" style={{ marginTop: 8 }}>
+        Social links <span style={{ opacity: 0.6, fontWeight: 400 }}>(optional)</span>
       </div>
 
       <div className="pw-grid-2">
@@ -1629,7 +1633,12 @@ function BasicsStepUI({
               setLinkedinUrl(e.target.value);
               clearFieldError("linkedinUrl");
             }}
-            placeholder="https://linkedin.com/in/..."
+            onBlur={() => {
+              if (linkedinUrl.trim()) {
+                setLinkedinUrl(ensureHttpsUrl(linkedinUrl));
+              }
+            }}
+            placeholder="linkedin.com/in/yourname"
             error={fieldErrors.linkedinUrl}
           />
         </Field>
@@ -1640,7 +1649,12 @@ function BasicsStepUI({
               setGithubUrl(e.target.value);
               clearFieldError("githubUrl");
             }}
-            placeholder="https://github.com/..."
+            onBlur={() => {
+              if (githubUrl.trim()) {
+                setGithubUrl(ensureHttpsUrl(githubUrl));
+              }
+            }}
+            placeholder="github.com/yourname"
             error={fieldErrors.githubUrl}
           />
         </Field>
@@ -3130,13 +3144,33 @@ export function PortfolioWizard({
         setHeadline(parsed.headline);
         setAbout(parsed.about);
         setPhone(parsed.phone);
-        setLinkedinUrl(parsed.linkedinUrl);
-        setGithubUrl(parsed.githubUrl);
-        setSkills(parsed.skills);
+        setLinkedinUrl(ensureHttpsUrl(parsed.linkedinUrl));
+        setGithubUrl(ensureHttpsUrl(parsed.githubUrl));
+        setSkills(
+          (parsed.skills ?? []).map(
+            (s: { name: string; level?: string; id?: string }) => ({
+              id: s.id || crypto.randomUUID(),
+              name: s.name ?? "",
+              level: s.level ?? "",
+            }),
+          ),
+        );
         setExperience(parsed.experience);
-        setProjects(parsed.projects);
+        setProjects(
+          (parsed.projects ?? []).map((p: any) => ({
+            ...p,
+            id: p.id || crypto.randomUUID(),
+            url: ensureHttpsUrl(p.url),
+          })),
+        );
         setEducation(parsed.education);
-        setCertificates(parsed.certificates);
+        setCertificates(
+          (parsed.certificates ?? []).map((c: any) => ({
+            ...c,
+            id: c.id || crypto.randomUUID(),
+            credentialUrl: ensureHttpsUrl(c.credentialUrl),
+          })),
+        );
         setMode("resume");
         setStage("content");
         setCurrentStepIndex(0);
@@ -3192,9 +3226,7 @@ export function PortfolioWizard({
         setMessage({
           type: "error",
           text:
-            error instanceof Error
-              ? error.message
-              : "Unable to upload resume.",
+            error instanceof Error ? error.message : "Unable to upload resume.",
         });
       } finally {
         setIsUploadingResume(false);
@@ -3274,8 +3306,8 @@ export function PortfolioWizard({
         prompt: (promptLocked ? (data?.prompt ?? prompt) : prompt).trim(),
         avatarUrl: avatarUrl.trim(),
         phone: phone.trim(),
-        linkedinUrl: linkedinUrl.trim(),
-        githubUrl: githubUrl.trim(),
+        linkedinUrl: ensureHttpsUrl(linkedinUrl),
+        githubUrl: ensureHttpsUrl(githubUrl),
         headline: headline.trim(),
         about: about.trim(),
         skills,

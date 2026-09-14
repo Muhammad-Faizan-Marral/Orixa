@@ -109,3 +109,36 @@ export async function materializeFile(file: File): Promise<File> {
     lastModified: file.lastModified || Date.now(),
   });
 }
+/**
+ * Ensure a social/profile URL starts with https://.
+ * Empty stays empty (field is optional).
+ * "linkedin.com/in/x" → "https://linkedin.com/in/x"
+ * "https://..." stays unchanged.
+ */
+export function ensureHttpsUrl(value: string | null | undefined): string {
+  const v = (value ?? "").trim();
+  if (!v) return "";
+
+  if (/^https?:\/\//i.test(v)) return v;
+
+  // Strip leading slashes then prefix
+  const cleaned = v.replace(/^\/+/, "");
+  if (!cleaned) return "";
+
+  return `https://${cleaned}`;
+}
+
+/**
+ * True if value is empty OR a valid http(s) URL (after optional auto-prefix).
+ */
+export function isOptionalHttpUrl(value: string | null | undefined): boolean {
+  const v = (value ?? "").trim();
+  if (!v) return true;
+  const normalized = ensureHttpsUrl(v);
+  try {
+    const u = new URL(normalized);
+    return u.protocol === "http:" || u.protocol === "https:";
+  } catch {
+    return false;
+  }
+}

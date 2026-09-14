@@ -1,15 +1,27 @@
 import { z } from "zod";
-
 const optionalString = z.string().trim().optional().or(z.literal(""));
-
 const urlOptional = z
   .string()
   .trim()
   .optional()
   .or(z.literal(""))
+  .transform((val) => {
+    const v = (val ?? "").trim();
+    if (!v) return "";
+    if (/^https?:\/\//i.test(v)) return v;
+    return `https://${v.replace(/^\/+/, "")}`;
+  })
   .refine(
-    (val) => !val || /^https?:\/\/.+/i.test(val),
-    "The URL must start with http:// or https://. Example: https://github.com/you",
+    (val) => {
+      if (!val) return true;
+      try {
+        const u = new URL(val);
+        return u.protocol === "http:" || u.protocol === "https:";
+      } catch {
+        return false;
+      }
+    },
+    "Enter a valid URL. Example: https://github.com/you",
   );
 
 const phoneOptional = z
@@ -21,6 +33,17 @@ const phoneOptional = z
     (val) => !val || /^[+]?[\d\s\-()]{7,20}$/.test(val),
     "Invalid phone. Example: +92 300 1234567",
   );
+
+export const portfolioSkillSchema = z.object({
+  id: z.string().min(1),
+  // Any string allowed (scr/dc, C++, UI/UX, Node.js, etc.)
+  name: z
+    .string()
+    .trim()
+    .min(1, "Skill name required")
+    .max(60, "Skill max 60 chars"),
+  level: optionalString,
+});
 
 export const portfolioProjectSchema = z.object({
   id: z.string().min(1),
@@ -42,19 +65,6 @@ export const portfolioExperienceSchema = z.object({
   description: z.string().trim().max(5000).optional().or(z.literal("")),
 });
 
-export const portfolioSkillSchema = z.object({
-  id: z.string().min(1),
-  name: z
-    .string()
-    .trim()
-    .min(2, "Skill min 2 chars. Example: React")
-    .max(40, "Skill max 40 chars")
-    .refine(
-      (val) => /^[a-zA-Z0-9+#.\-_/ ]+$/.test(val),
-      "There are invalid characters in the skill field.",
-    ),
-  level: optionalString,
-});
 
 export const portfolioEducationSchema = z.object({
   id: z.string().min(1),

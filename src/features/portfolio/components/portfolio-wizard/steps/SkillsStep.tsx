@@ -39,7 +39,7 @@ export function SkillsStep({ skills, setSkills, fieldErrors, clearFieldError }: 
         <div className="pw-step-header__eyebrow">Expertise</div>
         <h2 className="pw-step-header__title">Skills &amp; technologies</h2>
         <p className="pw-step-header__desc">
-          List the tools, languages, and frameworks you work with. Each skill needs at least 2 characters.
+         List the tools, languages, and frameworks you work with. Any name is allowed (e.g. React, C++, scr/dc, UI/UX).
         </p>
       </div>
 

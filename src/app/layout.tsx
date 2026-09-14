@@ -79,9 +79,7 @@ export default function RootLayout({
         <ThemeProvider>
           <LocaleProvider>
             <TimezoneProvider>
-              
                 {children}
-              
             </TimezoneProvider>
           </LocaleProvider>
         </ThemeProvider>

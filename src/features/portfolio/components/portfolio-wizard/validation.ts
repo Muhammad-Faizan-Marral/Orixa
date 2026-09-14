@@ -1,16 +1,17 @@
 import type { WizardStepId } from "@/features/portfolio/wizard-steps";
 import type { FieldErrors, ValidationState } from "./types";
+import { ensureHttpsUrl, isOptionalHttpUrl } from "./utils";
 
 export const URL_RE = /^https?:\/\/.+/i;
 export const PHONE_RE = /^[+]?[\d\s\-()]{7,20}$/;
-export const SKILL_NAME_RE = /^[a-zA-Z0-9+#.\- ]+$/;
 
 /**
  * Validates a single wizard step and returns a map of field-key -> message.
- * An empty object means the step is valid.
+ * Empty object = step valid.
  *
- * Field keys match what each step component reads from `fieldErrors`
- * (e.g. `skill-${id}`, `exp-company-${id}`, `proj-title-${id}`, ...).
+ * LinkedIn / GitHub are optional.
+ * If filled without protocol, we treat them as valid when https:// can be applied
+ * (actual value is normalized on blur / save / resume parse).
  */
 export function validateStep(
   stepId: WizardStepId,
@@ -20,7 +21,7 @@ export function validateStep(
 
   if (stepId === "basics") {
     if (!state.name.trim() || state.name.trim().length < 2) {
-      errors.name = "Full name required (min 2 chars). Example: Jhon Doe";
+      errors.name = "Full name required (min 2 chars). Example: Ali Khan";
     }
     if (state.headline.trim().length > 200) {
       errors.headline = "Headline max 200 characters.";
@@ -31,25 +32,28 @@ export function validateStep(
     if (state.phone.trim() && !PHONE_RE.test(state.phone.trim())) {
       errors.phone = "Invalid phone. Example: +92 300 1234567";
     }
-    if (state.linkedinUrl.trim() && !URL_RE.test(state.linkedinUrl.trim())) {
+
+    // Optional — only error if non-empty AND not a valid URL (even after https://)
+    if (state.linkedinUrl.trim() && !isOptionalHttpUrl(state.linkedinUrl)) {
       errors.linkedinUrl =
-        "Must start with http:// or https://. Example: https://linkedin.com/in/jhon";
+        "Enter a valid LinkedIn URL. Example: linkedin.com/in/yourname";
     }
-    if (state.githubUrl.trim() && !URL_RE.test(state.githubUrl.trim())) {
+    if (state.githubUrl.trim() && !isOptionalHttpUrl(state.githubUrl)) {
       errors.githubUrl =
-        "Must start with http:// or https://. Example: https://github.com/jhon";
+        "Enter a valid GitHub URL. Example: github.com/yourname";
     }
   }
 
   if (stepId === "skills") {
     state.skills.forEach((s, i) => {
-      if (!s.name.trim() || s.name.trim().length < 2) {
+      const name = s.name.trim();
+      if (!name || name.length < 1) {
         errors[`skill-${s.id}`] =
-          `Skill #${i + 1}: name min 2 chars. Example: React`;
-      } else if (!SKILL_NAME_RE.test(s.name.trim())) {
-        errors[`skill-${s.id}`] =
-          `Skill #${i + 1}: only letters, numbers, + # . - allowed`;
+          `Skill #${i + 1}: name required. Example: React`;
+      } else if (name.length > 60) {
+        errors[`skill-${s.id}`] = `Skill #${i + 1}: max 60 characters`;
       }
+      // Any characters allowed (e.g. scr/dc, C++, Node.js, UI/UX)
     });
   }
 
@@ -71,9 +75,9 @@ export function validateStep(
         errors[`proj-title-${p.id}`] =
           `Project #${i + 1}: title min 2 chars. Example: E-commerce App`;
       }
-      if (p.url?.trim() && !URL_RE.test(p.url.trim())) {
+      if (p.url?.trim() && !isOptionalHttpUrl(p.url)) {
         errors[`proj-url-${p.id}`] =
-          `Project #${i + 1}: URL must start with http:// or https://`;
+          `Project #${i + 1}: enter a valid URL (https:// is added automatically)`;
       }
     });
   }
@@ -92,9 +96,8 @@ export function validateStep(
       if (!c.name.trim()) {
         errors[`cert-name-${c.id}`] = `Certificate #${i + 1}: name required`;
       }
-      if (c.credentialUrl?.trim() && !URL_RE.test(c.credentialUrl.trim())) {
-        errors[`cert-url-${c.id}`] =
-          `Certificate #${i + 1}: URL must start with http:// or https://`;
+      if (c.credentialUrl?.trim() && !isOptionalHttpUrl(c.credentialUrl)) {
+        errors[`cert-url-${c.id}`] = `Certificate #${i + 1}: enter a valid URL`;
       }
     });
   }
@@ -108,7 +111,29 @@ export function validateStep(
     }
   }
 
-  // "resume" and "review" steps have no blocking field-level validation.
-
   return errors;
+}
+
+/** Normalize optional URL fields before save / next-step. */
+export function normalizeWizardUrls<
+  T extends {
+    linkedinUrl?: string;
+    githubUrl?: string;
+    projects?: { url?: string }[];
+    certificates?: { credentialUrl?: string }[];
+  },
+>(state: T): T {
+  return {
+    ...state,
+    linkedinUrl: ensureHttpsUrl(state.linkedinUrl),
+    githubUrl: ensureHttpsUrl(state.githubUrl),
+    projects: state.projects?.map((p) => ({
+      ...p,
+      url: ensureHttpsUrl(p.url),
+    })),
+    certificates: state.certificates?.map((c) => ({
+      ...c,
+      credentialUrl: ensureHttpsUrl(c.credentialUrl),
+    })),
+  };
 }
