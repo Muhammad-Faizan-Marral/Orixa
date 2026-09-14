@@ -201,7 +201,7 @@ export class PortfolioViewRepository {
       .orderBy(sql`date_trunc('day', ${portfolioViews.visitedAt})::date`);
   }
 
-  async getTopDevices(portfolioId: string) {
+   async getTopDevices(portfolioId: string) {
     return db
       .select({
         device: portfolioViews.device,
@@ -212,9 +212,31 @@ export class PortfolioViewRepository {
         and(
           eq(portfolioViews.portfolioId, portfolioId),
           sql`${portfolioViews.device} IS NOT NULL`,
+          sql`trim(${portfolioViews.device}) <> ''`,
+          sql`lower(${portfolioViews.device}) <> 'unknown'`,
         ),
       )
       .groupBy(portfolioViews.device)
+      .orderBy(desc(count()))
+      .limit(5);
+  }
+
+  async getTopBrowsers(portfolioId: string) {
+    return db
+      .select({
+        browser: portfolioViews.browser,
+        views: count(),
+      })
+      .from(portfolioViews)
+      .where(
+        and(
+          eq(portfolioViews.portfolioId, portfolioId),
+          sql`${portfolioViews.browser} IS NOT NULL`,
+          sql`trim(${portfolioViews.browser}) <> ''`,
+          sql`lower(${portfolioViews.browser}) <> 'unknown'`,
+        ),
+      )
+      .groupBy(portfolioViews.browser)
       .orderBy(desc(count()))
       .limit(5);
   }

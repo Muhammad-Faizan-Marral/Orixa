@@ -2,6 +2,8 @@
 
 import { headers } from "next/headers";
 
+import { parseUserAgent } from "@/lib/analytics/user-agent";
+import { normalizeTrafficSource } from "@/lib/analytics/referrer";
 import { portfolioViewService } from "@/services/portfolio/portfolio-view.service";
 
 type RecordPortfolioViewInput = {
@@ -18,16 +20,17 @@ export async function recordPortfolioView(input: RecordPortfolioViewInput) {
 
     // ── Basic request metadata ────────────────────────────────────────────
     const userAgent = requestHeaders.get("user-agent");
-    const referrer = requestHeaders.get("referer");
+    const referrerHeader = requestHeaders.get("referer");
 
     // Real IP: x-forwarded-for ka pehla entry sabse reliable hota hai
     const forwardedFor = requestHeaders.get("x-forwarded-for");
     const realIp = requestHeaders.get("x-real-ip");
     const ip = forwardedFor?.split(",")[0]?.trim() || realIp || null;
 
-    const browser = getBrowser(userAgent);
-    const device = getDevice(userAgent);
-    const os = getOperatingSystem(userAgent);
+    const { browser, device, os } = parseUserAgent(userAgent);
+    const referrer = referrerHeader
+      ? normalizeTrafficSource(referrerHeader)
+      : "Direct";
 
     // ── Geo resolution (priority order) ──────────────────────────────────
     //
@@ -91,6 +94,7 @@ export async function recordPortfolioView(input: RecordPortfolioViewInput) {
       os,
       referrer,
       ip,
+      userAgent,
     });
 
     return { success: true };
@@ -155,35 +159,4 @@ async function lookupGeoFromPublicIp(): Promise<GeoResult | null> {
   } catch {
     return null;
   }
-}
-
-// ── User-Agent parsers ───────────────────────────────────────────────────────
-
-function getBrowser(userAgent: string | null): string | null {
-  if (!userAgent) return null;
-  // Edge ko Chrome se pehle check karo (Edge mein "Chrome" bhi hota hai UA mein)
-  if (/edg\//i.test(userAgent)) return "Edge";
-  if (/opr\//i.test(userAgent) || /opera/i.test(userAgent)) return "Opera";
-  if (/chrome\/\d/i.test(userAgent)) return "Chrome";
-  if (/firefox\/\d/i.test(userAgent)) return "Firefox";
-  // Safari ko Chrome ke baad check karo (Chrome UA mein "Safari" bhi hota hai)
-  if (/safari\/\d/i.test(userAgent)) return "Safari";
-  return "Other";
-}
-
-function getDevice(userAgent: string | null): string | null {
-  if (!userAgent) return null;
-  if (/tablet|ipad/i.test(userAgent)) return "Tablet";
-  if (/mobile/i.test(userAgent)) return "Mobile";
-  return "Desktop";
-}
-
-function getOperatingSystem(userAgent: string | null): string | null {
-  if (!userAgent) return null;
-  if (/windows/i.test(userAgent)) return "Windows";
-  if (/android/i.test(userAgent)) return "Android";
-  if (/iphone|ipad|ios/i.test(userAgent)) return "iOS";
-  if (/mac os x/i.test(userAgent)) return "macOS";
-  if (/linux/i.test(userAgent)) return "Linux";
-  return "Other";
 }

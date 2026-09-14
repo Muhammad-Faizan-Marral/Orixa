@@ -218,31 +218,36 @@ export default async function AnalyticsPage({ params }: Props) {
                 </p>
               ) : (
                 <ul className="space-y-3">
-                  {countries.map((item: { country?: string | null; views?: number | string }) => {
-                    const views = Number(item.views) || 0;
-                    const width = barWidth(views, maxCountry);
-                    return (
-                      <li
-                        key={item.country || "unknown"}
-                        className="space-y-1.5"
-                      >
-                        <div className="flex items-center justify-between gap-3">
-                          <span className="text-small truncate font-medium">
-                            {item.country || "Unknown"}
-                          </span>
-                          <span className="text-caption tabular-nums text-muted-foreground">
-                            {views}
-                          </span>
-                        </div>
-                        <div className="h-1.5 overflow-hidden rounded-full bg-surface-3">
-                          <div
-                            className="h-full rounded-full bg-gradient-ion"
-                            style={{ width: `${width}%` }}
-                          />
-                        </div>
-                      </li>
-                    );
-                  })}
+                  {countries.map(
+                    (item: {
+                      country?: string | null;
+                      views?: number | string;
+                    }) => {
+                      const views = Number(item.views) || 0;
+                      const width = barWidth(views, maxCountry);
+                      return (
+                        <li
+                          key={item.country || "unknown"}
+                          className="space-y-1.5"
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <span className="text-small truncate font-medium">
+                              {item.country || "Unknown"}
+                            </span>
+                            <span className="text-caption tabular-nums text-muted-foreground">
+                              {views}
+                            </span>
+                          </div>
+                          <div className="h-1.5 overflow-hidden rounded-full bg-surface-3">
+                            <div
+                              className="h-full rounded-full bg-gradient-ion"
+                              style={{ width: `${width}%` }}
+                            />
+                          </div>
+                        </li>
+                      );
+                    },
+                  )}
                 </ul>
               )}
             </div>
@@ -360,7 +365,14 @@ export default async function AnalyticsPage({ params }: Props) {
                               {view.country || "Unknown"}
                             </td>
                             <td className="px-4 py-3.5 text-small text-muted-foreground">
-                              {view.device || "—"}
+                              {view.device && view.device !== "Unknown"
+                                ? view.device
+                                : "—"}
+                            </td>
+                            <td className="px-4 py-3.5 text-small text-muted-foreground">
+                              {view.browser && view.browser !== "Unknown"
+                                ? view.browser
+                                : "—"}
                             </td>
                             <td className="px-4 py-3.5 text-small text-muted-foreground">
                               {view.browser || "—"}
