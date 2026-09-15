@@ -39,10 +39,10 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
   const profile = await requireProfile();
   const { portfolioId } = await params;
 
-  const [result, analytics, versions] = await Promise.all([
+  const [result, versions, lightStats] = await Promise.all([
     portfolioService.getPortfolioWithData(portfolioId, profile.id),
-    portfolioViewService.getAnalytics(portfolioId, profile.id),
     portfolioService.getPortfolioVersions(portfolioId, profile.id),
+    portfolioViewService.getLightStats(portfolioId, profile.id), // new
   ]);
 
   if (!result) notFound();
@@ -133,9 +133,9 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
 
       {/* ── Stats ── */}
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-        <StatCard label="Total views" value={analytics?.total ?? 0} accent />
-        <StatCard label="Last 7 days" value={analytics?.last7Days ?? 0} />
-        <StatCard label="Last 30 days" value={analytics?.last30Days ?? 0} />
+        <StatCard label="Total views" value={lightStats?.total ?? 0} accent />
+        <StatCard label="Last 7 days" value={lightStats?.last7Days ?? 0} />
+        {/* <StatCard label="Last 30 days" value={lightStats?.last30Days ?? 0} /> */}
         <StatCard label="Version" value={`v${portfolio.currentVersion}`} />
         <StatCard label="Projects" value={data?.projects?.length ?? 0} />
       </section>

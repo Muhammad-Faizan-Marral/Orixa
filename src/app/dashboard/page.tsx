@@ -37,7 +37,7 @@ export default async function DashboardPage() {
   const totalViews = (
     await Promise.all(
       portfolios.map((p) =>
-        portfolioViewService.getAnalytics(p.id, profile.id),
+        portfolioViewService.getTotalViews(p.id, profile.id),
       ),
     )
   ).reduce((sum, analytics) => sum + (analytics?.total ?? 0), 0);

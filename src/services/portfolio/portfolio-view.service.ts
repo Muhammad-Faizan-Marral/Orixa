@@ -42,6 +42,14 @@ export class PortfolioViewService {
     });
   }
 
+  async getTotalViews(portfolioId:string,profileId:string){
+    const portfolio = await portfolioRepository.findByIdAndProfileId(portfolioId,profileId)
+    if (!portfolio) {return null}
+    const total = await portfolioViewRepository.getTotalViews(portfolioId)
+    return {total}
+  }
+
+
   async getAnalytics(portfolioId: string, profileId: string) {
     const portfolio = await portfolioRepository.findByIdAndProfileId(
       portfolioId,
@@ -84,7 +92,7 @@ export class PortfolioViewService {
       portfolioEventRepository.countByType(portfolioId, "contact_click"),
       portfolioEventRepository.topLabels(portfolioId, "project_click", 5),
 
-      // 👈 Fix: Use async IIFE for clean try/catch
+   
       (async () => {
         try {
           const { count } = await supabaseAdmin
@@ -142,6 +150,23 @@ export class PortfolioViewService {
         mostActiveCountry: countries[0]?.country ?? null,
       },
     };
+  }
+  async getLightStats(portfolioId: string, profileId: string) {
+    const portfolio = await portfolioRepository.findByIdAndProfileId(
+      portfolioId,
+      profileId,
+    );
+    if (!portfolio) return null;
+
+    const [total, last7Days] = await Promise.all([
+      portfolioViewRepository.getTotalViews(portfolioId),
+      portfolioViewRepository.getViewsSince(
+        portfolioId,
+        new Date(Date.now() - 7 * MS_PER_DAY).toISOString(),
+      ),
+    ]);
+
+    return { total, last7Days };
   }
 
   private hashIp(ip: string): string {

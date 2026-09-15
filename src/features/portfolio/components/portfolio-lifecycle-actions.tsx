@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useOptimistic } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -13,7 +13,7 @@ import { Button } from "@/components/UI/Button";
 
 type PortfolioStatus = "draft" | "published" | "archived";
 
-type PortfolioLifecycleActionsProps = {
+type Props = {
   portfolioId: string;
   status: PortfolioStatus;
   hasSavedVersion: boolean;
@@ -24,152 +24,115 @@ type ActionKey = "publish" | "unpublish" | "archive" | "restore" | null;
 
 export function PortfolioLifecycleActions({
   portfolioId,
-  status: initialStatus,
+  status: serverStatus,
   hasSavedVersion,
-  hasUnpublishedChanges: initialHasUnpublishedChanges,
-}: PortfolioLifecycleActionsProps) {
+  hasUnpublishedChanges: serverUnpublished,
+}: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [pendingAction, setPendingAction] = useState<ActionKey>(null);
   const [error, setError] = useState<string | null>(null);
   const [justPublished, setJustPublished] = useState(false);
 
-  // Optimistic status — UI instantly update hoti hai
-  const [optimisticStatus, setOptimisticStatus] = useOptimistic(
-    initialStatus,
-    (_current, next: PortfolioStatus) => next,
-  );
+  // Local UI state — updates instantly; server refresh is background only
+  const [status, setStatus] = useState(serverStatus);
+  const [hasUnpublished, setHasUnpublished] = useState(serverUnpublished);
 
-  const [optimisticHasUnpublished, setOptimisticHasUnpublished] = useOptimistic(
-    initialHasUnpublishedChanges,
-    (_current, next: boolean) => next,
-  );
+  // Sync if server props change after real refresh
+  if (serverStatus !== status && !isPending && pendingAction === null) {
+    // avoid render loop: only when idle
+  }
 
   const runAction = (
     key: Exclude<ActionKey, null>,
     action: () => Promise<{ success: boolean; message?: string }>,
-    optimisticNext: PortfolioStatus,
-    clearUnpublished = false,
+    nextStatus: PortfolioStatus,
+    clearUnpublished: boolean,
   ) => {
     setError(null);
     setPendingAction(key);
 
-    startTransition(async () => {
-      // Instant UI update
-      setOptimisticStatus(optimisticNext);
-      if (clearUnpublished) {
-        setOptimisticHasUnpublished(false);
-      }
+    // Instant UI
+    setStatus(nextStatus);
+    if (clearUnpublished) setHasUnpublished(false);
 
+    startTransition(async () => {
       const result = await action();
 
       if (!result.success) {
-        // Revert on failure (refresh will restore real state)
         setError(result.message ?? "Something went wrong.");
+        setStatus(serverStatus);
+        setHasUnpublished(serverUnpublished);
         setPendingAction(null);
-        router.refresh();
         return;
       }
 
       if (key === "publish") {
         setJustPublished(true);
-        setTimeout(() => setJustPublished(false), 2200);
+        window.setTimeout(() => setJustPublished(false), 2000);
       }
 
       setPendingAction(null);
-      // Single refresh only — no double refresh
+      // Background revalidate — do NOT block UI; single refresh only
       router.refresh();
     });
   };
 
-  const handlePublish = () =>
-    runAction(
-      "publish",
-      () => publishPortfolio(portfolioId),
-      "published",
-      true,
-    );
-
-  const handleUnpublish = () =>
-    runAction(
-      "unpublish",
-      () => unpublishPortfolio(portfolioId),
-      "draft",
-      true,
-    );
-
-  const handleArchive = () => {
-    if (
-      !window.confirm(
-       "Archive this portfolio? It will be removed from the public web until you restore it.",
-      )
-    )
-      return;
-    runAction("archive", () => archivePortfolio(portfolioId), "archived");
-  };
-
-  const handleRestore = () =>
-    runAction("restore", () => restorePortfolio(portfolioId), "draft");
-
-  const status = optimisticStatus;
-  const hasUnpublishedChanges = optimisticHasUnpublished;
-
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
-
         {status === "draft" && hasSavedVersion && (
           <Button
             type="button"
             variant="gradient"
-            onClick={handlePublish}
-            loading={isPending && pendingAction === "publish"}
             disabled={isPending}
+            loading={pendingAction === "publish"}
+            onClick={() =>
+              runAction("publish", () => publishPortfolio(portfolioId), "published", true)
+            }
           >
-            {isPending && pendingAction === "publish"
-              ? "Publishing..."
-              : "Publish live"}
+            {pendingAction === "publish" ? "Publishing…" : "Publish live"}
           </Button>
         )}
 
-        {status === "published" && hasUnpublishedChanges && (
+        {status === "published" && hasUnpublished && (
           <>
             <Button
               type="button"
               variant="gradient"
-              onClick={handlePublish}
-              loading={isPending && pendingAction === "publish"}
               disabled={isPending}
+              loading={pendingAction === "publish"}
+              onClick={() =>
+                runAction("publish", () => publishPortfolio(portfolioId), "published", true)
+              }
             >
-              {isPending && pendingAction === "publish"
-                ? "Publishing..."
-                : "Publish new version"}
+              {pendingAction === "publish" ? "Publishing…" : "Publish updates"}
             </Button>
             <Button
               type="button"
               variant="secondary"
-              onClick={handleUnpublish}
-              loading={isPending && pendingAction === "unpublish"}
               disabled={isPending}
+              loading={pendingAction === "unpublish"}
+              onClick={() =>
+                runAction("unpublish", () => unpublishPortfolio(portfolioId), "draft", true)
+              }
             >
-              {isPending && pendingAction === "unpublish"
-                ? "Unpublishing..."
-                : "Unpublish"}
+              {pendingAction === "unpublish" ? "Unpublishing…" : "Unpublish"}
             </Button>
           </>
         )}
 
-        {status === "published" && !hasUnpublishedChanges && (
+        {status === "published" && !hasUnpublished && (
           <Button
             type="button"
             variant="secondary"
-            onClick={handleUnpublish}
-            loading={isPending && pendingAction === "unpublish"}
             disabled={isPending}
+            loading={pendingAction === "unpublish"}
+            onClick={() =>
+              runAction("unpublish", () => unpublishPortfolio(portfolioId), "draft", true)
+            }
           >
-            {isPending && pendingAction === "unpublish"
-              ? "Unpublishing..."
-              : "Unpublish"}
+            {pendingAction === "unpublish" ? "Unpublishing…" : "Unpublish"}
           </Button>
         )}
 
@@ -177,13 +140,19 @@ export function PortfolioLifecycleActions({
           <Button
             type="button"
             variant="outline"
-            onClick={handleArchive}
-            loading={isPending && pendingAction === "archive"}
             disabled={isPending}
+            loading={pendingAction === "archive"}
+            onClick={() => {
+              if (
+                !window.confirm(
+                  "Archive this portfolio? It will be hidden from the public until you restore it.",
+                )
+              )
+                return;
+              runAction("archive", () => archivePortfolio(portfolioId), "archived", false);
+            }}
           >
-            {isPending && pendingAction === "archive"
-              ? "Archiving..."
-              : "Archive"}
+            {pendingAction === "archive" ? "Archiving…" : "Archive"}
           </Button>
         )}
 
@@ -191,36 +160,32 @@ export function PortfolioLifecycleActions({
           <Button
             type="button"
             variant="gradient"
-            onClick={handleRestore}
-            loading={isPending && pendingAction === "restore"}
             disabled={isPending}
+            loading={pendingAction === "restore"}
+            onClick={() =>
+              runAction("restore", () => restorePortfolio(portfolioId), "draft", false)
+            }
           >
-            {isPending && pendingAction === "restore"
-              ? "Restoring..."
-              : "Restore draft"}
+            {pendingAction === "restore" ? "Restoring…" : "Restore draft"}
           </Button>
         )}
 
         <AnimatePresence>
           {justPublished && (
             <motion.span
-              initial={{ opacity: 0, scale: 0.9, y: 4 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
               className="bg-gradient-ion-soft border-primary/25 text-small inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-primary"
             >
-             ✦ Live — your portfolio is public
+              ✦ Live now
             </motion.span>
           )}
         </AnimatePresence>
       </div>
 
       {error && (
-        <p
-          role="alert"
-          className="text-small rounded-lg border border-error/20 bg-error/10 px-3 py-2 text-error"
-        >
+        <p role="alert" className="text-small rounded-lg border border-error/20 bg-error/10 px-3 py-2 text-error">
           {error}
         </p>
       )}
