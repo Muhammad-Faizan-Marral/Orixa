@@ -37,7 +37,6 @@ export async function createPortfolio(
       parsed.data,
     );
 
-    revalidatePath("/dashboard");
     revalidatePath("/dashboard/portfolios");
 
     return {

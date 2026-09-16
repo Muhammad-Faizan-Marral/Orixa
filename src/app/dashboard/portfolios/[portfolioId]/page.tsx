@@ -31,7 +31,7 @@ const NAV_LINKS = (portfolioId: string) => [
     href: `/dashboard/portfolios/${portfolioId}/analytics`,
     label: "Analytics",
   },
-  { href: `/dashboard/portfolios/${portfolioId}/ai-usage`, label: "AI Usage" },
+
 ];
 
 export default async function PortfolioPage({ params }: PortfolioPageProps) {

@@ -2804,7 +2804,7 @@ function ReviewStepUI({
         `"${prompt.slice(0, 60)}${prompt.length > 60 ? "…" : ""}"`
       ) : (
         <span style={{ color: "var(--pw-text-muted)" }}>
-          Blank — AI picks randomly
+          Default — we match a modern layout to your content
         </span>
       ),
     },
@@ -2826,8 +2826,9 @@ function ReviewStepUI({
         <div className="pw-step-header__eyebrow">Final check</div>
         <h2 className="pw-step-header__title">Review & save</h2>
         <p className="pw-step-header__desc">
-          Everything looks good? Hit "Save portfolio" and AI will generate your
-          layout based on your prompt.
+          Ready? Save and we&apos;ll shape a design around your content and
+          style notes — layout, color, and section style tuned to what you
+          shared.
         </p>
       </div>
 
@@ -2855,8 +2856,9 @@ function ReviewStepUI({
             strokeLinejoin="round"
           />
         </svg>
-        AI will pick your layout, color scheme, and component variants based on
-        your prompt. You can regenerate anytime from the portfolio settings.
+        A modern design engine maps your profile and style direction into a
+        coherent theme and section system — not a random template. You can
+        refine content anytime.
       </div>
     </div>
   );

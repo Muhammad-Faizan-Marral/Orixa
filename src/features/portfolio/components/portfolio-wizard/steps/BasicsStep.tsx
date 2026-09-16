@@ -203,7 +203,7 @@ export function BasicsStep({
           hint={
             promptLocked
               ? "Locked — prompts cannot be changed after first save."
-              : "Describe the look you want. AI uses this to pick your layout, colors, and style."
+              : "Describe the look and feel you want. We map this into a coherent Design DNA — theme, mood, and matching sections."
           }
         >
           <PwTextarea

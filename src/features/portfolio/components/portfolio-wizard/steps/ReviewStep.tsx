@@ -42,7 +42,7 @@ export function ReviewStep({
         `"${prompt.slice(0, 60)}${prompt.length > 60 ? "…" : ""}"`
       ) : (
         <span style={{ color: "var(--pw-text-muted)" }}>
-          Default — we&apos;ll match a clean layout to your content
+          Default — matched to your content
         </span>
       ),
     },
@@ -64,8 +64,9 @@ export function ReviewStep({
         <div className="pw-step-header__eyebrow">Final check</div>
         <h2 className="pw-step-header__title">Review &amp; save</h2>
         <p className="pw-step-header__desc">
-          Looks good? Save and we&apos;ll build a portfolio that fits your
-          content and style direction — you can edit anytime.
+          Looks good? Save and we&apos;ll build a coherent design around your
+          content and style direction — one clear visual system, not a random
+          template mix.
         </p>
       </div>
 
@@ -94,8 +95,9 @@ export function ReviewStep({
           />
         </svg>
         <span>
-          We shape layout and visuals from your content and style notes — not a
-          one-size-fits-all template. You stay in control of every word.
+          A design engine maps your profile into a Design DNA (theme + matching
+          sections). Your words stay yours — visuals stay intentional and
+          consistent.
         </span>
       </div>
     </div>

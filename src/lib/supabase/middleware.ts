@@ -24,6 +24,7 @@ const RESERVED_FIRST_SEGMENTS = new Set([
   "api",
   "login",
   "signup",
+  "design-lab",
   "_next",
   "favicon.ico",
 ]);
@@ -123,4 +124,4 @@ export async function updateSession(request: NextRequest) {
   );
 
   return supabaseResponse;
-}
+} 

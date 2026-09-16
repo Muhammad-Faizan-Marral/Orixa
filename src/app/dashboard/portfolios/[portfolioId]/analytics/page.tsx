@@ -100,6 +100,14 @@ export default async function AnalyticsPage({ params }: Props) {
           label="Unique visitors"
           value={(analytics.uniqueVisitors ?? 0).toLocaleString()}
         />
+        <StatCard
+          label="Last 7 Days"
+          value={(analytics.last7Days ?? 0).toLocaleString()}
+        />
+        <StatCard
+          label="Last 30 Days"
+          value={(analytics.last30Days ?? 0).toLocaleString()}
+        />
         <StatCard label="Countries" value={analytics.countryCount ?? 0} />
         <StatCard
           label="Projects viewed"

@@ -1,145 +1,99 @@
 import {
-  SECTION_VARIANTS,
   DEFAULT_COMPONENT_SELECTION,
   DEFAULT_DESIGN_PREFERENCES,
-  variantsPromptBlock,
   type ComponentSelection,
 } from "@/features/portfolio/component-variants";
 import { generateGeminiText, parseGeminiJson } from "@/lib/ai/gemini";
-
-const dnas = [
-  "editorial",
-  "soft-luxury",
-  "tech-dense",
-  "minimal-airy",
-  "neo-glass",
-  "brutalist",
-  "cinematic",
-] as const;
+import {
+  DESIGN_DNAS,
+  type DesignDna,
+  type DesignIntent,
+  type ContentSignals,
+  type DesignPreferences,
+  defaultSignals,
+  inferIntentFromContent,
+  resolveDesignFromIntent,
+} from "@/lib/ai/design-dna";
 
 export type DesignDecision = {
   componentSelection: ComponentSelection;
-  designPreferences: typeof DEFAULT_DESIGN_PREFERENCES;
+  designPreferences: DesignPreferences;
 };
 
-const FALLBACK: DesignDecision = {
-  componentSelection: DEFAULT_COMPONENT_SELECTION,
-  designPreferences: DEFAULT_DESIGN_PREFERENCES,
-};
+function sanitizeIntent(
+  raw: Partial<DesignIntent> | null | undefined,
+): DesignIntent | null {
+  if (!raw || typeof raw !== "object") return null;
 
-function randomFrom<T>(arr: readonly T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)]!;
-}
+  const dna = raw.designDna as string;
+  if (!DESIGN_DNAS.includes(dna as DesignDna)) return null;
 
-export function randomDesignDecision(): DesignDecision {
-  const componentSelection = {
-    navbar: { enabled: true, variant: randomFrom(SECTION_VARIANTS.navbar) },
-    hero: { enabled: true, variant: randomFrom(SECTION_VARIANTS.hero) },
-    about: { enabled: true, variant: randomFrom(SECTION_VARIANTS.about) },
-    skills: { enabled: true, variant: randomFrom(SECTION_VARIANTS.skills) },
-    projects: { enabled: true, variant: randomFrom(SECTION_VARIANTS.projects) },
-    experience: {
-      enabled: true,
-      variant: randomFrom(SECTION_VARIANTS.experience),
-    },
-    education: {
-      enabled: true,
-      variant: randomFrom(SECTION_VARIANTS.education),
-    },
-    certificates: {
-      enabled: true,
-      variant: randomFrom(SECTION_VARIANTS.certificates),
-    },
-    contact: { enabled: true, variant: randomFrom(SECTION_VARIANTS.contact) },
-    footer: { enabled: true, variant: randomFrom(SECTION_VARIANTS.footer) },
-  } satisfies ComponentSelection;
+  const themeMode =
+    raw.themeMode === "light" || raw.themeMode === "dark"
+      ? raw.themeMode
+      : "dark";
 
-  const accents = ["#6c5cff", "#22d3ee", "#34d399", "#fbbf24", "#fb7185"];
-  const fonts = ["Inter", "Geist", "Poppins", "Roboto"];
+  const energy =
+    raw.energy === "calm" || raw.energy === "balanced" || raw.energy === "bold"
+      ? raw.energy
+      : "balanced";
+
+  const contentBias =
+    raw.contentBias === "projects-first" ||
+    raw.contentBias === "experience-first" ||
+    raw.contentBias === "about-first" ||
+    raw.contentBias === "balanced"
+      ? raw.contentBias
+      : "balanced";
+
+  const accentFamily =
+    raw.accentFamily === "cool" ||
+    raw.accentFamily === "warm" ||
+    raw.accentFamily === "neutral" ||
+    raw.accentFamily === "vivid"
+      ? raw.accentFamily
+      : "cool";
 
   return {
-    componentSelection,
-    designPreferences: {
-      themeMode: Math.random() > 0.5 ? "dark" : "light",
-      layout: randomFrom(["standard", "wide", "centered"] as const),
-      accentColor: randomFrom(accents),
-      fontFamily: randomFrom(fonts),
-      borderRadius: randomFrom(["none", "small", "medium", "large"] as const),
-      cardStyle: randomFrom(["flat", "bordered", "elevated"] as const),
-      designDna: randomFrom(dnas),
-      density: randomFrom(["compact", "comfortable", "spacious"] as const),
-      sectionSpacing: randomFrom(["tight", "normal", "loose"] as const),
-    },
+    designDna: dna as DesignDna,
+    themeMode,
+    energy,
+    contentBias,
+    accentFamily,
   };
 }
 
-function sanitizeDecision(raw: Partial<DesignDecision>): DesignDecision {
-  const cs = { ...DEFAULT_COMPONENT_SELECTION };
+function makeSeed(params: {
+  portfolioId?: string;
+  prompt?: string;
+  headline?: string;
+}): string {
+  return (
+    [params.portfolioId, params.prompt, params.headline]
+      .filter(Boolean)
+      .join("|") || "orixa-default"
+  );
+}
 
-  if (raw.componentSelection) {
-    (
-      Object.keys(SECTION_VARIANTS) as (keyof typeof SECTION_VARIANTS)[]
-    ).forEach((key) => {
-      const sel = (raw.componentSelection as any)?.[key];
-      const allowed = SECTION_VARIANTS[key] as readonly string[];
-      if (
-        sel &&
-        typeof sel.variant === "string" &&
-        allowed.includes(sel.variant)
-      ) {
-        cs[key] = {
-          enabled: sel.enabled !== false,
-          variant: sel.variant,
-        };
-      }
-    });
-  }
-
-  const dp = {
-    ...DEFAULT_DESIGN_PREFERENCES,
-    ...(raw.designPreferences ?? {}),
-  };
-
-  // Validate standard preferences
-  if (dp.themeMode !== "light" && dp.themeMode !== "dark") {
-    dp.themeMode = DEFAULT_DESIGN_PREFERENCES.themeMode ?? "dark";
-  }
-  if (!["standard", "wide", "centered"].includes(dp.layout)) {
-    dp.layout = DEFAULT_DESIGN_PREFERENCES.layout ?? "standard";
-  }
-  if (!["none", "small", "medium", "large"].includes(dp.borderRadius)) {
-    dp.borderRadius = DEFAULT_DESIGN_PREFERENCES.borderRadius ?? "medium";
-  }
-  if (!["flat", "bordered", "elevated"].includes(dp.cardStyle)) {
-    dp.cardStyle = DEFAULT_DESIGN_PREFERENCES.cardStyle ?? "bordered";
-  }
-
-  // Validate Extended preferences (designDna, density, sectionSpacing, etc.)
-  if (!dnas.includes(dp.designDna as (typeof dnas)[number])) {
-    dp.designDna = DEFAULT_DESIGN_PREFERENCES.designDna ?? "soft-luxury";
-  }
-  if (!["compact", "comfortable", "spacious"].includes(dp.density)) {
-    dp.density = DEFAULT_DESIGN_PREFERENCES.density ?? "comfortable";
-  }
-  if (!["tight", "normal", "loose"].includes(dp.sectionSpacing)) {
-    dp.sectionSpacing = DEFAULT_DESIGN_PREFERENCES.sectionSpacing ?? "normal";
-  }
-
-  // Fallbacks for string-based fields
-  if (typeof dp.accentColor !== "string" || !dp.accentColor) {
-    dp.accentColor = DEFAULT_DESIGN_PREFERENCES.accentColor ?? "#6c5cff";
-  }
-  if (typeof dp.fontFamily !== "string" || !dp.fontFamily) {
-    dp.fontFamily = DEFAULT_DESIGN_PREFERENCES.fontFamily ?? "Inter";
-  }
-
-  return { componentSelection: cs, designPreferences: dp };
+/** Fallback: content inference + DNA packs (not random sections). */
+export function randomDesignDecision(
+  signals: ContentSignals = defaultSignals(),
+  seed = `fallback-${Date.now()}`,
+): DesignDecision {
+  const intent = inferIntentFromContent(signals);
+  return resolveDesignFromIntent(intent, signals, seed);
 }
 
 export async function decideDesignWithGemini(params: {
   prompt: string;
   headline?: string;
   about?: string;
+  portfolioId?: string;
+  projectCount?: number;
+  skillCount?: number;
+  experienceCount?: number;
+  educationCount?: number;
+  certificateCount?: number;
 }): Promise<{
   decision: DesignDecision;
   inputTokens: number;
@@ -148,75 +102,82 @@ export async function decideDesignWithGemini(params: {
   usedAi: boolean;
   errorMessage?: string;
 }> {
+  const signals: ContentSignals = {
+    projectCount: params.projectCount ?? 0,
+    skillCount: params.skillCount ?? 0,
+    experienceCount: params.experienceCount ?? 0,
+    educationCount: params.educationCount ?? 0,
+    certificateCount: params.certificateCount ?? 0,
+    hasAbout: Boolean((params.about ?? "").trim()),
+    headline: params.headline ?? "",
+  };
+
+  const seed = makeSeed({
+    portfolioId: params.portfolioId,
+    prompt: params.prompt,
+    headline: params.headline,
+  });
+
   const userPrompt = (params.prompt ?? "").trim();
 
-  // Prompt blank → random ONLY (intentional, no API cost)
+  // No style direction → content-aware DNA (no LLM)
   if (!userPrompt) {
+    const intent = inferIntentFromContent(signals);
     return {
-      decision: randomDesignDecision(),
+      decision: resolveDesignFromIntent(intent, signals, seed),
       inputTokens: 0,
       outputTokens: 0,
       latencyMs: 0,
       usedAi: false,
-      errorMessage: "No design prompt !",
     };
   }
 
-  const system = `You are Orixa design engine. Pick portfolio section variants and design tokens.
+const system = `You are the Orixa design intent engine.
+Return ONLY a small JSON object. No markdown.
+You do NOT pick section variants or hex colors — only high-level intent.
 Rules:
-- Return ONLY valid JSON matching the schema.
-- Every variant MUST be from the allowed lists exactly.
-- Match the user's design prompt (dark/light, modern, minimal, accent color hints, layout).
-- Never invent variant names.
-- Always include navbar, hero, about, skills, projects, experience, education, certificates, contact, footer.`;
+- designDna MUST be one of: ${DESIGN_DNAS.join(", ")}
+- themeMode: light | dark
+- energy: calm | balanced | bold
+- contentBias: projects-first | experience-first | balanced | about-first
+- accentFamily: cool | warm | neutral | vivid
+Match the user's style direction and the content hints.`;
 
-  const prompt = `User design prompt:
-"""${userPrompt.slice(0, 800)}"""
+  const prompt = `Style direction from user:
+"""${userPrompt.slice(0, 600)}"""
 
-Headline: ${(params.headline ?? "").slice(0, 120)}
-About snippet: ${(params.about ?? "").slice(0, 200)}
+Content hints:
+- headline: ${(params.headline ?? "").slice(0, 120)}
+- about snippet: ${(params.about ?? "").slice(0, 160)}
+- projects: ${signals.projectCount}, skills: ${signals.skillCount}, experience: ${signals.experienceCount}
+- education: ${signals.educationCount}, certificates: ${signals.certificateCount}
 
-Allowed variants:
-${variantsPromptBlock()}
-
-Return JSON exactly in this shape:
+Return JSON:
 {
-  "componentSelection": {
-    "navbar": { "enabled": true, "variant": "floating" },
-    "hero": { "enabled": true, "variant": "modern" },
-    "about": { "enabled": true, "variant": "default" },
-    "skills": { "enabled": true, "variant": "grid" },
-    "projects": { "enabled": true, "variant": "featured" },
-    "experience": { "enabled": true, "variant": "timeline" },
-    "education": { "enabled": true, "variant": "simple" },
-    "certificates": { "enabled": true, "variant": "simple" },
-    "contact": { "enabled": true, "variant": "split" },
-    "footer": { "enabled": true, "variant": "detailed" }
-  },
-  "designPreferences": {
-    "themeMode": "dark",
-    "layout": "standard",
-    "accentColor": "#6c5cff",
-    "fontFamily": "Inter",
-    "borderRadius": "medium",
-    "cardStyle": "bordered",
-    "designDna": "soft-luxury",
-    "density": "comfortable",
-    "sectionSpacing": "normal"
-  }
+  "designDna": "cinematic",
+  "themeMode": "dark",
+  "energy": "balanced",
+  "contentBias": "projects-first",
+  "accentFamily": "cool"
 }`;
 
   try {
     const result = await generateGeminiText({
       system,
       prompt,
-      temperature: 0.2,
-      maxOutputTokens: 1200,
+      temperature: 0.25,
+      maxOutputTokens: 256,
       jsonMode: true,
     });
+ 
+    const parsed = parseGeminiJson<Partial<DesignIntent>>(result.text);
+    let intent = sanitizeIntent(parsed);
 
-    const parsed = parseGeminiJson<Partial<DesignDecision>>(result.text);
-    const decision = sanitizeDecision(parsed);
+    if (!intent) {
+      intent = inferIntentFromContent(signals);
+    }
+
+    const decision = resolveDesignFromIntent(intent, signals, seed);
 
     return {
       decision,
@@ -230,9 +191,9 @@ Return JSON exactly in this shape:
       err instanceof Error ? err.message : "Design AI failed unexpectedly.";
     console.error("[decideDesignWithGemini]", message);
 
-    // Still save portfolio, but report that AI failed
+    const intent = inferIntentFromContent(signals);
     return {
-      decision: randomDesignDecision(),
+      decision: resolveDesignFromIntent(intent, signals, seed),
       inputTokens: 0,
       outputTokens: 0,
       latencyMs: 0,

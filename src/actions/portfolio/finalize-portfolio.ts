@@ -75,6 +75,7 @@ export async function finalizePortfolioAction(input: unknown) {
       data.portfolioId,
       profile.id,
     );
+
     const existingData = existing?.data ?? null;
 
     // Prompt lock
@@ -109,6 +110,18 @@ export async function finalizePortfolioAction(input: unknown) {
         prompt: finalPrompt,
         headline: data.headline,
         about: data.about,
+        portfolioId: data.portfolioId,
+        projectCount: Array.isArray(data.projects) ? data.projects.length : 0,
+        skillCount: Array.isArray(data.skills) ? data.skills.length : 0,
+        experienceCount: Array.isArray(data.experience)
+          ? data.experience.length
+          : 0,
+        educationCount: Array.isArray(data.education)
+          ? data.education.length
+          : 0,
+        certificateCount: Array.isArray(data.certificates)
+          ? data.certificates.length
+          : 0,
       });
 
       // decideDesign returns typed decision — assign through schema parse for safety

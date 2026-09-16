@@ -10,31 +10,33 @@
 
 /* ── Design tokens ── */
 .pw-root {
-  --pw-bg: #0F1117;
-  --pw-surface: #181C25;
-  --pw-surface-2: #1E2333;
+  --pw-bg: #0f1117;
+  --pw-surface: #181c25;
+  --pw-surface-2: #1e2333;
   --pw-border: rgba(255, 255, 255, 0.08);
   --pw-border-focus: rgba(99, 102, 241, 0.7);
-  --pw-accent: #6366F1;
-  --pw-accent-hover: #818CF8;
+  --pw-accent: #6366f1;
+  --pw-accent-hover: #818cf8;
   --pw-accent-muted: rgba(99, 102, 241, 0.12);
   --pw-accent-ring: rgba(99, 102, 241, 0.25);
-  --pw-success: #10B981;
+  --pw-success: #10b981;
   --pw-success-bg: rgba(16, 185, 129, 0.08);
   --pw-success-border: rgba(16, 185, 129, 0.25);
-  --pw-error: #F87171;
+  --pw-error: #f87171;
   --pw-error-bg: rgba(248, 113, 113, 0.08);
   --pw-error-border: rgba(248, 113, 113, 0.25);
-  --pw-text: #F1F5F9;
-  --pw-text-secondary: #94A3B8;
+  --pw-text: #f1f5f9;
+  --pw-text-secondary: #94a3b8;
   --pw-text-muted: #475569;
   --pw-radius: 10px;
   --pw-radius-sm: 6px;
   --pw-radius-lg: 16px;
-  --pw-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.04);
-  --pw-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.04);
-  --pw-font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --pw-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --pw-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.04);
+  --pw-shadow-lg:
+    0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.04);
+  --pw-font: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --pw-mono: "JetBrains Mono", "Fira Code", monospace;
   --pw-transition: 180ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -319,7 +321,7 @@
 }
 
 .pw-label--required::after {
-  content: ' *';
+  content: " *";
   color: var(--pw-error);
   font-size: 12px;
 }
@@ -333,7 +335,10 @@
   font-size: 14px;
   font-family: var(--pw-font);
   padding: 10px 14px;
-  transition: border-color var(--pw-transition), box-shadow var(--pw-transition), background var(--pw-transition);
+  transition:
+    border-color var(--pw-transition),
+    box-shadow var(--pw-transition),
+    background var(--pw-transition);
   outline: none;
   box-sizing: border-box;
 }
@@ -548,7 +553,9 @@
   border-radius: var(--pw-radius-sm);
   border: 1px solid var(--pw-border);
   background: var(--pw-surface-2);
-  transition: border-color var(--pw-transition), background var(--pw-transition);
+  transition:
+    border-color var(--pw-transition),
+    background var(--pw-transition);
   cursor: pointer;
 }
 
@@ -1063,7 +1070,7 @@
 /* ── SEO preview mock ── */
 .pw-seo-preview {
   padding: 16px;
-  background: #0B0F18;
+  background: #0b0f18;
   border-radius: var(--pw-radius-sm);
   border: 1px solid var(--pw-border);
   font-family: Arial, sans-serif;
