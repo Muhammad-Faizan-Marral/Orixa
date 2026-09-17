@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import {
   publicPathDisplay,
-  publicSharePath,
   publicInternalPath,
   publicAbsoluteUrl,
 } from "@/lib/public-url";
@@ -17,10 +16,6 @@ type PublicLinkCardProps = {
   className?: string;
 };
 
-/**
- * Display + Copy + Share:  developer/developer/orixaai.me
- * Opens in browser:        https://orixaai.me/developer/developer
- */
 export function PublicLinkCard({
   username,
   portfolioSlug,
@@ -30,13 +25,12 @@ export function PublicLinkCard({
   const [copied, setCopied] = useState(false);
 
   const display = publicPathDisplay(username, portfolioSlug);
-  const sharePath = publicSharePath(username, portfolioSlug);
   const internalPath = publicInternalPath(username, portfolioSlug);
   const absolute = publicAbsoluteUrl(username, portfolioSlug);
 
   async function handleCopy() {
     try {
-      await navigator.clipboard.writeText(sharePath);
+      await navigator.clipboard.writeText(absolute);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -49,7 +43,7 @@ export function PublicLinkCard({
       try {
         await navigator.share({
           title: "My portfolio",
-          text: sharePath,
+          text: display,
           url: absolute,
         });
         return;

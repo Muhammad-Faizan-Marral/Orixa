@@ -13,7 +13,7 @@ export function HeroEditorial({
   const about = config.about;
 
   return (
-    <section className="relative w-full">
+    <section className="relative w-full px-6">
       <div className="grid items-end gap-10 lg:grid-cols-12 lg:gap-8">
         {/* Left — Massive typography */}
         <div className="lg:col-span-7 space-y-8">

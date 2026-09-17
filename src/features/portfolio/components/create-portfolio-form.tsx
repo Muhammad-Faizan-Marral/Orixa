@@ -78,9 +78,9 @@ export function CreatePortfolioForm() {
       <div>
         <Input
           id="slug"
-          label="Slug URL"
+          label="Slug name"
           {...register("slug")}
-          placeholder="developer"
+          placeholder="ie. developer , designer "
           error={errors.slug?.message}
           onChange={(e) =>
             setValue(

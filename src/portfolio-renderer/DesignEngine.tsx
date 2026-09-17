@@ -5,7 +5,7 @@ import {
 } from "@/features/portfolio/component-variants";
 import { NavbarSection } from "./sections/navbar";
 
-import { getThemeStyle, layoutMaxWidth } from "./theme";
+import { getThemeStyle, sectionShellFor, sectionAlignFor } from "./theme";
 import { SectionWrapper } from "./shared/SectionWrapper";
 import { HeroSection } from "./sections/hero";
 import { AboutSection } from "./sections/about";
@@ -23,33 +23,35 @@ import type {
   RendererDesignPreferences,
 } from "./types";
 
-function resolveSelection(
-  incoming?: RendererComponentSelection | null,
-): RendererComponentSelection {
-  return { ...DEFAULT_COMPONENT_SELECTION, ...(incoming ?? {}) };
+function resolveSelection( incoming?: RendererComponentSelection | null,): RendererComponentSelection {
+    return { ...DEFAULT_COMPONENT_SELECTION, ...(incoming ?? {}) };
 }
 
-function resolveDesign(
-  incoming?: RendererDesignPreferences | null,
-): RendererDesignPreferences {
+function resolveDesign(incoming?: RendererDesignPreferences | null): RendererDesignPreferences {
   return { ...DEFAULT_DESIGN_PREFERENCES, ...(incoming ?? {}) };
 }
 
-function isEnabled(
-  selection: RendererComponentSelection,
-  key: keyof RendererComponentSelection,
-) {
+function isEnabled(selection: RendererComponentSelection,key: keyof RendererComponentSelection,) {
   const s = selection[key];
   if (!s) return true;
   return s.enabled !== false;
 }
 
-export function DesignEngine({ config, profile,}: { config: PortfolioRenderConfig; profile: PublicProfileMeta;}) {
+export function DesignEngine({
+  config,
+  profile,
+}: {
+  config: PortfolioRenderConfig;
+  profile: PublicProfileMeta;
+}) {
   const selection = resolveSelection(config.componentSelection);
   const design = resolveDesign(config.designPreferences);
-  const maxW = layoutMaxWidth(design.layout);
   const themeMode = design.themeMode === "light" ? "light" : "dark";
   const designDna = design.designDna || "soft-luxury";
+  const layout = design.layout || "standard";
+
+  const shell = (section:|"hero"|"about"|"skills"|"projects"|"experience"|"education"|"certificates"|"contact",variant?: string,) => sectionShellFor(section, variant, designDna);
+  const align = (section:|"hero"|"about"|"skills"|"projects"|"experience"|"education"|"certificates"|"contact",variant?: string,) => sectionAlignFor(shell(section, variant), layout, variant);
 
   return (
     <div
@@ -70,7 +72,9 @@ export function DesignEngine({ config, profile,}: { config: PortfolioRenderConfi
       {isEnabled(selection, "hero") && (
         <SectionWrapper
           id="hero"
-          maxWidthClass={maxW}
+          shell={shell("hero", selection.hero?.variant)}
+          align={align("hero", selection.hero?.variant)}
+          layout={layout}
           designDna={designDna}
           className={
             selection.navbar?.variant === "floating" ? "pt-28" : "pt-16"
@@ -85,13 +89,25 @@ export function DesignEngine({ config, profile,}: { config: PortfolioRenderConfi
       )}
 
       {isEnabled(selection, "about") && config.about && (
-        <SectionWrapper id="about" maxWidthClass={maxW} designDna={designDna}>
+        <SectionWrapper
+          id="about"
+          shell={shell("about", selection.about?.variant)}
+          align={align("about", selection.about?.variant)}
+          layout={layout}
+          designDna={designDna}
+        >
           <AboutSection variant={selection.about?.variant} config={config} />
         </SectionWrapper>
       )}
 
       {isEnabled(selection, "skills") && (config.skills?.length ?? 0) > 0 && (
-        <SectionWrapper id="skills" maxWidthClass={maxW} designDna={designDna}>
+        <SectionWrapper
+          id="skills"
+          shell={shell("skills", selection.skills?.variant)}
+          align={align("skills", selection.skills?.variant)}
+          layout={layout}
+          designDna={designDna}
+        >
           <SkillsSection
             variant={selection.skills?.variant}
             skills={config.skills || []}
@@ -103,7 +119,9 @@ export function DesignEngine({ config, profile,}: { config: PortfolioRenderConfi
         (config.projects?.length ?? 0) > 0 && (
           <SectionWrapper
             id="projects"
-            maxWidthClass={maxW}
+            shell={shell("projects", selection.projects?.variant)}
+            align={align("projects", selection.projects?.variant)}
+            layout={layout}
             designDna={designDna}
           >
             <ProjectsSection
@@ -119,7 +137,9 @@ export function DesignEngine({ config, profile,}: { config: PortfolioRenderConfi
         (config.experience?.length ?? 0) > 0 && (
           <SectionWrapper
             id="experience"
-            maxWidthClass={maxW}
+            shell={shell("experience", selection.experience?.variant)}
+            align={align("experience", selection.experience?.variant)}
+            layout={layout}
             designDna={designDna}
           >
             <ExperienceSection
@@ -133,7 +153,9 @@ export function DesignEngine({ config, profile,}: { config: PortfolioRenderConfi
         (config.education?.length ?? 0) > 0 && (
           <SectionWrapper
             id="education"
-            maxWidthClass={maxW}
+            shell={shell("education", selection.education?.variant)}
+            align={align("education", selection.education?.variant)}
+            layout={layout}
             designDna={designDna}
           >
             <EducationSection
@@ -147,7 +169,9 @@ export function DesignEngine({ config, profile,}: { config: PortfolioRenderConfi
         (config.certificates?.length ?? 0) > 0 && (
           <SectionWrapper
             id="certificates"
-            maxWidthClass={maxW}
+            shell={shell("certificates", selection.certificates?.variant)}
+            align={align("certificates", selection.certificates?.variant)}
+            layout={layout}
             designDna={designDna}
           >
             <CertificatesSection
@@ -156,8 +180,15 @@ export function DesignEngine({ config, profile,}: { config: PortfolioRenderConfi
             />
           </SectionWrapper>
         )}
+
       {isEnabled(selection, "contact") && (
-        <SectionWrapper id="contact" maxWidthClass={maxW} designDna={designDna}>
+        <SectionWrapper
+          id="contact"
+          shell={shell("contact", selection.contact?.variant)}
+          align={align("contact", selection.contact?.variant)}
+          layout={layout}
+          designDna={designDna}
+        >
           <ContactSection
             variant={selection.contact?.variant}
             config={config}
@@ -170,8 +201,7 @@ export function DesignEngine({ config, profile,}: { config: PortfolioRenderConfi
           variant={selection.footer?.variant}
           name={config.name || undefined}
           username={profile.username}
-              portfolioId={config.portfolioId}
-
+          portfolioId={config.portfolioId}
         />
       )}
     </div>

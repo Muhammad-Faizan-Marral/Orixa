@@ -19,16 +19,9 @@ export function ContactSplitMotion({
   config: PortfolioRenderConfig;
 }) {
   const portfolioId = config.portfolioId;
-  const [state, formAction, isPending] = useActionState(
-    sendContactMessage,
-    initialState,
-  );
+  const [state, formAction, isPending] = useActionState(sendContactMessage,initialState,);
 
-  // Message aur display state ko manage karne ke liye
-  const [displayMessage, setDisplayMessage] = useState<{
-    text: string;
-    isSuccess: boolean;
-  } | null>(null);
+  const [displayMessage, setDisplayMessage] = useState<{text: string; isSuccess: boolean; } | null>(null);
 
   const formRef = useRef<HTMLFormElement>(null);
 

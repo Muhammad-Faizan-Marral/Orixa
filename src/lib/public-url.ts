@@ -1,3 +1,17 @@
+/**
+ * Public portfolio URLs for Orixa.
+ *
+ * Canonical (browser):
+ *   https://orixaai.me/{username}/{portfolioSlug}
+ *
+ * Share / copy:
+ *   orixaai.me/{username}/{portfolioSlug}
+ *
+ * Production env:
+ *   NEXT_PUBLIC_SITE_URL=https://orixaai.me
+ *   (or https://www.orixaai.me if you prefer www)
+ */
+
 export const BRAND_DOMAIN = "orixaai.me";
 export const BRAND_SEGMENT = "orixaAi";
 
@@ -13,15 +27,24 @@ export function getSiteOrigin(): string {
   return FALLBACK_ORIGIN;
 }
 
-/** Display / copy / share: developer/developer/orixaai.me */
+/** Path only: /username/slug */
+export function publicInternalPath(
+  username: string,
+  portfolioSlug?: string | null,
+): string {
+  const u = username.trim().toLowerCase();
+  if (portfolioSlug && portfolioSlug.trim()) {
+    return `/${u}/${portfolioSlug.trim().toLowerCase()}`;
+  }
+  return `/${u}`;
+}
+
+/** Display: orixaai.me/username/slug */
 export function publicPathDisplay(
   username: string,
   portfolioSlug?: string | null,
 ): string {
-  if (portfolioSlug && portfolioSlug.trim()) {
-    return `${username}/${portfolioSlug.trim()}/${BRAND_DOMAIN}`;
-  }
-  return `${username}/${BRAND_DOMAIN}`;
+  return `${BRAND_DOMAIN}${publicInternalPath(username, portfolioSlug)}`;
 }
 
 export function publicSharePath(
@@ -31,7 +54,7 @@ export function publicSharePath(
   return publicPathDisplay(username, portfolioSlug);
 }
 
-/** Real browser URL: https://orixaai.me/developer/developer */
+/** Full URL for copy / share / OG */
 export function publicAbsoluteUrl(
   username: string,
   portfolioSlug?: string | null,
@@ -39,12 +62,10 @@ export function publicAbsoluteUrl(
   return `${getSiteOrigin()}${publicInternalPath(username, portfolioSlug)}`;
 }
 
-export function publicInternalPath(
-  username: string,
-  portfolioSlug?: string | null,
-): string {
-  if (portfolioSlug && portfolioSlug.trim()) {
-    return `/${username}/${portfolioSlug.trim()}`;
-  }
-  return `/${username}`;
+export function publicProfileDisplay(username: string): string {
+  return publicPathDisplay(username, null);
+}
+
+export function publicProfileAbsoluteUrl(username: string): string {
+  return publicAbsoluteUrl(username, null);
 }

@@ -156,4 +156,5 @@ export const LAB_CONFIG_BASE: PortfolioRenderConfig = {
       issueDate: "2020",
     },
   ],
+  
 };

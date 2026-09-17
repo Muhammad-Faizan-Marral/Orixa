@@ -23,15 +23,17 @@ const STATUS_VARIANT = {
   draft: "outline",
   archived: "warning",
 } as const;
-
 const NAV_LINKS = (portfolioId: string) => [
   { href: `/dashboard/portfolios/${portfolioId}/edit`, label: "Edit" },
+  {
+    href: `/dashboard/portfolios/${portfolioId}/design-lab`,
+    label: "Design lab",
+  },
   { href: `/dashboard/portfolios/${portfolioId}/versions`, label: "Versions" },
   {
     href: `/dashboard/portfolios/${portfolioId}/analytics`,
     label: "Analytics",
   },
-
 ];
 
 export default async function PortfolioPage({ params }: PortfolioPageProps) {

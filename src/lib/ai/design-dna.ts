@@ -552,10 +552,7 @@ export function buildComponentsFromIntent(
   return selection;
 }
 
-export function resolveDesignFromIntent(intent: DesignIntent,signals: ContentSignals,seed: string): {
-  componentSelection: ComponentSelection;
-  designPreferences: DesignPreferences;
-} {
+export function resolveDesignFromIntent(intent: DesignIntent,signals: ContentSignals,seed: string): {componentSelection: ComponentSelection;designPreferences: DesignPreferences;} {
   const safeIntent: DesignIntent = DESIGN_DNAS.includes(intent.designDna)? intent : { ...intent, designDna: "minimal-airy" };
 
   return {

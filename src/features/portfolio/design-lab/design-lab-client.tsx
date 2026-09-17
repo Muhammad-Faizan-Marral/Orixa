@@ -48,7 +48,7 @@ export function DesignLabClient() {
     }),
     [],
   );
-
+  // console.log(signals, "Signal");
   const resolved = useMemo(() => {
     const intent: DesignIntent = {
       designDna: dna,
@@ -71,6 +71,7 @@ export function DesignLabClient() {
     seed,
     signals,
   ]);
+  // console.log(resolved, "resolved");
 
   const componentSelection: ComponentSelection = useMemo(() => {
     const base = { ...resolved.componentSelection };
@@ -85,6 +86,7 @@ export function DesignLabClient() {
     }
     return base;
   }, [resolved.componentSelection, variantOverrides]);
+  // console.log(componentSelection, "componentSelection");
 
   const config: PortfolioRenderConfig = useMemo(
     () => ({

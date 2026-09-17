@@ -34,17 +34,7 @@ const SECTION_LINKS: LinkItem[] = [
   { key: "contact", label: "Contact", href: "#contact" },
 ];
 
-export const FooterMega: React.FC<FooterMegaProps> = ({
-  name,
-  username,
-  headline,
-  about,
-  githubUrl,
-  linkedinUrl,
-  phone,
-  resumeUrl,
-  portfolioId,
-}) => {
+export const FooterMega: React.FC<FooterMegaProps> = ({ name, username, headline, about, githubUrl, linkedinUrl, phone, resumeUrl, portfolioId,}) => {
   const year = new Date().getFullYear();
   const displayName = name || username;
 
