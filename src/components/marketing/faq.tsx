@@ -7,19 +7,19 @@ import { cn } from "@/lib/utils";
 const FAQS = [
   {
     q: "Do I need to know how to code?",
-    a: "No. You add your content and customize visually — Orixa handles the layout, hosting and responsiveness.",
+    a: "No. You add your content and customize visually — Orixa handles layout, hosting, and responsiveness.",
   },
   {
     q: "Can I have more than one portfolio?",
-    a: "Yes. One profile can hold multiple portfolios — for example a software engineer version and a freelance version — each with its own URL.",
+    a: "Yes. One profile can hold multiple portfolios — for example a software-engineer version and a freelance version — each with its own URL.",
   },
   {
     q: "What happens when I edit a published portfolio?",
-    a: "Your changes are saved as a draft. Nothing changes on your live URL until you publish again, which creates a new version while your previous version stays intact.",
+    a: "Changes stay as a draft until you publish again. Publishing creates a new version; previous versions remain intact.",
   },
   {
     q: "How do people contact me?",
-    a: "Visitors fill out a contact form on your public portfolio. The message is emailed directly to you — there's no separate inbox to check inside Orixa.",
+    a: "Visitors use the contact form on your public portfolio. Messages are emailed directly to you — there is no separate inbox inside Orixa.",
   },
   {
     q: "Is my resume file public?",
@@ -31,45 +31,45 @@ export function Faq() {
   const [open, setOpen] = useState<number | null>(0);
 
   return (
-    <section id="faq" className="relative py-24 md:py-32">
-      <div className="mx-auto max-w-3xl px-6">
+    <section id="faq" className="relative border-t border-border py-20 md:py-28">
+      <div className="mx-auto max-w-3xl px-5 md:px-6">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.6 }}
-          className="mx-auto max-w-lg text-center"
+          transition={{ duration: 0.5 }}
+          className="max-w-lg"
         >
           <span className="text-caption">Questions</span>
-          <h2 className="text-h1 mt-4 text-balance">
-            Everything you're wondering.
-          </h2>
+          <h2 className="text-h1 mt-3 text-balance">Clear answers before you start.</h2>
         </motion.div>
 
-        <div className="mt-12 space-y-3">
+        <div className="mt-10 divide-y divide-border border-y border-border">
           {FAQS.map((item, i) => {
             const isOpen = open === i;
             return (
               <motion.div
                 key={item.q}
-                initial={{ opacity: 0, y: 14 }}
+                initial={{ opacity: 0, y: 10 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-40px" }}
-                transition={{ duration: 0.4, delay: i * 0.05 }}
-                className="surface-card overflow-hidden"
+                viewport={{ once: true, margin: "-30px" }}
+                transition={{ duration: 0.35, delay: i * 0.04 }}
               >
                 <button
                   type="button"
                   onClick={() => setOpen(isOpen ? null : i)}
-                  className="flex w-full items-center justify-between gap-4 p-5 text-left"
+                  className="flex w-full items-center justify-between gap-4 py-5 text-left"
                   aria-expanded={isOpen}
                 >
-                  <span className="text-label text-[0.95rem]">{item.q}</span>
+                  <span className="font-display text-[1.02rem] font-semibold tracking-tight text-foreground">
+                    {item.q}
+                  </span>
                   <span
                     className={cn(
-                      "flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border-strong text-xs transition-transform duration-300",
+                      "flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border text-muted-foreground transition-transform",
                       isOpen && "rotate-45 border-primary/40 text-primary",
                     )}
+                    aria-hidden="true"
                   >
                     +
                   </span>
@@ -80,11 +80,10 @@ export function Faq() {
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                      transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+                      className="overflow-hidden"
                     >
-                      <p className="text-body px-5 pb-5 text-muted-foreground">
-                        {item.a}
-                      </p>
+                      <p className="text-body pb-5 pr-10 text-muted-foreground">{item.a}</p>
                     </motion.div>
                   )}
                 </AnimatePresence>

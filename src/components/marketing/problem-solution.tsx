@@ -4,57 +4,53 @@ import { motion } from "framer-motion";
 
 const PAIRS = [
   {
-    problem: "Portfolio builders are built for designers, not for you.",
-    solution: "Add your projects, resume and skills — Orixa handles layout, design and code.",
+    problem: "Most portfolio tools are built for designers — not for people who just need to get hired.",
+    solution: "Add projects, experience, and your resume. Orixa handles layout, design, and publishing.",
   },
   {
-    problem: "You publish a portfolio and never know what happens next.",
-    solution: "See views and resume downloads as they happen, right from your dashboard.",
+    problem: "You publish once and never know if anyone looked — or downloaded your resume.",
+    solution: "Views and resume downloads show up in your dashboard as they happen.",
   },
   {
-    problem: "Someone wants to hire you — their message disappears into a form.",
-    solution: "Contact messages land straight in your inbox, the moment they're sent.",
+    problem: "Contact forms dump messages into a black hole you have to check separately.",
+    solution: "Visitor messages go straight to your email the moment they're sent.",
   },
 ];
 
 export function ProblemSolution() {
   return (
-    <section id="product" className="relative py-24 md:py-32">
-      <div className="mx-auto max-w-5xl px-6">
+    <section id="product" className="relative border-t border-border py-20 md:py-28">
+      <div className="mx-auto max-w-6xl px-5 md:px-6">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 18 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.6 }}
-          className="mx-auto max-w-2xl text-center"
+          transition={{ duration: 0.55 }}
+          className="max-w-2xl"
         >
           <span className="text-caption">Why Orixa exists</span>
-          <h2 className="text-h1 mt-4 text-balance">
-            Portfolio builders were never built for people who just want to
-            get hired.
+          <h2 className="text-h1 mt-3 text-balance">
+            Portfolio builders were never designed for people who ship work for a living.
           </h2>
         </motion.div>
 
-        <div className="mt-16 grid gap-4 md:grid-cols-3">
+        <div className="mt-14 space-y-0 divide-y divide-border border-y border-border">
           {PAIRS.map((pair, i) => (
             <motion.div
               key={pair.problem}
-              initial={{ opacity: 0, y: 24 }}
+              initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-60px" }}
-              transition={{ duration: 0.5, delay: i * 0.08 }}
-              className="surface-card flex h-full flex-col gap-5 p-6"
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.45, delay: i * 0.06 }}
+              className="grid gap-6 py-8 md:grid-cols-2 md:gap-12 md:py-10"
             >
-              <div className="space-y-2">
-                <span className="text-caption text-error/80">The old way</span>
-                <p className="text-body text-muted-foreground line-through decoration-error/30">
-                  {pair.problem}
-                </p>
+              <div>
+                <span className="text-caption text-error/80">Before</span>
+                <p className="text-body mt-2 text-muted-foreground">{pair.problem}</p>
               </div>
-              <div className="h-px w-full bg-gradient-ion-soft" />
-              <div className="space-y-2">
+              <div>
                 <span className="text-caption text-accent">With Orixa</span>
-                <p className="text-body text-foreground">{pair.solution}</p>
+                <p className="text-body mt-2 text-foreground">{pair.solution}</p>
               </div>
             </motion.div>
           ))}

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 const COLUMNS = [
@@ -6,6 +7,7 @@ const COLUMNS = [
     links: [
       { label: "Features", href: "#product" },
       { label: "AI", href: "#ai" },
+      { label: "How it works", href: "#how" },
       { label: "Showcase", href: "#showcase" },
     ],
   },
@@ -17,30 +19,31 @@ const COLUMNS = [
     ],
   },
   {
-    title: "Resources",
-    links: [
-      { label: "FAQ", href: "#faq" },
-    ],
+    title: "Help",
+    links: [{ label: "FAQ", href: "#faq" }],
   },
 ];
 
 export function SiteFooter() {
   return (
-    <footer className="relative border-t border-border py-14">
-      <div className="mx-auto max-w-6xl px-6">
+    <footer className="relative border-t border-border py-12 md:py-14">
+      <div className="mx-auto max-w-6xl px-5 md:px-6">
         <div className="flex flex-col gap-10 md:flex-row md:justify-between">
           <div className="max-w-xs">
-            <Link href="/" className="flex items-center gap-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-ion text-[0.8rem] font-bold text-white">
-                O
-              </span>
+            <Link href="/" className="flex items-center gap-2.5">
+              <Image
+                src="/logo-mark.png"
+                alt="Orixa AI"
+                width={28}
+                height={28}
+                className="h-7 w-7 object-contain"
+              />
               <span className="font-display text-[1.05rem] font-semibold tracking-tight text-foreground">
                 Orixa<span className="text-gradient-ion">AI</span>
               </span>
             </Link>
             <p className="text-small mt-4">
-              An AI-powered portfolio builder for developers, designers and
-              students who want a professional site without the setup.
+              AI-assisted portfolio builder for developers, designers, and professionals who want a site that matches their work.
             </p>
           </div>
 
@@ -65,7 +68,7 @@ export function SiteFooter() {
           </div>
         </div>
 
-        <div className="mt-12 flex flex-col gap-3 border-t border-border pt-6 text-xs text-subtle-foreground sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-12 flex flex-col gap-2 border-t border-border pt-6 text-xs text-subtle-foreground sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} Orixa AI. All rights reserved.</p>
           <p className="font-mono">Built for people who ship.</p>
         </div>

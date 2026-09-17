@@ -3,46 +3,64 @@
 import { motion } from "framer-motion";
 
 const AI_ACTIONS = [
-  { label: "Rewrite headline", before: "Frontend Developer", after: "Full-Stack AI Engineer building fast, thoughtful products" },
-  { label: "Improve about section", before: "I build web apps.", after: "I design and ship end-to-end web products — from data model to pixel." },
-  { label: "Polish project summary", before: "A shop app I made.", after: "A full-stack e-commerce platform handling 10k+ monthly orders." },
+  {
+    label: "Rewrite headline",
+    before: "Frontend Developer",
+    after: "Full-stack engineer building fast, thoughtful products",
+  },
+  {
+    label: "Improve about",
+    before: "I build web apps.",
+    after: "I design and ship end-to-end products — from data model to pixel.",
+  },
+  {
+    label: "Polish project summary",
+    before: "A shop app I made.",
+    after: "E-commerce platform handling 10k+ monthly orders with real-time inventory.",
+  },
 ];
 
 export function AiShowcase() {
   return (
-    <section id="ai" className="relative py-24 md:py-32">
+    <section id="ai" className="relative border-t border-border py-20 md:py-28">
       <div
-        className="bg-aurora pointer-events-none absolute inset-0 opacity-70"
+        className="pointer-events-none absolute inset-0 opacity-60"
         aria-hidden="true"
+        style={{
+          background:
+            "radial-gradient(50% 40% at 80% 20%, color-mix(in srgb, var(--color-primary) 12%, transparent) 0%, transparent 55%)",
+        }}
       />
-      <div className="relative mx-auto grid max-w-6xl gap-14 px-6 md:grid-cols-2 md:items-center">
+
+      <div className="relative mx-auto grid max-w-6xl gap-12 px-5 md:grid-cols-2 md:items-center md:gap-16 md:px-6">
         <motion.div
-          initial={{ opacity: 0, x: -24 }}
-          whileInView={{ opacity: 1, x: 0 }}
+          initial={{ opacity: 0, y: 18 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.55 }}
         >
-          <span className="text-caption text-accent">AI, built into the editor</span>
-          <h2 className="text-h1 mt-4 text-balance">
-            You bring the story. <span className="text-gradient-ion">Orixa</span> finds
-            the words.
+          <span className="text-caption text-accent">AI in the editor</span>
+          <h2 className="text-h1 mt-3 text-balance">
+            You bring the story.
+            <span className="text-gradient-ion"> Orixa</span> helps you say it clearly.
           </h2>
-                   <p className="text-body-lg mt-5 max-w-md text-balance">
-            Orixa reads what you share — role, projects, resume — and helps you
-            present it clearly. You always review before anything goes live.
+          <p className="text-body-lg mt-5 max-w-md">
+            Orixa reads your role, projects, and resume, then suggests stronger
+            headlines and summaries. You always review before anything goes live.
           </p>
 
-          <ul className="mt-8 space-y-3">
+          <ul className="mt-8 space-y-3.5">
             {[
-              "Understands your experience and highlights what matters",
-              "Suggests clearer headlines and project summaries",
-              "Builds a layout that fits your content, not a random theme",
-              "You review and approve before anything is published",
+              "Highlights what matters in your experience",
+              "Suggests clearer headlines and project copy",
+              "Layouts adapt to your content — not a random theme",
+              "Nothing publishes without your approval",
             ].map((item) => (
               <li key={item} className="flex items-start gap-3 text-sm text-muted-foreground">
-                <span className="mt-1 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-gradient-ion-soft text-[0.6rem] text-primary">
-                  ✓
-                </span>
+                <span
+                  className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gradient-ion"
+                  aria-hidden="true"
+                />
                 {item}
               </li>
             ))}
@@ -50,11 +68,11 @@ export function AiShowcase() {
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, x: 24 }}
-          whileInView={{ opacity: 1, x: 0 }}
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="border-gradient-ion shadow-glow-primary space-y-3 rounded-2xl p-5"
+          transition={{ duration: 0.55, delay: 0.08 }}
+          className="space-y-3"
         >
           {AI_ACTIONS.map((action, i) => (
             <motion.div
@@ -62,19 +80,19 @@ export function AiShowcase() {
               initial={{ opacity: 0, y: 12 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.2 + i * 0.12 }}
-              className="surface-panel space-y-2.5 p-4"
+              transition={{ duration: 0.4, delay: 0.12 + i * 0.08 }}
+              className="surface-card p-4 sm:p-5"
             >
-              <div className="flex items-center justify-between">
+              <div className="mb-3 flex items-center justify-between gap-2">
                 <span className="text-caption text-primary">{action.label}</span>
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-gradient-ion text-[0.55rem] text-white">
+                <span className="rounded-full bg-gradient-ion px-2 py-0.5 text-[0.65rem] font-medium text-white">
                   AI
                 </span>
               </div>
-              <p className="text-small text-subtle-foreground line-through decoration-subtle-foreground/40">
+              <p className="text-small text-subtle-foreground line-through decoration-subtle-foreground/35">
                 {action.before}
               </p>
-              <p className="text-body text-foreground">{action.after}</p>
+              <p className="text-body mt-1.5 text-foreground">{action.after}</p>
             </motion.div>
           ))}
         </motion.div>

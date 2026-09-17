@@ -4,113 +4,66 @@ import { motion } from "framer-motion";
 
 const FEATURES = [
   {
-    title: "Multiple portfolios, one profile",
+    title: "Multiple portfolios, one identity",
     description:
-      "Keep a software engineer portfolio and a freelancer portfolio side by side — same identity, different presentation.",
-    icon: "layers",
+      "A software-engineer site and a freelance site can live side by side — same profile, different story and URL.",
   },
   {
-    title: "Live analytics, not guesswork",
+    title: "Analytics that matter",
     description:
-      "Every view and resume download is tracked so you always know how your portfolio is performing.",
-    icon: "chart",
+      "Track portfolio views and resume downloads so you know what's working — not just that something is “live.”",
   },
   {
     title: "Versioned publishing",
     description:
-      "Every publish creates a snapshot. Edit freely — your live portfolio only changes when you say so.",
-    icon: "layers-alt",
+      "Every publish is a snapshot. Edit freely; your public URL only updates when you choose to ship.",
   },
   {
     title: "Direct-to-inbox contact",
     description:
-      "Visitors reach you through email, instantly. No inbox to manage inside Orixa, nothing to check twice.",
-    icon: "mail",
+      "Messages from your portfolio land in your email. No separate Orixa inbox to manage.",
   },
   {
     title: "Visual customization",
     description:
-      "Themes, animations and section visibility — all controlled visually. Never touch a config file.",
-    icon: "palette",
+      "Themes, section visibility, and motion — controlled in the editor. No config files.",
   },
   {
-    title: "Built-in SEO",
+    title: "SEO that ships with you",
     description:
-      "Every portfolio ships with sensible metadata so recruiters and search engines both find you.",
-    icon: "search",
+      "Sensible metadata on every portfolio so recruiters and search engines can find the right version of you.",
   },
 ];
 
-function FeatureIcon({ name }: { name: string }) {
-  const common = "h-5 w-5";
-  switch (name) {
-    case "layers":
-      return (
-        <svg className={common} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-          <path d="M12 3l9 5-9 5-9-5 9-5Z" strokeLinejoin="round" />
-          <path d="M3 13l9 5 9-5" strokeLinejoin="round" />
-        </svg>
-      );
-    case "chart":
-      return (
-        <svg className={common} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-          <path d="M4 19V9M12 19V5M20 19v-7" strokeLinecap="round" />
-        </svg>
-      );
-    case "layers-alt":
-      return (
-        <svg className={common} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-          <rect x="4" y="4" width="10" height="10" rx="2" />
-          <rect x="10" y="10" width="10" height="10" rx="2" />
-        </svg>
-      );
-    case "mail":
-      return (
-        <svg className={common} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-          <rect x="3" y="5" width="18" height="14" rx="2" />
-          <path d="m4 7 8 6 8-6" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      );
-    case "palette":
-      return (
-        <svg className={common} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-          <circle cx="12" cy="12" r="9" />
-          <circle cx="8.5" cy="10.5" r="1.2" fill="currentColor" stroke="none" />
-          <circle cx="12" cy="8" r="1.2" fill="currentColor" stroke="none" />
-          <circle cx="15.5" cy="10.5" r="1.2" fill="currentColor" stroke="none" />
-        </svg>
-      );
-    default:
-      return (
-        <svg className={common} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-          <circle cx="11" cy="11" r="7" />
-          <path d="m21 21-4.3-4.3" strokeLinecap="round" />
-        </svg>
-      );
-  }
-}
-
 export function FeatureGrid() {
   return (
-    <section className="relative py-16 md:py-24">
-      <div className="mx-auto max-w-6xl px-6">
-        <div className="grid gap-4 md:grid-cols-3">
+    <section className="relative py-20 md:py-28">
+      <div className="mx-auto max-w-6xl px-5 md:px-6">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.5 }}
+          className="max-w-xl"
+        >
+          <span className="text-caption">Built for careers</span>
+          <h2 className="text-h1 mt-3 text-balance">
+            Everything you need after “I should make a portfolio.”
+          </h2>
+        </motion.div>
+
+        <div className="mt-14 grid gap-x-10 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map((feature, i) => (
             <motion.div
               key={feature.title}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 14 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-60px" }}
-              transition={{ duration: 0.5, delay: (i % 3) * 0.08 }}
-              className="group surface-card p-6 transition-colors hover:border-border-strong"
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.45, delay: (i % 3) * 0.05 }}
             >
-              <div className="bg-gradient-ion-soft border-primary/20 flex h-10 w-10 items-center justify-center rounded-lg border text-primary transition-transform group-hover:scale-105">
-                <FeatureIcon name={feature.icon} />
-              </div>
-              <h3 className="text-h3 mt-5">{feature.title}</h3>
-              <p className="text-body mt-2 text-muted-foreground">
-                {feature.description}
-              </p>
+              <div className="mb-3 h-px w-8 bg-gradient-ion" aria-hidden="true" />
+              <h3 className="text-h3 !text-[1.05rem]">{feature.title}</h3>
+              <p className="text-body mt-2 text-muted-foreground">{feature.description}</p>
             </motion.div>
           ))}
         </div>

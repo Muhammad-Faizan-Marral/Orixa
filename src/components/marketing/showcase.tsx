@@ -3,51 +3,74 @@
 import { motion } from "framer-motion";
 
 const EXAMPLES = [
-  { name: "Amara Chen", role: "Product Designer", slug: "amara/product-design", theme: "from-primary/30 to-accent/20" },
-  { name: "Daniyal Raza", role: "Backend Engineer", slug: "daniyal/backend", theme: "from-accent/25 to-primary/15" },
-  { name: "Sofia Marín", role: "Freelance Developer", slug: "sofia/freelance", theme: "from-primary/25 to-accent/25" },
+  {
+    name: "Amara Chen",
+    role: "Product Designer",
+    slug: "amara/product-design",
+    accent: "from-primary/35 via-primary/10 to-transparent",
+  },
+  {
+    name: "Daniyal Raza",
+    role: "Backend Engineer",
+    slug: "daniyal/backend",
+    accent: "from-accent/30 via-accent/10 to-transparent",
+  },
+  {
+    name: "Sofia Marín",
+    role: "Freelance Developer",
+    slug: "sofia/freelance",
+    accent: "from-primary/25 via-accent/15 to-transparent",
+  },
 ];
 
 export function Showcase() {
   return (
-    <section id="showcase" className="relative py-24 md:py-32">
-      <div className="mx-auto max-w-6xl px-6">
+    <section id="showcase" className="relative py-20 md:py-28">
+      <div className="mx-auto max-w-6xl px-5 md:px-6">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.6 }}
-          className="mx-auto max-w-xl text-center"
+          transition={{ duration: 0.5 }}
+          className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between"
         >
-          <span className="text-caption">Built with Orixa</span>
-          <h2 className="text-h1 mt-4 text-balance">Every portfolio, its own identity.</h2>
+          <div className="max-w-lg">
+            <span className="text-caption">What it looks like</span>
+            <h2 className="text-h1 mt-3 text-balance">Every portfolio, its own identity.</h2>
+          </div>
+          <p className="text-body max-w-sm text-muted-foreground md:text-right">
+            Same product. Different design DNA, sections, and story — so your site matches how you work.
+          </p>
         </motion.div>
 
-        <div className="mt-14 grid gap-5 md:grid-cols-3">
+        <div className="mt-12 grid gap-5 md:grid-cols-3">
           {EXAMPLES.map((example, i) => (
-            <motion.div
+            <motion.article
               key={example.slug}
-              initial={{ opacity: 0, y: 24 }}
+              initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-60px" }}
-              transition={{ duration: 0.5, delay: i * 0.1 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.45, delay: i * 0.07 }}
               className="surface-card group overflow-hidden"
             >
               <div
-                className={`h-40 bg-gradient-to-br ${example.theme} relative flex items-end p-4`}
+                className={`relative flex h-36 items-end bg-gradient-to-br ${example.accent} p-4`}
               >
-                <div className="h-14 w-14 rounded-full border-2 border-surface bg-surface-3" />
-              </div>
-              <div className="space-y-3 p-5">
-                <div>
-                  <p className="text-h3 !text-base">{example.name}</p>
-                  <p className="text-small">{example.role}</p>
+                <div className="h-12 w-12 rounded-full border-2 border-surface bg-surface-3 shadow-sm" />
+                <div className="absolute top-3 right-3 rounded-full border border-border/60 bg-surface/70 px-2 py-0.5 text-[0.65rem] text-muted-foreground backdrop-blur">
+                  Preview
                 </div>
-                <p className="text-caption text-primary/80 normal-case tracking-normal">
+              </div>
+              <div className="space-y-1.5 p-5">
+                <p className="font-display text-[1.05rem] font-semibold tracking-tight text-foreground">
+                  {example.name}
+                </p>
+                <p className="text-small">{example.role}</p>
+                <p className="text-caption mt-3 normal-case tracking-normal text-primary/80">
                   orixa.ai/{example.slug}
                 </p>
               </div>
-            </motion.div>
+            </motion.article>
           ))}
         </div>
       </div>
