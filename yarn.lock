@@ -1130,6 +1130,37 @@
   dependencies:
     pako "^1.0.10"
 
+"@polar-sh/adapter-utils@0.4.6":
+  version "0.4.6"
+  resolved "https://registry.npmmirror.com/@polar-sh/adapter-utils/-/adapter-utils-0.4.6.tgz#95228e1a6baf7040a3a83348b06970a21dd5c7e9"
+  integrity sha512-F2HsGmRdhczxyFk7bmTZR81gBf/Hj5XfOGe/6S5aGWeJ1YftcWEK8Of+aZijxXv82xktEn7usS+7tfKb4YXghQ==
+  dependencies:
+    "@polar-sh/sdk" "^0.47.0"
+
+"@polar-sh/nextjs@^0.9.6":
+  version "0.9.6"
+  resolved "https://registry.npmmirror.com/@polar-sh/nextjs/-/nextjs-0.9.6.tgz#1645276e0625120e09b85ccdac44fd173f674ee1"
+  integrity sha512-S9swNtWc5FZPrhKwQVq2F3uoWS9kWBimGiuh2qzzS4qgCqwnoAwPADTe1LKWAG1kurhrtiz0quDO7GbRkJhXVg==
+  dependencies:
+    "@polar-sh/adapter-utils" "0.4.6"
+    "@polar-sh/sdk" "^0.47.0"
+
+"@polar-sh/sdk@^0.47.0":
+  version "0.47.1"
+  resolved "https://registry.npmmirror.com/@polar-sh/sdk/-/sdk-0.47.1.tgz#468d1c99f97858e81936fdc93cb67a89edd3cad3"
+  integrity sha512-fkz7wPLbqfuDmY9LxuXpE2uP2TAV6J0q/YN5hJ4UBxpjbkB0hKM6c4R35N89t83dfzMlG6EOlqOn+Rd1T6XrJQ==
+  dependencies:
+    standardwebhooks "^1.0.0"
+    zod "^3.25.65 || ^4.0.0"
+
+"@polar-sh/sdk@^0.49.0":
+  version "0.49.0"
+  resolved "https://registry.npmmirror.com/@polar-sh/sdk/-/sdk-0.49.0.tgz#b9c3089053baf2765afa95d4b71df2c543e984ae"
+  integrity sha512-9UYb70iKjJCtWYlu0OF5HLYBLmkxHwqr2RlXwuxXQgRGqq56IQWlVG+NO7e1YJ7I5GW0CBHhGIjRbQ9hYM6ycQ==
+  dependencies:
+    standardwebhooks "^1.0.0"
+    zod "^3.25.65 || ^4.0.0"
+
 "@protobufjs/aspromise@^1.1.1", "@protobufjs/aspromise@^1.1.2":
   version "1.1.2"
   resolved "https://registry.npmmirror.com/@protobufjs/aspromise/-/aspromise-1.1.2.tgz#9b8b0cc663d669a7d8f6f5d0893a14d348f30fbf"
@@ -4075,6 +4106,14 @@ standardwebhooks@1.0.0:
     "@stablelib/base64" "^1.0.0"
     fast-sha256 "^1.3.0"
 
+standardwebhooks@^1.0.0:
+  version "1.1.1"
+  resolved "https://registry.npmmirror.com/standardwebhooks/-/standardwebhooks-1.1.1.tgz#25b98fa2bbe4edad7b42778135c923563e3d5e2f"
+  integrity sha512-bCbX9ZEyFkWPsRz7Bl3NuQUJohmwGSev/yhr7vhaGPlc4AfIrspIRa6cPTBuI1ItmrTDJ4d/S2hCsfe4+vQGnQ==
+  dependencies:
+    "@stablelib/base64" "^1.0.0"
+    fast-sha256 "^1.3.0"
+
 stop-iteration-iterator@^1.1.0:
   version "1.1.0"
   resolved "https://registry.npmmirror.com/stop-iteration-iterator/-/stop-iteration-iterator-1.1.0.tgz#f481ff70a548f6124d0312c3aa14cbfa7aa542ad"
@@ -4481,6 +4520,11 @@ yocto-queue@^0.1.0:
   version "4.5.4"
   resolved "https://registry.npmmirror.com/zod/-/zod-4.5.4.tgz#e215c62420c528dd7951e31fb52c5438f1fd184a"
   integrity sha512-sC95tT5iHHH9gtpj6A81kh+NEaRAUFN+qlUPDUbRfOMvNf5QCBqsb3WgvnpVtK5Y+4UfA6KqufotuTvMGiTlsA==
+
+"zod@^3.25.65 || ^4.0.0":
+  version "4.6.5"
+  resolved "https://registry.npmmirror.com/zod/-/zod-4.6.5.tgz#e3af3edbdc260239c52f73caad05dbbffe6e82cd"
+  integrity sha512-v5l/aFXZQeai4awLbOpSoHecE9UiMrnfx75tEXLjNonXVARxQ5mOeipTjROUchszUNCqnE+hqAMujRsRHsut2Q==
 
 zustand@^5.0.15:
   version "5.0.15"
