@@ -11,7 +11,6 @@ import {
 import { profileRepository } from "@/repositories/profile.repository";
 
 export class BillingService {
-
   async createCheckout(params: {
     userId: string;
     email: string;
@@ -30,10 +29,15 @@ export class BillingService {
 
     const checkout = await polar.checkouts.create({
       products: [productId],
-      successUrl:params.successUrl ??`${appUrl}/dashboard?checkout=success&checkout_id={CHECKOUT_ID}`,
+      successUrl:
+        params.successUrl ??
+        `${appUrl}/dashboard?checkout=success&checkout_id={CHECKOUT_ID}`,
       customerEmail: params.email,
       customerExternalId: params.userId,
-      metadata: {userId: params.userId,productKey: params.productKey,},
+      metadata: {
+        userId: params.userId,
+        productKey: params.productKey,
+      },
     });
 
     return checkout;
@@ -115,6 +119,22 @@ export class BillingService {
     }
   }
 
+  /**
+   * Called when a user publishes their first portfolio.
+   * Credits the referrer once (idempotent via referralCreditedAt).
+   */
+  async creditReferralOnFirstPublish(profileId: string) {
+    const profile = await profileRepository.findById(profileId);
+    if (!profile) return;
+    if (!profile.referredBy) return;
+    if (profile.referralCreditedAt) return; // already credited
+
+    await profileRepository.updateById(profileId, {
+      referralCreditedAt: new Date().toISOString(),
+    });
+
+    await this.recordSuccessfulReferral(profile.referredBy);
+  }
 }
 
 export const billingService = new BillingService();

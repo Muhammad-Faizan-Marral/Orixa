@@ -5,12 +5,12 @@ import type { PortfolioRenderConfig } from "@/portfolio-renderer/types";
 import { PortfolioViewTracker } from "@/features/portfolio/components/portfolio-view-tracker";
 import { DesignEngine } from "@/portfolio-renderer/DesignEngine";
 import { getCachedPublishedPortfolio } from "@/lib/cache/portfolio-public";
+import { isPremiumActive } from "@/constants/billing";
 
 type Props = {
   params: Promise<{ username: string; portfolioSlug: string }>;
 };
 
-// Revalidate set to 3600 seconds (1 hour) directly
 export const revalidate = 3600;
 export const dynamicParams = true;
 
@@ -64,6 +64,10 @@ export default async function PublicPortfolioPage({ params }: Props) {
   }
 
   const config = pub.config as PortfolioRenderConfig;
+  const isPremium = isPremiumActive({
+    isPremium: pub.profile.isPremium ?? false,
+    premiumUntil: pub.profile.premiumUntil ?? null,
+  });
 
   return (
     <>
@@ -76,6 +80,7 @@ export default async function PublicPortfolioPage({ params }: Props) {
           username: pub.profile.username,
           fullName: pub.profile.fullName,
           avatarUrl: pub.profile.avatarUrl,
+          isPremium,
         }}
       />
       <PortfolioViewTracker portfolioId={pub.portfolio.id} />

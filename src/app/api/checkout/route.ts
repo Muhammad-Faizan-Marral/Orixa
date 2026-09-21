@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
 
     const checkout = await billingService.createCheckout({
       userId: user.id,
-      email: user.email ?? `${profile.username}@orixaai.me`,
+      email: user.email ?? `${profile.username}@orixa.ai`,
       productKey,
     });
 

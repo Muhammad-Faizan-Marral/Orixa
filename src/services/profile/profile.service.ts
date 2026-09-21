@@ -7,7 +7,6 @@ import {
   type UpdateProfileInput,
 } from "@/validations/profile.schema";
 export class ProfileService {
-  
   async isUsernameAvailable(username: string) {
     const parsed = usernameSchema.parse(username);
 
@@ -28,7 +27,11 @@ export class ProfileService {
     return profileRepository.exists(userId);
   }
 
-  async createProfile(userId: string, input: CreateProfileInput) {
+  async createProfile(
+    userId: string,
+    input: CreateProfileInput,
+    options?: { referralCode?: string | null },
+  ) {
     const data = createProfileSchema.parse(input);
 
     const alreadyExists = await profileRepository.exists(userId);
@@ -43,20 +46,31 @@ export class ProfileService {
       throw new Error("Username is already taken.");
     }
 
+    let referredBy: string | null = null;
+    if (options?.referralCode) {
+      const referrer = await profileRepository.findByReferralCode(
+        options.referralCode,
+      );
+      if (referrer && referrer.userId !== userId) {
+        referredBy = referrer.id;
+      }
+    }
+
+    const ownCode =
+      `${data.username}-${Math.random().toString(36).slice(2, 7)}`.toLowerCase();
+
     return profileRepository.create({
       userId,
-
       username: data.username,
-
       fullName: data.fullName || null,
-
       headline: data.headline || null,
-
       bio: data.bio || null,
-
       location: data.location || null,
-
       avatarUrl: data.avatarUrl || null,
+      referralCode: ownCode,
+      referredBy: referredBy,
+      successfulReferrals: 0,
+      isPremium: false,
     });
   }
 

@@ -3,7 +3,10 @@ import Link from "next/link";
 import { requireProfile } from "@/lib/auth/require-profile";
 import { portfolioService } from "@/services/portfolio/portfolio.service";
 import { portfolioViewService } from "@/services/portfolio/portfolio-view.service";
-
+import { UpgradeCard } from "@/components/dashboard/upgrade-card";
+import { ReferralCard } from "@/components/dashboard/referral-card";
+import { isPremiumActive } from "@/constants/billing";
+import { billingService } from "@/services/billing/billing.service";
 import { Button } from "@/components/UI/Button";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { PortfolioCard } from "@/components/dashboard/portfolio-card";
@@ -28,6 +31,14 @@ function computeProfileCompletion(profile: {
 
 export default async function DashboardPage() {
   const profile = await requireProfile();
+    const referralCode =
+    profile.referralCode ||
+    (await billingService.ensureReferralCode(profile.userId, profile.username));
+
+  const premiumActive = isPremiumActive({
+    isPremium: profile.isPremium ?? false,
+    premiumUntil: profile.premiumUntil ?? null,
+  });
   const portfolios = await portfolioService.getUserPortfolios(profile.id);
 
   const publishedCount = portfolios.filter((p) => p.status === "published").length;
@@ -78,7 +89,13 @@ export default async function DashboardPage() {
           }
         />
       </section>
+      <UpgradeCard profile={profile} />
 
+      <ReferralCard
+        referralCode={referralCode}
+        successfulReferrals={profile.successfulReferrals ?? 0}
+        isPremium={premiumActive}
+      />
       <section>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-h3">Your portfolios</h2>

@@ -23,15 +23,22 @@ import type {
   RendererDesignPreferences,
 } from "./types";
 
-function resolveSelection( incoming?: RendererComponentSelection | null,): RendererComponentSelection {
-    return { ...DEFAULT_COMPONENT_SELECTION, ...(incoming ?? {}) };
+function resolveSelection(
+  incoming?: RendererComponentSelection | null,
+): RendererComponentSelection {
+  return { ...DEFAULT_COMPONENT_SELECTION, ...(incoming ?? {}) };
 }
 
-function resolveDesign(incoming?: RendererDesignPreferences | null): RendererDesignPreferences {
+function resolveDesign(
+  incoming?: RendererDesignPreferences | null,
+): RendererDesignPreferences {
   return { ...DEFAULT_DESIGN_PREFERENCES, ...(incoming ?? {}) };
 }
 
-function isEnabled(selection: RendererComponentSelection,key: keyof RendererComponentSelection,) {
+function isEnabled(
+  selection: RendererComponentSelection,
+  key: keyof RendererComponentSelection,
+) {
   const s = selection[key];
   if (!s) return true;
   return s.enabled !== false;
@@ -42,7 +49,7 @@ export function DesignEngine({
   profile,
 }: {
   config: PortfolioRenderConfig;
-  profile: PublicProfileMeta;
+  profile: PublicProfileMeta & { isPremium?: boolean };
 }) {
   const selection = resolveSelection(config.componentSelection);
   const design = resolveDesign(config.designPreferences);
@@ -50,8 +57,30 @@ export function DesignEngine({
   const designDna = design.designDna || "soft-luxury";
   const layout = design.layout || "standard";
 
-  const shell = (section:|"hero"|"about"|"skills"|"projects"|"experience"|"education"|"certificates"|"contact",variant?: string,) => sectionShellFor(section, variant, designDna);
-  const align = (section:|"hero"|"about"|"skills"|"projects"|"experience"|"education"|"certificates"|"contact",variant?: string,) => sectionAlignFor(shell(section, variant), layout, variant);
+  const shell = (
+    section:
+      | "hero"
+      | "about"
+      | "skills"
+      | "projects"
+      | "experience"
+      | "education"
+      | "certificates"
+      | "contact",
+    variant?: string,
+  ) => sectionShellFor(section, variant, designDna);
+  const align = (
+    section:
+      | "hero"
+      | "about"
+      | "skills"
+      | "projects"
+      | "experience"
+      | "education"
+      | "certificates"
+      | "contact",
+    variant?: string,
+  ) => sectionAlignFor(shell(section, variant), layout, variant);
 
   return (
     <div
@@ -199,9 +228,16 @@ export function DesignEngine({
       {isEnabled(selection, "footer") && (
         <FooterSection
           variant={selection.footer?.variant}
-          name={config.name || undefined}
+          name={config.name}
           username={profile.username}
+          headline={config.headline}
+          about={config.about}
+          githubUrl={config.githubUrl}
+          linkedinUrl={config.linkedinUrl}
+          phone={config.phone}
+          resumeUrl={config.resumeUrl}
           portfolioId={config.portfolioId}
+          isPremium={profile.isPremium ?? false}
         />
       )}
     </div>

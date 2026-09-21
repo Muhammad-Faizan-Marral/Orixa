@@ -7,7 +7,7 @@ type Props = {
   productKey?: "monthly" | "yearly";
   children?: React.ReactNode;
   className?: string;
-  variant?: "gradient" | "outline" | "default";
+  variant?: "gradient" | "outline" | "primary" | "secondary";
 };
 
 export function UpgradeButton({

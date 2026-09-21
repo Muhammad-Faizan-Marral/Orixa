@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { requireUser } from "@/lib/auth/require-user";
 import { profileService } from "@/services/profile/profile.service";
+import { getReferralCodeFromCookie } from "@/lib/referral-server";
 
 import type { CreateProfileInput } from "@/validations/profile.schema";
 
@@ -21,7 +22,11 @@ export async function createProfile(
 ): Promise<CreateProfileResult> {
   try {
     const user = await requireUser();
-    await profileService.createProfile(user.id, data);
+    const referralCode = await getReferralCodeFromCookie();
+
+    await profileService.createProfile(user.id, data, {
+      referralCode,
+    });
 
     revalidatePath("/dashboard");
     revalidatePath("/onboarding");
@@ -32,9 +37,7 @@ export async function createProfile(
     return {
       success: false,
       message:
-        error instanceof Error
-          ? error.message
-          : "Unable to create profile.",
+        error instanceof Error ? error.message : "Unable to create profile.",
     };
   }
 }

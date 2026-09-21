@@ -1,4 +1,4 @@
-import { portfolioRepository } from "@/repositories/portfolio.repository";
+
 import { portfolioVersionRepository } from "@/repositories/portfolio-version.repository";
 
 import {
@@ -12,6 +12,7 @@ import {
   type UpdatePortfolioInput,
 } from "@/validations/portfolio.schema";
 import { profileRepository } from "@/repositories/profile.repository";
+import { portfolioRepository } from "@/repositories/portfolio.repository";
 
 export class PortfolioService {
   async getUserPortfolios(profileId: string) {
@@ -126,7 +127,7 @@ export class PortfolioService {
     });
   }
 
-  async publishPortfolio(id: string, profileId: string) {
+   async publishPortfolio(id: string, profileId: string) {
     const portfolio = await portfolioRepository.findByIdAndProfileId(
       id,
       profileId,
@@ -142,10 +143,23 @@ export class PortfolioService {
       );
     }
 
-    const result = await portfolioVersionRepository.publishCurrentVersion(id, profileId);
+    const result = await portfolioVersionRepository.publishCurrentVersion(
+      id,
+      profileId,
+    );
 
     if (!result) {
       throw new Error("Unable to publish portfolio.");
+    }
+
+    // Credit referrer on first publish only
+    try {
+      const { billingService } = await import(
+        "@/services/billing/billing.service"
+      );
+      await billingService.creditReferralOnFirstPublish(profileId);
+    } catch (err) {
+      console.error("[publishPortfolio] referral credit failed", err);
     }
 
     return result;

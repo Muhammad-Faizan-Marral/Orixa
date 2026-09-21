@@ -55,7 +55,6 @@ function applyPublicCacheHeaders(response: NextResponse) {
 export async function updateSession(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Auth code on wrong path → /auth/callback
   const code = request.nextUrl.searchParams.get("code");
   const tokenHash = request.nextUrl.searchParams.get("token_hash");
   if ((code || tokenHash) && !pathname.startsWith("/auth/callback")) {

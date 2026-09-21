@@ -1,58 +1,558 @@
-import { eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 
 import { db } from "@/db";
-import { profiles } from "@/db/schema";
+import {
+  portfolioData,
+  portfolioVersions,
+  portfolios,
+  profiles,
+} from "@/db/schema";
+import type {
+  CreatePortfolioInput,
+  UpdatePortfolioInput,
+} from "@/validations/portfolio.schema";
+import {
+  CertificateItem,
+  Education,
+  Experience,
+  Project,
+  Skill,
+} from "@/features/portfolio/components/portfolio-wizard/types";
 
-export class ProfileRepository {
-  async findByUserId(userId: string) {
-    const [profile] = await db
-      .select()
-      .from(profiles)
-      .where(eq(profiles.userId, userId));
 
-    return profile ?? null;
-  }
-
-  async findByUsername(username: string) {
-    const [profile] = await db
-      .select()
-      .from(profiles)
-      .where(eq(profiles.username, username));
-
-    return profile ?? null;
-  }
-
+export class PortfolioRepository {
   async findById(id: string) {
-    const [profile] = await db
+    const [portfolio] = await db
       .select()
-      .from(profiles)
-      .where(eq(profiles.id, id));
+      .from(portfolios)
+      .where(eq(portfolios.id, id))
+      .limit(1);
 
-    return profile ?? null;
+    return portfolio ?? null;
   }
 
-  async exists(userId: string) {
-    const profile = await this.findByUserId(userId);
-    return profile !== null;
+  async findByIdAndProfileId(id: string, profileId: string) {
+    const [portfolio] = await db
+      .select()
+      .from(portfolios)
+      .where(and(eq(portfolios.id, id), eq(portfolios.profileId, profileId)))
+      .limit(1);
+
+    return portfolio ?? null;
   }
 
-  async create(data: typeof profiles.$inferInsert) {
-    const [profile] = await db.insert(profiles).values(data).returning();
-    return profile;
+  async findByProfileId(profileId: string) {
+    return db
+      .select()
+      .from(portfolios)
+      .where(eq(portfolios.profileId, profileId))
+      .orderBy(desc(portfolios.updatedAt));
   }
 
-  async update(userId: string, data: Partial<typeof profiles.$inferInsert>) {
-    const [profile] = await db
-      .update(profiles)
+  async findByProfileAndSlug(profileId: string, slug: string) {
+    const [portfolio] = await db
+      .select()
+      .from(portfolios)
+      .where(
+        and(eq(portfolios.profileId, profileId), eq(portfolios.slug, slug)),
+      )
+      .limit(1);
+
+    return portfolio ?? null;
+  }
+
+  async findOwnerByPortfolioId(portfolioId: string) {
+    const [result] = await db
+      .select({
+        userId: profiles.userId,
+        username: profiles.username,
+      })
+      .from(portfolios)
+      .innerJoin(profiles, eq(portfolios.profileId, profiles.id))
+      .where(eq(portfolios.id, portfolioId))
+      .limit(1);
+
+    return result ?? null;
+  }
+
+  async create(profileId: string, data: CreatePortfolioInput) {
+    return db.transaction(async (tx) => {
+      const [portfolio] = await tx
+        .insert(portfolios)
+        .values({
+          profileId,
+          title: data.title,
+          slug: data.slug,
+          status: "draft",
+          currentVersion: 1,
+        })
+        .returning();
+
+      if (!portfolio) {
+        throw new Error("Unable to create portfolio.");
+      }
+
+      await tx.insert(portfolioData).values({
+        portfolioId: portfolio.id,
+        name: null,
+        prompt: null,
+        avatarUrl: null,
+        phone: null,
+        linkedinUrl: null,
+        githubUrl: null,
+        headline: data.headline || null,
+        about: data.about || null,
+        
+        animations: true,
+        projects: [],
+        experience: [],
+        skills: [],
+        education: [],
+        certificates: [],
+        componentSelection: {},
+        designPreferences: {},
+        seo: {},
+      });
+
+      return portfolio;
+    });
+  }
+
+  async update(
+    portfolioId: string,
+    profileId: string,
+    data: Omit<UpdatePortfolioInput, "portfolioId">,
+  ) {
+    const [portfolio] = await db
+      .update(portfolios)
       .set({
-        ...data,
+        title: data.title,
+        slug: data.slug,
         updatedAt: new Date().toISOString(),
       })
-      .where(eq(profiles.userId, userId))
+      .where(
+        and(
+          eq(portfolios.id, portfolioId),
+          eq(portfolios.profileId, profileId),
+        ),
+      )
       .returning();
 
-    return profile;
+    if (!portfolio) {
+      return null;
+    }
+
+    await db
+      .update(portfolioData)
+      .set({
+        headline: data.headline || null,
+        about: data.about || null,
+       
+        updatedAt: new Date().toISOString(),
+      })
+      .where(eq(portfolioData.portfolioId, portfolioId));
+
+    return portfolio;
+  }
+
+  async updateStatus(
+    portfolioId: string,
+    profileId: string,
+    status: "draft" | "published" | "archived",
+    publishedAt?: string | null,
+  ) {
+    const [portfolio] = await db
+      .update(portfolios)
+      .set({
+        status,
+        publishedAt: publishedAt !== undefined ? publishedAt : undefined,
+        updatedAt: new Date().toISOString(),
+      })
+      .where(
+        and(
+          eq(portfolios.id, portfolioId),
+          eq(portfolios.profileId, profileId),
+        ),
+      )
+      .returning();
+
+    return portfolio ?? null;
+  }
+
+  async findWithData(id: string, profileId: string) {
+    const portfolio = await this.findByIdAndProfileId(id, profileId);
+
+    if (!portfolio) {
+      return null;
+    }
+
+    const [data] = await db
+      .select()
+      .from(portfolioData)
+      .where(eq(portfolioData.portfolioId, portfolio.id))
+      .limit(1);
+
+    return {
+      portfolio,
+      data: data
+        ? {
+            name: data.name ?? null,
+          prompt: data.prompt ?? null,
+          avatarUrl: data.avatarUrl ?? null,
+          phone: data.phone ?? null,
+          linkedinUrl: data.linkedinUrl ?? null,
+          githubUrl: data.githubUrl ?? null,
+          headline: data.headline ?? null,
+          about: data.about ?? null,
+          projects: (data.projects as unknown as Project[]) ?? null,
+          experience: (data.experience as unknown as Experience[]) ?? null,
+          skills: (data.skills as unknown as Skill[]) ?? null,
+          education: (data.education as unknown as Education[]) ?? null,
+          certificates: (data.certificates as unknown as CertificateItem[]) ?? null,
+          resumeUrl: data.resumeUrl ?? null,
+          theme: data.theme ?? null,
+          animations: data.animations ?? null,
+          componentSelection: (data.componentSelection as Record<string, unknown>) ?? null,
+          designPreferences: (data.designPreferences as Record<string, unknown>) ?? null,
+          seo: (data.seo as Record<string, unknown>) ?? null,
+          }
+        : null,
+    };
+  }
+
+  async updateData(
+    portfolioId: string,
+    profileId: string,
+    data: {
+      name?: string | null;
+      prompt?: string | null;
+      avatarUrl?: string | null;
+      phone?: string | null;
+      linkedinUrl?: string | null;
+      githubUrl?: string | null;
+      headline?: string | null;
+      about?: string | null;
+      projects?: unknown[];
+      experience?: unknown[];
+      skills?: unknown[];
+      education?: unknown[];
+      certificates?: unknown[];
+      resumeUrl?: string | null;
+      theme?: string | null;
+      animations?: boolean;
+      componentSelection?: Record<string, unknown>;
+      designPreferences?: Record<string, unknown>;
+      seo?: Record<string, unknown>;
+    },
+  ) {
+    const portfolio = await this.findByIdAndProfileId(portfolioId, profileId);
+
+    if (!portfolio) {
+      return null;
+    }
+
+    const [updatedData] = await db
+      .update(portfolioData)
+      .set({
+        name: data.name ?? null,
+        prompt: data.prompt ?? null,
+        avatarUrl: data.avatarUrl ?? null,
+        phone: data.phone ?? null,
+        linkedinUrl: data.linkedinUrl ?? null,
+        githubUrl: data.githubUrl ?? null,
+        headline: data.headline ?? null,
+        about: data.about ?? null,
+        projects: data.projects ?? [],
+        experience: data.experience ?? [],
+        skills: data.skills ?? [],
+        education: data.education ?? [],
+        certificates: data.certificates ?? [],
+        resumeUrl: data.resumeUrl ?? null,
+        theme: data.theme ?? "minimal",
+        animations: data.animations ?? true,
+        componentSelection: data.componentSelection ?? {},
+        designPreferences: data.designPreferences ?? {},
+        seo: data.seo ?? {},
+        updatedAt: new Date().toISOString(),
+      })
+      .where(and(eq(portfolioData.portfolioId, portfolioId)))
+      .returning();
+
+    return updatedData ?? null;
+  }
+
+  async unpublish(portfolioId: string, profileId: string) {
+    const [portfolio] = await db
+      .update(portfolios)
+      .set({
+        status: "draft",
+        publishedAt: null,
+        updatedAt: new Date().toISOString(),
+      })
+      .where(
+        and(
+          eq(portfolios.id, portfolioId),
+          eq(portfolios.profileId, profileId),
+        ),
+      )
+      .returning();
+
+    return portfolio ?? null;
+  }
+
+  async archive(portfolioId: string, profileId: string) {
+    const [portfolio] = await db
+      .update(portfolios)
+      .set({
+        status: "archived",
+        publishedAt: null,
+        updatedAt: new Date().toISOString(),
+      })
+      .where(
+        and(
+          eq(portfolios.id, portfolioId),
+          eq(portfolios.profileId, profileId),
+        ),
+      )
+      .returning();
+
+    return portfolio ?? null;
+  }
+
+  async restore(portfolioId: string, profileId: string) {
+    const [portfolio] = await db
+      .update(portfolios)
+      .set({
+        status: "draft",
+        publishedAt: null,
+        updatedAt: new Date().toISOString(),
+      })
+      .where(
+        and(
+          eq(portfolios.id, portfolioId),
+          eq(portfolios.profileId, profileId),
+        ),
+      )
+      .returning();
+
+    return portfolio ?? null;
+  }
+
+  async publishWithVersion(portfolioId: string, profileId: string) {
+    return db.transaction(async (tx) => {
+      const [portfolio] = await tx
+        .select()
+        .from(portfolios)
+        .where(
+          and(
+            eq(portfolios.id, portfolioId),
+            eq(portfolios.profileId, profileId),
+          ),
+        )
+        .limit(1);
+
+      if (!portfolio) {
+        return null;
+      }
+
+      const [data] = await tx
+        .select()
+        .from(portfolioData)
+        .where(eq(portfolioData.portfolioId, portfolioId))
+        .limit(1);
+
+      if (!data) {
+        throw new Error("Portfolio data not found.");
+      }
+
+      const [latestVersion] = await tx
+        .select({
+          version: portfolioVersions.version,
+        })
+        .from(portfolioVersions)
+        .where(eq(portfolioVersions.portfolioId, portfolioId))
+        .orderBy(desc(portfolioVersions.version))
+        .limit(1);
+
+      const nextVersion = (latestVersion?.version ?? 0) + 1;
+
+      await tx
+        .update(portfolioVersions)
+        .set({
+          published: false,
+        })
+        .where(eq(portfolioVersions.portfolioId, portfolioId));
+
+      const configJson = {
+        name: data.name,
+        prompt: data.prompt,
+        avatarUrl: data.avatarUrl,
+        phone: data.phone,
+        linkedinUrl: data.linkedinUrl,
+        githubUrl: data.githubUrl,
+        headline: data.headline,
+        about: data.about,
+        projects: data.projects,
+        experience: data.experience,
+        skills: data.skills,
+        education: data.education,
+        certificates: data.certificates,
+        resumeUrl: data.resumeUrl,
+        theme: data.theme,
+        animations: data.animations,
+        componentSelection: data.componentSelection,
+        designPreferences: data.designPreferences,
+        seo: data.seo,
+      };
+
+      const [version] = await tx
+        .insert(portfolioVersions)
+        .values({
+          portfolioId,
+          version: nextVersion,
+          configJson,
+          published: true,
+        })
+        .returning();
+
+      if (!version) {
+        throw new Error("Unable to create portfolio version.");
+      }
+
+      const now = new Date().toISOString();
+
+      const [updatedPortfolio] = await tx
+        .update(portfolios)
+        .set({
+          status: "published",
+          currentVersion: nextVersion,
+          publishedAt: now,
+          updatedAt: now,
+        })
+        .where(
+          and(
+            eq(portfolios.id, portfolioId),
+            eq(portfolios.profileId, profileId),
+          ),
+        )
+        .returning();
+
+      if (!updatedPortfolio) {
+        throw new Error("Unable to publish portfolio.");
+      }
+
+      return {
+        portfolio: updatedPortfolio,
+        version,
+      };
+    });
+  }
+
+  async findPublishedByProfileAndSlug(profileId: string, slug: string) {
+    const [portfolio] = await db
+      .select()
+      .from(portfolios)
+      .where(
+        and(
+          eq(portfolios.profileId, profileId),
+          eq(portfolios.slug, slug),
+          eq(portfolios.status, "published"),
+        ),
+      )
+      .limit(1);
+
+    return portfolio ?? null;
+  }
+
+  async findPublishedByUsernameAndSlug(username: string, slug: string) {
+    const [row] = await db
+      .select({
+        portfolio: portfolios,
+        profile: {
+          id: profiles.id,
+          username: profiles.username,
+          fullName: profiles.fullName,
+          avatarUrl: profiles.avatarUrl,
+        },
+      })
+      .from(portfolios)
+      .innerJoin(profiles, eq(portfolios.profileId, profiles.id))
+      .where(
+        and(
+          eq(profiles.username, username),
+          eq(portfolios.slug, slug),
+          eq(portfolios.status, "published"),
+        ),
+      )
+      .limit(1);
+
+    return row ?? null;
+  }
+
+  /** Published snapshot (version config) for public renderer */
+  async findPublishedConfig(username: string, slug: string) {
+    const found = await this.findPublishedByUsernameAndSlug(username, slug);
+    if (!found) return null;
+
+    const { portfolio, profile } = found;
+
+    // Prefer explicit published version row
+    const [publishedVersion] = await db
+      .select()
+      .from(portfolioVersions)
+      .where(
+        and(
+          eq(portfolioVersions.portfolioId, portfolio.id),
+          eq(portfolioVersions.published, true),
+        ),
+      )
+      .orderBy(desc(portfolioVersions.version))
+      .limit(1);
+
+    if (publishedVersion?.configJson) {
+      return {
+        portfolio,
+        profile,
+        version: publishedVersion.version,
+        config: publishedVersion.configJson as Record<string, unknown>,
+      };
+    }
+
+    // Fallback: current f (edge case)
+    const [data] = await db
+      .select()
+      .from(portfolioData)
+      .where(eq(portfolioData.portfolioId, portfolio.id))
+      .limit(1);
+
+    if (!data) return null;
+
+    return {
+      portfolio,
+      profile,
+      version: portfolio.currentVersion,
+      config: {
+        name: data.name,
+        avatarUrl: data.avatarUrl,
+        phone: data.phone,
+        linkedinUrl: data.linkedinUrl,
+        githubUrl: data.githubUrl,
+        headline: data.headline,
+        about: data.about,
+        projects: data.projects,
+        experience: data.experience,
+        skills: data.skills,
+        education: data.education,
+        certificates: data.certificates,
+        resumeUrl: data.resumeUrl,
+        theme: data.theme,
+        animations: data.animations,
+        componentSelection: data.componentSelection,
+        designPreferences: data.designPreferences,
+        seo: data.seo,
+      },
+    };
   }
 }
 
-export const profileRepository = new ProfileRepository();
+export const portfolioRepository = new PortfolioRepository();

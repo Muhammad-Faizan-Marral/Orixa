@@ -48,6 +48,7 @@ type Props = {
   portfolioTitle: string;
   profile: PublicProfileMeta;
   initialConfig: PortfolioRenderConfig;
+  isPremium: boolean;
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -87,6 +88,7 @@ export function PortfolioDesignLabClient({
   portfolioTitle,
   profile,
   initialConfig,
+  isPremium,
 }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();

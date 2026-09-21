@@ -114,4 +114,5 @@ export type PublicProfileMeta = {
   username: string;
   fullName?: string | null;
   avatarUrl?: string | null;
+  isPremium?: boolean;
 };

@@ -22,15 +22,45 @@ export class ProfileRepository {
     return profile ?? null;
   }
 
+  async findById(id: string) {
+    const [profile] = await db
+      .select()
+      .from(profiles)
+      .where(eq(profiles.id, id));
+
+    return profile ?? null;
+  }
+
+  async findByReferralCode(code: string) {
+    const normalized = code.toLowerCase().trim();
+    const [profile] = await db
+      .select()
+      .from(profiles)
+      .where(eq(profiles.referralCode, normalized));
+
+    return profile ?? null;
+  }
+
+  async updateById(id: string, data: Partial<typeof profiles.$inferInsert>) {
+    const [profile] = await db
+      .update(profiles)
+      .set({
+        ...data,
+        updatedAt: new Date().toISOString(),
+      })
+      .where(eq(profiles.id, id))
+      .returning();
+
+    return profile;
+  }
+
   async exists(userId: string) {
     const profile = await this.findByUserId(userId);
-
     return profile !== null;
   }
 
   async create(data: typeof profiles.$inferInsert) {
     const [profile] = await db.insert(profiles).values(data).returning();
-
     return profile;
   }
 
