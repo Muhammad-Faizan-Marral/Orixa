@@ -7,6 +7,8 @@ import {
   uuid,
   text,
   timestamp,
+  boolean,
+  integer,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
@@ -30,6 +32,18 @@ export const profiles = pgTable(
     location: text("location"),
 
     avatarUrl: text("avatar_url"),
+
+    // Premium / Billing
+    isPremium: boolean("is_premium").default(false).notNull(),
+    premiumUntil: timestamp("premium_until", {
+      withTimezone: true,
+      mode: "string",
+    }),
+    polarCustomerId: text("polar_customer_id"),
+    polarSubscriptionId: text("polar_subscription_id"),
+    referralCode: text("referral_code"),
+    referredBy: uuid("referred_by"),
+    successfulReferrals: integer("successful_referrals").default(0).notNull(),
 
     createdAt: timestamp("created_at", {
       withTimezone: true,
@@ -57,6 +71,8 @@ export const profiles = pgTable(
 
     unique("profiles_username_key").on(table.username),
 
+    unique("profiles_referral_code_key").on(table.referralCode),
+
     pgPolicy("Users can view own profile", {
       as: "permissive",
       for: "select",
@@ -76,10 +92,7 @@ export const profiles = pgTable(
       to: ["public"],
     }),
 
-    check(
-      "username_format",
-      sql`username ~ '^[a-z0-9_]+$'::text`,
-    ),
+    check("username_format", sql`username ~ '^[a-z0-9_]+$'::text`),
 
     check(
       "username_length",

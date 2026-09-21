@@ -53,26 +53,47 @@ export class PortfolioService {
     return false;
   }
 
-  async createPortfolio(profileId: string, input: CreatePortfolioInput) {
-    const data = createPortfolioSchema.parse(input);
+ async createPortfolio(profileId: string, input: CreatePortfolioInput) {
+  const data = createPortfolioSchema.parse(input);
 
-    const existing = await portfolioRepository.findByProfileAndSlug(
-      profileId,
-      data.slug,
-    );
+  // Premium limit check
+  const { isPremiumActive, getPortfolioLimit } = await import(
+    "@/constants/billing"
+  );
 
-    if (existing) {
-      throw new Error("This portfolio slug is already in use.");
+  const ownerProfile = await profileRepository.findByUserId(profileId);
+
+  if (ownerProfile) {
+    const active = isPremiumActive(ownerProfile);
+    const limit = getPortfolioLimit(active);
+    const currentPortfolios =
+      await portfolioRepository.findByProfileId(profileId);
+
+    if (currentPortfolios.length >= limit) {
+      throw new Error(
+        active
+          ? `You have reached the premium limit of ${limit} portfolios.`
+          : `Free plan allows only ${limit} portfolio. Upgrade to Premium to create more.`,
+      );
     }
-
-    return portfolioRepository.create(profileId, {
-      title: data.title,
-      slug: data.slug,
-      headline: data.headline,
-      about: data.about,
-      // theme: "minimal",
-    });
   }
+
+  const existing = await portfolioRepository.findByProfileAndSlug(
+    profileId,
+    data.slug,
+  );
+
+  if (existing) {
+    throw new Error("This portfolio slug is already in use.");
+  }
+
+  return portfolioRepository.create(profileId, {
+    title: data.title,
+    slug: data.slug,
+    headline: data.headline,
+    about: data.about,
+  });
+}
 
   async updatePortfolio(
     id: string,
