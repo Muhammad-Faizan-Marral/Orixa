@@ -69,7 +69,25 @@ export function OnboardingForm() {
     setStep((s) => Math.max(s - 1, 0));
   }
 
-const onSubmit = async (data: OnboardingFormValues) => {
+  function getClientReferralCode(): string | null {
+    try {
+      if (typeof window !== "undefined") {
+        const fromUrl = new URLSearchParams(window.location.search).get("ref");
+        if (fromUrl && fromUrl.trim().length >= 3) {
+          return fromUrl.toLowerCase().trim();
+        }
+        const fromLs = window.localStorage.getItem("orixa_ref");
+        if (fromLs && fromLs.trim().length >= 3) {
+          return fromLs.toLowerCase().trim();
+        }
+      }
+    } catch {
+      // ignore
+    }
+    return null;
+  }
+
+  const onSubmit = async (data: OnboardingFormValues) => {
     setServerError(null);
 
     if (!usernameCheck.isAvailable) {
@@ -82,11 +100,24 @@ const onSubmit = async (data: OnboardingFormValues) => {
     }
 
     try {
-      const result = await createProfile(data);
+      const clientRef = getClientReferralCode();
+      console.log("[onboarding] client referral code", clientRef);
+
+      const result = await createProfile(data, clientRef);
 
       if (!result?.success) {
         setServerError(result?.message || "Unable to create your profile.");
         return;
+      }
+
+      try {
+        window.localStorage.removeItem("orixa_ref");
+      } catch {
+        // ignore
+      }
+
+      if (result.debug) {
+        console.log("[onboarding] referral debug", result.debug);
       }
 
       router.replace("/dashboard");
@@ -95,7 +126,7 @@ const onSubmit = async (data: OnboardingFormValues) => {
       console.error("[onboarding] createProfile", err);
       setServerError("Unable to create your profile. Please try again.");
     }
-  }
+  };
 
   const values = form.getValues();
   const isSubmitting = form.formState.isSubmitting || isPending;

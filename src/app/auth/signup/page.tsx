@@ -10,12 +10,22 @@ import { Input } from "@/components/UI/Input";
 import { Button } from "@/components/UI/Button";
 import { Separator } from "@/components/UI/Separator";
 import { signup, type SignupState } from "@/actions/auth/signup";
-
+import {  useEffect } from "react";
 const initialState: SignupState = {};
 
 export default function SignupPage() {
+  
   const [state, formAction, pending] = useActionState(signup, initialState);
-
+  useEffect(() => {
+    try {
+      const ref = new URLSearchParams(window.location.search).get("ref");
+      if (ref && ref.trim().length >= 3) {
+        window.localStorage.setItem("orixa_ref", ref.toLowerCase().trim());
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
    if (state.success) {
     return (
       <AuthLayout

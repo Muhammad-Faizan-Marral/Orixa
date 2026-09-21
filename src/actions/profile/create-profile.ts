@@ -11,33 +11,59 @@ import type { CreateProfileInput } from "@/validations/profile.schema";
 export type CreateProfileResult = {
   success: boolean;
   message?: string;
+  debug?: {
+    cookieRef: string | null;
+    clientRef: string | null;
+    usedRef: string | null;
+    referredBySet: boolean;
+  };
 };
 
-/**
- * Do NOT call redirect() here.
- * Client components that await this action will treat NEXT_REDIRECT as an error.
- */
 export async function createProfile(
   data: CreateProfileInput,
+  clientReferralCode?: string | null,
 ): Promise<CreateProfileResult> {
   try {
     const user = await requireUser();
-    const referralCode = await getReferralCodeFromCookie();
+    const cookieRef = await getReferralCodeFromCookie();
+    const clientRef =
+      typeof clientReferralCode === "string" &&
+      clientReferralCode.trim().length >= 3
+        ? clientReferralCode.toLowerCase().trim()
+        : null;
 
-    await profileService.createProfile(user.id, data, {
+    const referralCode = clientRef || cookieRef;
+
+    console.log("[createProfile] referral sources", {
+      cookieRef,
+      clientRef,
+      used: referralCode,
+    });
+
+    const profile = await profileService.createProfile(user.id, data, {
       referralCode,
     });
 
     revalidatePath("/dashboard");
     revalidatePath("/onboarding");
 
-    return { success: true };
+    return {
+      success: true,
+      debug: {
+        cookieRef,
+        clientRef,
+        usedRef: referralCode,
+        referredBySet: Boolean(profile?.referredBy),
+      },
+    };
   } catch (error) {
     console.error("[createProfile]", error);
     return {
       success: false,
       message:
-        error instanceof Error ? error.message : "Unable to create profile.",
+        error instanceof Error
+          ? error.message
+          : "Unable to create profile.",
     };
   }
 }

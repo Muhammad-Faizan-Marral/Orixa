@@ -51,9 +51,16 @@ export class ProfileService {
       const referrer = await profileRepository.findByReferralCode(
         options.referralCode,
       );
+      console.log("[createProfile] referrer lookup", {
+        code: options.referralCode,
+        found: Boolean(referrer),
+        referrerId: referrer?.id ?? null,
+      });
       if (referrer && referrer.userId !== userId) {
         referredBy = referrer.id;
       }
+    } else {
+      console.log("[createProfile] no referral code provided");
     }
 
     const ownCode =

@@ -123,18 +123,32 @@ export class BillingService {
    * Called when a user publishes their first portfolio.
    * Credits the referrer once (idempotent via referralCreditedAt).
    */
-  async creditReferralOnFirstPublish(profileId: string) {
+   async creditReferralOnFirstPublish(profileId: string) {
     const profile = await profileRepository.findById(profileId);
+    console.log("[referral] creditReferralOnFirstPublish", {
+      profileId,
+      referredBy: profile?.referredBy ?? null,
+      referralCreditedAt: profile?.referralCreditedAt ?? null,
+    });
+
     if (!profile) return;
-    if (!profile.referredBy) return;
-    if (profile.referralCreditedAt) return; // already credited
+    if (!profile.referredBy) {
+      console.log("[referral] skip — no referredBy on profile");
+      return;
+    }
+    if (profile.referralCreditedAt) {
+      console.log("[referral] skip — already credited");
+      return;
+    }
 
     await profileRepository.updateById(profileId, {
       referralCreditedAt: new Date().toISOString(),
     });
 
     await this.recordSuccessfulReferral(profile.referredBy);
+    console.log("[referral] credited referrer", profile.referredBy);
   }
+  
 }
 
 export const billingService = new BillingService();

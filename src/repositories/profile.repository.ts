@@ -33,10 +33,11 @@ export class ProfileRepository {
 
   async findByReferralCode(code: string) {
     const normalized = code.toLowerCase().trim();
+    const { sql } = await import("drizzle-orm");
     const [profile] = await db
       .select()
       .from(profiles)
-      .where(eq(profiles.referralCode, normalized));
+      .where(sql`lower(${profiles.referralCode}) = ${normalized}`);
 
     return profile ?? null;
   }
@@ -53,6 +54,8 @@ export class ProfileRepository {
 
     return profile;
   }
+
+
 
   async exists(userId: string) {
     const profile = await this.findByUserId(userId);

@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { ReferralCapture } from "@/components/referral-capture";
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Inter, Bricolage_Grotesque, JetBrains_Mono } from "next/font/google";
 
@@ -81,6 +82,7 @@ export default function RootLayout({
         <ThemeProvider>
           <LocaleProvider>
             <TimezoneProvider>
+              <ReferralCapture />
                 {children}
             </TimezoneProvider>
           </LocaleProvider>

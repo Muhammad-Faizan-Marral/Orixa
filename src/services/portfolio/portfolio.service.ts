@@ -153,6 +153,7 @@ export class PortfolioService {
     }
 
     // Credit referrer on first publish only
+       // Credit referrer on first publish only
     try {
       const { billingService } = await import(
         "@/services/billing/billing.service"
@@ -161,7 +162,6 @@ export class PortfolioService {
     } catch (err) {
       console.error("[publishPortfolio] referral credit failed", err);
     }
-
     return result;
   }
 
