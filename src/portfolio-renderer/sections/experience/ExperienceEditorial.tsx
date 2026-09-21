@@ -1,8 +1,8 @@
-// src/portfolio-renderer/sections/experience/ExperienceEditorial.tsx
 "use client";
 
-import React from "react";
-import { motion,Variants } from "framer-motion";
+import React, { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+
 import type { RendererExperience } from "../../types";
 
 export type ExperienceEditorialProps = {
@@ -15,135 +15,323 @@ function formatDateRange(
   current?: boolean
 ): string | null {
   const end = current ? "Present" : endDate;
+
   if (startDate && end) return `${startDate} – ${end}`;
   if (startDate) return startDate;
   if (end) return end;
+
   return null;
 }
 
-const container = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: { staggerChildren: 0.14, delayChildren: 0.1 },
-  },
-};
+const ease = [0.22, 1, 0.36, 1] as const;
 
-const item:Variants = {
-  hidden: { opacity: 0, y: 24 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] },
-  },
-};
+export const ExperienceEditorial: React.FC<
+  ExperienceEditorialProps
+> = ({ experience }) => {
+  const valid = experience.filter(
+    (job) => job.role?.trim() || job.company?.trim()
+  );
 
-export const ExperienceEditorial: React.FC<ExperienceEditorialProps> = ({
-  experience,
-}) => {
-  if (!experience || experience.length === 0) return null;
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  if (!valid.length) return null;
+
+  const safeIndex = Math.min(activeIndex, valid.length - 1);
 
   return (
     <section
       aria-label="Experience"
-      className="w-full py-20 sm:py-24 lg:py-32"
+      className="w-full"
+      style={{ fontFamily: "var(--pr-font)" }}
     >
-      <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
-        <motion.header
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-16 grid gap-6 border-b border-border pb-10 sm:mb-20 sm:grid-cols-[1fr_auto] sm:items-end sm:pb-12"
-        >
-          <div>
-            <p
-              className="mb-2 text-xs font-medium uppercase tracking-[0.25em]"
-              style={{ color: "var(--pr-accent)" }}
-            >
-              Path
-            </p>
-            <h2
-              className="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl"
-              style={{ letterSpacing: "var(--pr-heading-tracking)" }}
-            >
-              Experience
-            </h2>
-          </div>
-          <p className="max-w-xs text-sm text-muted-foreground sm:text-right">
-            Selected roles and the work that shaped them.
-          </p>
-        </motion.header>
+      {/* Header */}
 
-        <motion.div
-          variants={container}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, margin: "-40px" }}
-          className="flex flex-col"
-        >
-          {experience.map((job, index) => {
-            const dateRange = formatDateRange(
-              job.startDate,
-              job.endDate,
-              job.current
-            );
-            const key = job.id ?? `${job.company}-${job.role}-${index}`;
-            const isLast = index === experience.length - 1;
+      <motion.header
+        initial={{ opacity: 0, y: 18 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-80px" }}
+        transition={{ duration: 0.6, ease }}
+        className="mb-14 sm:mb-20"
+      >
+        <div className="mb-6 flex items-center gap-3">
+          <span
+            className="h-1.5 w-1.5 rounded-full"
+            style={{ backgroundColor: "var(--pr-accent)" }}
+          />
 
-            return (
-              <motion.article
-                key={key}
-                variants={item}
-                className={`group grid gap-6 py-10 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] sm:gap-12 sm:py-14 ${
-                  !isLast ? "border-b border-border" : ""
-                }`}
+          <span
+            className="text-[10px] font-semibold uppercase tracking-[0.28em]"
+            style={{
+              color: "var(--pr-muted, var(--muted-foreground))",
+            }}
+          >
+            Experience
+          </span>
+        </div>
+
+        <div className="flex flex-col gap-7 sm:flex-row sm:items-end sm:justify-between">
+          <h2
+            className="text-[clamp(3rem,7vw,7rem)] font-semibold leading-[0.86] tracking-[-0.075em]"
+            style={{
+              letterSpacing: "var(--pr-heading-tracking)",
+            }}
+          >
+            Work
+            <span style={{ color: "var(--pr-accent)" }}>.</span>
+          </h2>
+
+          <span
+            className="text-xs"
+            style={{
+              color: "var(--pr-muted, var(--muted-foreground))",
+            }}
+          >
+            {String(valid.length).padStart(2, "0")}{" "}
+            {valid.length === 1 ? "role" : "roles"}
+          </span>
+        </div>
+      </motion.header>
+
+      {/* Experience Archive */}
+
+      <div
+        className="border-t"
+        style={{ borderColor: "var(--pr-border)" }}
+      >
+        {valid.map((job, index) => {
+          const dateRange = formatDateRange(
+            job.startDate,
+            job.endDate,
+            job.current
+          );
+
+          const isActive = index === safeIndex;
+
+          return (
+            <motion.article
+              key={job.id ?? `${job.company}-${job.role}-${index}`}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-60px" }}
+              transition={{
+                duration: 0.55,
+                delay: Math.min(index * 0.06, 0.3),
+                ease,
+              }}
+              onMouseEnter={() => setActiveIndex(index)}
+              onFocus={() => setActiveIndex(index)}
+              className="group relative border-b"
+              style={{ borderColor: "var(--pr-border)" }}
+            >
+              <button
+                type="button"
+                onClick={() => setActiveIndex(index)}
+                className="block w-full text-left"
+                aria-expanded={isActive}
               >
-                {/* Meta column */}
-                <div className="flex flex-col gap-3 sm:sticky sm:top-24 sm:self-start">
-                  {dateRange ? (
-                    <time
-                      className="text-xs font-medium uppercase tracking-[0.18em]"
-                      style={{ color: "var(--pr-accent)" }}
-                    >
-                      {dateRange}
-                    </time>
-                  ) : null}
-                  <h3 className="text-xl font-semibold text-foreground sm:text-2xl">
-                    {job.role}
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    {job.company}
-                    {job.location ? (
-                      <span className="block text-muted-foreground/70 sm:inline sm:before:content-['·_']">
-                        {job.location}
-                      </span>
-                    ) : null}
-                  </p>
-                </div>
+                {/* Main row */}
 
-                {/* Description column */}
-                <div className="min-w-0">
-                  {job.description ? (
-                    <motion.p
-                      whileHover={{ x: 4 }}
-                      transition={{ duration: 0.3 }}
-                      className="text-base text-muted-foreground/95 sm:text-lg"
-                      style={{ lineHeight: "var(--pr-body-leading)" }}
+                <div className="relative grid gap-5 py-8 sm:grid-cols-[90px_minmax(0,1fr)_auto] sm:items-baseline sm:gap-8 sm:py-10 lg:grid-cols-[120px_minmax(0,1fr)_180px] lg:gap-12">
+                  {/* Index */}
+
+                  <span
+                    className="hidden text-[10px] font-medium tabular-nums sm:block"
+                    style={{
+                      color: isActive
+                        ? "var(--pr-accent)"
+                        : "var(--pr-muted, var(--muted-foreground))",
+                    }}
+                  >
+                    / {String(index + 1).padStart(2, "0")}
+                  </span>
+
+                  {/* Role / Company */}
+
+                  <div className="min-w-0">
+                    <div className="flex items-start gap-4">
+                      <span
+                        className="mt-3 h-1.5 w-1.5 shrink-0 rounded-full transition-transform duration-500 sm:hidden"
+                        style={{
+                          backgroundColor: isActive
+                            ? "var(--pr-accent)"
+                            : "var(--pr-border)",
+                          transform: isActive
+                            ? "scale(1)"
+                            : "scale(0.7)",
+                        }}
+                      />
+
+                      <div className="min-w-0">
+                        <h3
+                          className="text-[clamp(1.55rem,3.2vw,3.2rem)] font-medium leading-[0.95] tracking-[-0.055em] transition-transform duration-500"
+                          style={{
+                            transform: isActive
+                              ? "translateX(6px)"
+                              : "translateX(0)",
+                          }}
+                        >
+                          {job.role || job.company}
+                        </h3>
+
+                        {job.role && job.company ? (
+                          <p
+                            className="mt-3 text-sm font-medium transition-colors duration-300"
+                            style={{
+                              color: isActive
+                                ? "var(--pr-accent)"
+                                : "var(--pr-muted, var(--muted-foreground))",
+                            }}
+                          >
+                            {job.company}
+                            {job.location ? (
+                              <>
+                                <span
+                                  className="mx-2"
+                                  style={{
+                                    color: "var(--pr-border)",
+                                  }}
+                                >
+                                  /
+                                </span>
+                                {job.location}
+                              </>
+                            ) : null}
+                          </p>
+                        ) : null}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Date */}
+
+                  <div className="flex items-center justify-between gap-5 sm:block sm:text-right">
+                    {dateRange ? (
+                      <time
+                        className="text-[10px] font-medium uppercase tracking-[0.16em]"
+                        style={{
+                          color:
+                            "var(--pr-muted, var(--muted-foreground))",
+                        }}
+                      >
+                        {dateRange}
+                      </time>
+                    ) : null}
+
+                    <span
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-full border transition-all duration-500 sm:ml-auto sm:mt-4"
+                      style={{
+                        borderColor: isActive
+                          ? "var(--pr-accent)"
+                          : "var(--pr-border)",
+                        color: isActive
+                          ? "var(--pr-accent)"
+                          : "var(--pr-muted, var(--muted-foreground))",
+                        transform: isActive
+                          ? "rotate(-45deg)"
+                          : "rotate(0deg)",
+                      }}
+                      aria-hidden="true"
                     >
-                      {job.description}
-                    </motion.p>
-                  ) : (
-                    <p className="text-sm italic text-muted-foreground/60">
-                      No description provided.
-                    </p>
-                  )}
+                      <svg
+                        viewBox="0 0 20 20"
+                        fill="none"
+                        className="h-3.5 w-3.5"
+                      >
+                        <path
+                          d="M5 15L15 5M7 5H15V13"
+                          stroke="currentColor"
+                          strokeWidth="1.4"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </span>
+                  </div>
                 </div>
-              </motion.article>
-            );
-          })}
-        </motion.div>
+              </button>
+
+              {/* Description Reveal */}
+
+              <AnimatePresence initial={false}>
+                {isActive && job.description ? (
+                  <motion.div
+                    initial={{
+                      height: 0,
+                      opacity: 0,
+                    }}
+                    animate={{
+                      height: "auto",
+                      opacity: 1,
+                    }}
+                    exit={{
+                      height: 0,
+                      opacity: 0,
+                    }}
+                    transition={{
+                      height: {
+                        duration: 0.45,
+                        ease,
+                      },
+                      opacity: {
+                        duration: 0.25,
+                      },
+                    }}
+                    className="overflow-hidden"
+                  >
+                    <div className="grid pb-9 sm:grid-cols-[90px_minmax(0,1fr)_180px] sm:gap-8 lg:grid-cols-[120px_minmax(0,1fr)_180px] lg:gap-12">
+                      <div />
+
+                      <motion.p
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{
+                          duration: 0.4,
+                          delay: 0.08,
+                          ease,
+                        }}
+                        className="max-w-2xl text-sm leading-7 sm:text-base"
+                        style={{
+                          color:
+                            "var(--pr-muted, var(--muted-foreground))",
+                          lineHeight: "var(--pr-body-leading)",
+                        }}
+                      >
+                        {job.description}
+                      </motion.p>
+
+                      <div className="hidden lg:block" />
+                    </div>
+                  </motion.div>
+                ) : null}
+              </AnimatePresence>
+            </motion.article>
+          );
+        })}
       </div>
+
+      {/* Footer accent */}
+
+      <motion.div
+        initial={{
+          scaleX: 0,
+          transformOrigin: "left",
+        }}
+        whileInView={{
+          scaleX: 1,
+        }}
+        viewport={{ once: true }}
+        transition={{
+          duration: 0.9,
+          delay: 0.15,
+          ease,
+        }}
+        className="mt-10 h-px w-full"
+        style={{
+          background:
+            "linear-gradient(to right, var(--pr-accent), var(--pr-border), transparent)",
+        }}
+      />
     </section>
   );
 };
+

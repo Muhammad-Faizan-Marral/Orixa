@@ -1,3 +1,4 @@
+// src/portfolio-renderer/sections/footer/index.tsx
 "use client";
 
 import { FooterDetailed } from "./FooterDetailed";
@@ -16,7 +17,6 @@ export function FooterSection({
   phone,
   resumeUrl,
   portfolioId,
-  isPremium = false,
 }: {
   variant?: string;
   name?: string | null;
@@ -28,7 +28,6 @@ export function FooterSection({
   phone?: string | null;
   resumeUrl?: string | null;
   portfolioId?: string;
-  isPremium?: boolean;
 }) {
   switch (variant) {
     case "detailed":
@@ -38,7 +37,6 @@ export function FooterSection({
           username={username}
           githubUrl={githubUrl}
           linkedinUrl={linkedinUrl}
-          isPremium={isPremium}
         />
       );
 
@@ -52,7 +50,7 @@ export function FooterSection({
           linkedinUrl={linkedinUrl}
           phone={phone}
           portfolioId={portfolioId}
-          isPremium={isPremium}
+
         />
       );
 
@@ -68,19 +66,12 @@ export function FooterSection({
           phone={phone}
           resumeUrl={resumeUrl}
           portfolioId={portfolioId}
-          isPremium={isPremium}
         />
       );
 
     case "minimal":
     default:
-      return (
-        <FooterMinimal
-          name={name ?? undefined}
-          username={username}
-          isPremium={isPremium}
-        />
-      );
+      return <FooterMinimal name={name ?? undefined} username={username} />;
   }
 }
 

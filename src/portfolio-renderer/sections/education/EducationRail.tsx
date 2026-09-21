@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { motion,Variants } from "framer-motion";
+import { motion } from "framer-motion";
 
 export type EducationRailProps = {
   education: Array<{
@@ -17,33 +17,33 @@ export type EducationRailProps = {
 
 function getYear(dateStr?: string): string {
   if (!dateStr) return "";
-  // Accept "2019", "2019-06", "Jun 2019", "2019–2021" etc — extract first 4-digit year
+
   const match = dateStr.match(/\d{4}/);
+
   return match ? match[0] : dateStr;
 }
 
-function formatDegreeField(degree?: string, field?: string): string | null {
+function formatDegreeField(
+  degree?: string,
+  field?: string
+): string | null {
   if (degree && field) return `${degree}, ${field}`;
   if (degree) return degree;
   if (field) return field;
+
   return null;
 }
 
-const itemVariants:Variants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.5,
-      ease: [0.22, 1, 0.36, 1],
-      delay: i * 0.1,
-    },
-  }),
-};
+const ease = [0.22, 1, 0.36, 1] as const;
 
-export const EducationRail: React.FC<EducationRailProps> = ({ education }) => {
-  if (!education || education.length === 0) return null;
+export const EducationRail: React.FC<EducationRailProps> = ({
+  education,
+}) => {
+  const valid = education.filter(
+    (item) => item.institution?.trim() || item.degree?.trim()
+  );
+
+  if (!valid.length) return null;
 
   return (
     <section
@@ -51,199 +51,269 @@ export const EducationRail: React.FC<EducationRailProps> = ({ education }) => {
       className="w-full"
       style={{ fontFamily: "var(--pr-font)" }}
     >
-      {/* Section heading */}
-      <motion.div
-        className="mb-10"
-        initial={{ opacity: 0, y: 12 }}
+      {/* ───────────────── Header ───────────────── */}
+
+      <motion.header
+        initial={{ opacity: 0, y: 18 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-60px" }}
-        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        viewport={{ once: true, margin: "-80px" }}
+        transition={{ duration: 0.6, ease }}
+        className="mb-14 sm:mb-20"
       >
-        <h2
-          className="text-foreground font-semibold"
-          style={{
-            fontSize: "clamp(1.25rem, 2.5vw, 1.75rem)",
-            letterSpacing: "var(--pr-heading-tracking, -0.025em)",
-          }}
-        >
-          Education
-        </h2>
-      </motion.div>
+        <div className="mb-6 flex items-center gap-3">
+          <span
+            className="h-1.5 w-1.5 rounded-full"
+            style={{ backgroundColor: "var(--pr-accent)" }}
+          />
 
-      {/* Rail: continuous horizontal rule with nodes */}
-      {/* Desktop: horizontal scrollable rail */}
-      {/* Mobile: vertical stack */}
-
-      {/* ── Desktop rail ── */}
-      <div className="hidden md:block relative">
-        {/* Continuous baseline rule */}
-        <motion.div
-          className="absolute left-0 right-0 h-px bg-border"
-          style={{ top: "2.75rem" }}
-          initial={{ scaleX: 0, originX: 0 }}
-          whileInView={{ scaleX: 1 }}
-          viewport={{ once: true, margin: "-60px" }}
-          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
-          aria-hidden="true"
-        />
-
-        <div
-          className="grid"
-          style={{
-            gridTemplateColumns: `repeat(${education.length}, minmax(180px, 1fr))`,
-          }}
-        >
-          {education.map((school, i) => {
-            const startYear = getYear(school.startDate);
-            const endYear = getYear(school.endDate);
-            const yearLabel =
-              startYear && endYear
-                ? `${startYear}–${endYear}`
-                : startYear || endYear || null;
-            const degreeField = formatDegreeField(school.degree, school.field);
-            const key = school.id ?? `${school.institution}-${i}`;
-
-            return (
-              <motion.article
-                key={key}
-                className="relative flex flex-col pr-6"
-                custom={i}
-                variants={itemVariants}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, margin: "-60px" }}
-              >
-                {/* Year above the line */}
-                <div className="h-10 flex items-start">
-                  {yearLabel && (
-                    <span
-                      className="font-semibold tabular-nums leading-none text-foreground"
-                      style={{
-                        fontSize: "clamp(1.1rem, 1.8vw, 1.5rem)",
-                        letterSpacing: "-0.03em",
-                      }}
-                    >
-                      {yearLabel}
-                    </span>
-                  )}
-                </div>
-
-                {/* Node on the rule */}
-                <motion.div
-                  className="relative z-10 w-2.5 h-2.5 rounded-full border-2 my-1.5"
-                  style={{
-                    borderColor: "var(--pr-accent)",
-                    background: "var(--background, #fff)",
-                  }}
-                  whileHover={{ scale: 1.6 }}
-                  transition={{ duration: 0.2 }}
-                  aria-hidden="true"
-                />
-
-                {/* Content below the line */}
-                <div className="mt-4 flex flex-col gap-1.5">
-                  <h3
-                    className="font-semibold text-foreground leading-snug"
-                    style={{ fontSize: "clamp(0.9rem, 1.2vw, 1rem)" }}
-                  >
-                    {school.institution}
-                  </h3>
-                  {degreeField && (
-                    <p
-                      className="text-muted-foreground leading-snug"
-                      style={{ fontSize: "0.8125rem" }}
-                    >
-                      {degreeField}
-                    </p>
-                  )}
-                  {school.description && (
-                    <p
-                      className="text-muted-foreground mt-1 whitespace-pre-line"
-                      style={{
-                        fontSize: "0.8125rem",
-                        lineHeight: "var(--pr-body-leading, 1.65)",
-                        maxWidth: "28ch",
-                      }}
-                    >
-                      {school.description}
-                    </p>
-                  )}
-                </div>
-              </motion.article>
-            );
-          })}
+          <span
+            className="text-[10px] font-semibold uppercase tracking-[0.28em]"
+            style={{
+              color: "var(--pr-muted, var(--muted-foreground))",
+            }}
+          >
+            Education
+          </span>
         </div>
-      </div>
 
-      {/* ── Mobile: vertical timeline ── */}
-      <div className="md:hidden relative flex flex-col gap-0">
-        {/* Continuous vertical rule */}
-        <div
-          className="absolute left-3 top-0 bottom-0 w-px bg-border"
-          aria-hidden="true"
-        />
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+          <h2
+            className="text-[clamp(3rem,7vw,7rem)] font-semibold leading-[0.86] tracking-[-0.075em]"
+            style={{
+              letterSpacing: "var(--pr-heading-tracking)",
+            }}
+          >
+            Academic
+            <br />
+            <span style={{ color: "var(--pr-accent)" }}>Background.</span>
+          </h2>
 
-        {education.map((school, i) => {
+          <span
+            className="pb-1 text-xs"
+            style={{
+              color: "var(--pr-muted, var(--muted-foreground))",
+            }}
+          >
+            {String(valid.length).padStart(2, "0")}{" "}
+            {valid.length === 1 ? "entry" : "entries"}
+          </span>
+        </div>
+      </motion.header>
+
+      {/* ───────────────── Academic Entries ───────────────── */}
+
+      <div>
+        {valid.map((school, index) => {
           const startYear = getYear(school.startDate);
           const endYear = getYear(school.endDate);
+
           const yearLabel =
             startYear && endYear
               ? `${startYear}–${endYear}`
               : startYear || endYear || null;
-          const degreeField = formatDegreeField(school.degree, school.field);
-          const key = school.id ?? `${school.institution}-${i}`;
+
+          const degreeField = formatDegreeField(
+            school.degree,
+            school.field
+          );
+
+          const key =
+            school.id ??
+            `${school.institution}-${school.degree}-${index}`;
 
           return (
             <motion.article
               key={key}
-              className="relative flex gap-5 pb-8 pl-10"
-              custom={i}
-              variants={itemVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: "-40px" }}
+              initial={{
+                opacity: 0,
+                y: 35,
+              }}
+              whileInView={{
+                opacity: 1,
+                y: 0,
+              }}
+              viewport={{
+                once: true,
+                margin: "-70px",
+              }}
+              transition={{
+                duration: 0.65,
+                delay: Math.min(index * 0.08, 0.35),
+                ease,
+              }}
+              className="group relative border-t py-9 sm:py-12 lg:py-14"
+              style={{
+                borderColor: "var(--pr-border)",
+              }}
             >
-              {/* Node */}
-              <div
-                className="absolute left-[7px] top-1 w-2.5 h-2.5 rounded-full border-2 z-10"
+              <div className="grid gap-8 lg:grid-cols-[minmax(0,0.28fr)_minmax(0,1fr)_minmax(180px,0.32fr)] lg:gap-12 xl:grid-cols-[minmax(0,0.24fr)_minmax(0,1fr)_minmax(220px,0.34fr)]">
+                {/* ───────── Index ───────── */}
+
+                <div className="flex items-start justify-between lg:block">
+                  <span
+                    className="text-[10px] font-medium tabular-nums"
+                    style={{
+                      color:
+                        "var(--pr-muted, var(--muted-foreground))",
+                    }}
+                  >
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+
+                  {yearLabel ? (
+                    <time
+                      className="text-[11px] font-semibold uppercase tracking-[0.16em] lg:mt-10 lg:block"
+                      style={{
+                        color: "var(--pr-accent)",
+                      }}
+                    >
+                      {yearLabel}
+                    </time>
+                  ) : null}
+                </div>
+
+                {/* ───────── Main Academic Identity ───────── */}
+
+                <div className="min-w-0">
+                  {degreeField ? (
+                    <motion.h3
+                      className="max-w-4xl text-[clamp(2rem,4.5vw,4.8rem)] font-medium leading-[0.94] tracking-[-0.06em]"
+                      whileHover={{ x: 6 }}
+                      transition={{
+                        duration: 0.35,
+                        ease,
+                      }}
+                    >
+                      {degreeField}
+                    </motion.h3>
+                  ) : (
+                    <motion.h3
+                      className="max-w-4xl text-[clamp(2rem,4.5vw,4.8rem)] font-medium leading-[0.94] tracking-[-0.06em]"
+                      whileHover={{ x: 6 }}
+                      transition={{
+                        duration: 0.35,
+                        ease,
+                      }}
+                    >
+                      {school.institution}
+                    </motion.h3>
+                  )}
+
+                  <div className="mt-6 flex items-center gap-3">
+                    <span
+                      className="h-px w-7 transition-all duration-500 group-hover:w-12"
+                      style={{
+                        backgroundColor: "var(--pr-accent)",
+                      }}
+                    />
+
+                    <p
+                      className="text-sm font-medium"
+                      style={{
+                        color:
+                          "var(--pr-muted, var(--muted-foreground))",
+                      }}
+                    >
+                      {school.institution}
+                    </p>
+                  </div>
+                </div>
+
+                {/* ───────── Supporting Information ───────── */}
+
+                <div className="flex flex-col justify-between gap-7 lg:min-h-[120px]">
+                  {school.description ? (
+                    <p
+                      className="max-w-sm text-sm leading-7"
+                      style={{
+                        color:
+                          "var(--pr-muted, var(--muted-foreground))",
+                        lineHeight: "var(--pr-body-leading)",
+                      }}
+                    >
+                      {school.description}
+                    </p>
+                  ) : null}
+
+                  {yearLabel ? (
+                    <div className="hidden lg:flex lg:items-center lg:justify-end lg:gap-3">
+                      <span
+                        className="text-[9px] font-semibold uppercase tracking-[0.2em]"
+                        style={{
+                          color:
+                            "var(--pr-muted, var(--muted-foreground))",
+                        }}
+                      >
+                        Period
+                      </span>
+
+                      <span
+                        className="h-px w-8"
+                        style={{
+                          backgroundColor: "var(--pr-border)",
+                        }}
+                      />
+
+                      <span
+                        className="text-[11px] font-medium"
+                        style={{
+                          color:
+                            "var(--pr-foreground, var(--foreground))",
+                        }}
+                      >
+                        {yearLabel}
+                      </span>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+
+              {/* Bottom hover accent */}
+
+              <motion.div
+                className="absolute bottom-0 left-0 h-px"
+                initial={{ width: 0 }}
+                whileHover={{ width: "100%" }}
+                transition={{
+                  duration: 0.55,
+                  ease,
+                }}
                 style={{
-                  borderColor: "var(--pr-accent)",
-                  background: "var(--background, #fff)",
+                  background:
+                    "linear-gradient(to right, var(--pr-accent), transparent)",
                 }}
                 aria-hidden="true"
               />
-
-              <div className="flex flex-col gap-1">
-                {yearLabel && (
-                  <span
-                    className="font-semibold tabular-nums text-foreground"
-                    style={{ fontSize: "1.05rem", letterSpacing: "-0.02em" }}
-                  >
-                    {yearLabel}
-                  </span>
-                )}
-                <h3
-                  className="font-semibold text-foreground leading-snug"
-                  style={{ fontSize: "0.9375rem" }}
-                >
-                  {school.institution}
-                </h3>
-                {degreeField && (
-                  <p className="text-sm text-muted-foreground">{degreeField}</p>
-                )}
-                {school.description && (
-                  <p
-                    className="text-sm text-muted-foreground mt-1 whitespace-pre-line"
-                    style={{ lineHeight: "var(--pr-body-leading, 1.65)" }}
-                  >
-                    {school.description}
-                  </p>
-                )}
-              </div>
             </motion.article>
           );
         })}
       </div>
+
+      {/* ───────────────── Closing Accent ───────────────── */}
+
+      <motion.div
+        initial={{
+          opacity: 0,
+          scaleX: 0,
+          transformOrigin: "left",
+        }}
+        whileInView={{
+          opacity: 1,
+          scaleX: 1,
+        }}
+        viewport={{ once: true }}
+        transition={{
+          duration: 0.8,
+          delay: 0.15,
+          ease,
+        }}
+        className="h-px w-full"
+        style={{
+          background:
+            "linear-gradient(to right, var(--pr-accent), var(--pr-border), transparent)",
+        }}
+      />
     </section>
   );
 };
+

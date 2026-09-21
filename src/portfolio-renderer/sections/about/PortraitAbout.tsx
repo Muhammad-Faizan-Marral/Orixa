@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { motion, Variants } from "framer-motion";
+import { motion, useReducedMotion, type Variants } from "framer-motion";
 
 type PortraitAboutProps = {
   config: {
@@ -13,206 +13,489 @@ type PortraitAboutProps = {
   };
 };
 
-const stagger = {
+const ease = [0.22, 1, 0.36, 1] as const;
+
+const stagger: Variants = {
   hidden: {},
   visible: {
-    transition: { staggerChildren: 0.09, delayChildren: 0.1 },
+    transition: {
+      staggerChildren: 0.09,
+      delayChildren: 0.08,
+    },
   },
 };
 
-const fadeSlide: Variants = {
-  hidden: { opacity: 0, y: 18 },
+const fadeUp: Variants = {
+  hidden: {
+    opacity: 0,
+    y: 22,
+  },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] },
+    transition: {
+      duration: 0.65,
+      ease,
+    },
   },
 };
 
-type MetaRowProps = {
+function MetaItem({
+  label,
+  value,
+}: {
   label: string;
   value: string;
-};
+}) {
+  return (
+    <motion.div
+      variants={fadeUp}
+      className="group relative flex flex-col gap-1.5 py-4"
+    >
+      <div
+        className="absolute left-0 top-0 h-px w-full"
+        style={{
+          background:
+            "color-mix(in srgb, var(--pr-border) 75%, transparent)",
+        }}
+      />
 
-const MetaRow: React.FC<MetaRowProps> = ({ label, value }) => (
-  <motion.div
-    variants={fadeSlide}
-    className="grid grid-cols-[80px_1fr] gap-2 items-baseline border-t border-border pt-3"
-  >
-    <span className="text-[11px] text-muted-foreground font-medium tracking-wide uppercase">
-      {label}
-    </span>
-    <span className="text-sm text-foreground">{value}</span>
-  </motion.div>
-);
+      <span
+        className="text-[0.62rem] font-semibold uppercase tracking-[0.2em]"
+        style={{
+          color: "var(--pr-muted, var(--muted-foreground))",
+        }}
+      >
+        {label}
+      </span>
 
-export const PortraitAbout: React.FC<PortraitAboutProps> = ({ config }) => {
-  const { name, about, avatarUrl, phone, location } = config;
+      <span
+        className="text-sm font-medium tracking-[-0.01em]"
+        style={{
+          color: "var(--pr-foreground, var(--foreground))",
+        }}
+      >
+        {value}
+      </span>
+    </motion.div>
+  );
+}
+
+export function PortraitAbout({ config }: PortraitAboutProps) {
+  const {
+    name,
+    about,
+    avatarUrl,
+    phone,
+    location,
+  } = config;
+
+  const reduceMotion = useReducedMotion();
 
   if (!about) return null;
 
-  const initial = (name ?? "").trim().charAt(0).toUpperCase() || "?";
+  const initial =
+    name?.trim().charAt(0).toUpperCase() || "?";
 
   return (
     <section
-      className="w-full"
-      style={{ fontFamily: "var(--pr-font)" }}
+      className="relative w-full overflow-hidden"
+      style={{
+       
+        color: "var(--pr-foreground, var(--foreground))",
+      }}
       aria-label="About"
     >
-      <div className="grid grid-cols-1 md:grid-cols-[minmax(0,320px)_1fr] gap-0 items-stretch">
-        {/* ── Left: tall portrait card ── */}
+      {/* Ambient accent glow */}
+      <div
+        className="pointer-events-none absolute -right-32 -top-32 h-80 w-80 rounded-full blur-3xl"
+        // style={{ background:"color-mix(in srgb, var(--pr-accent) 7%, transparent)",}}
+        aria-hidden="true"
+      />
+
+      <div
+        className="
+          relative
+          grid
+          grid-cols-1
+          gap-12
+          lg:grid-cols-[minmax(260px,360px)_minmax(0,1fr)]
+          lg:gap-16
+          xl:grid-cols-[380px_minmax(0,1fr)]
+          xl:gap-24
+        "
+      >
+        {/* =========================================================
+            PORTRAIT
+        ========================================================== */}
+
         <motion.div
-          className="relative overflow-hidden"
-          style={{
-            aspectRatio: "3 / 4",
-            minHeight: "360px",
-            borderRadius: `var(--pr-radius) 0 0 var(--pr-radius)`,
+          className="relative"
+          initial={
+            reduceMotion
+              ? false
+              : {
+                  opacity: 0,
+                  x: -24,
+                  scale: 0.98,
+                }
+          }
+          whileInView={
+            reduceMotion
+              ? undefined
+              : {
+                  opacity: 1,
+                  x: 0,
+                  scale: 1,
+                }
+          }
+          viewport={{
+            once: true,
+            margin: "-80px",
           }}
-          initial={{ opacity: 0, x: -24 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true, margin: "-60px" }}
-          transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
-          whileHover="hovered"
+          transition={{
+            duration: 0.8,
+            ease,
+          }}
         >
-          {avatarUrl ? (
-            <>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <motion.img
+          {/* Decorative accent line */}
+          <div
+            className="absolute -left-3 top-8 hidden h-20 w-px lg:block"
+            style={{
+              background:
+                "linear-gradient(to bottom, var(--pr-accent), transparent)",
+            }}
+            aria-hidden="true"
+          />
+
+          {/* Image frame */}
+          <div
+            className="
+              group
+              relative
+              aspect-[4/5]
+              w-full
+              overflow-hidden
+            "
+            style={{
+              borderRadius: "var(--pr-radius, 20px)",
+              border: "var(--pr-card-border, 1px solid var(--pr-border))",
+              background:
+                "var(--pr-surface, var(--surface))",
+              boxShadow:
+                "var(--pr-card-shadow, 0 24px 70px -30px rgba(0,0,0,0.35))",
+            }}
+          >
+            {/* Image */}
+            {avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
                 src={avatarUrl}
-                alt={name ? `${name} portrait` : "Portrait"}
-                className="w-full h-full object-cover"
-                variants={{
-                  hovered: { scale: 1.04 },
-                }}
-                transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+                alt={
+                  name
+                    ? `${name} portrait`
+                    : "Portrait"
+                }
+                className="
+                  h-full
+                  w-full
+                  object-cover
+                  transition-transform
+                  duration-700
+                  ease-out
+                  group-hover:scale-[1.035]
+                "
               />
-              {/* Bottom gradient overlay for name legibility */}
+            ) : (
               <div
-                className="absolute inset-x-0 bottom-0 h-2/5 pointer-events-none"
+                className="flex h-full w-full items-center justify-center"
                 style={{
                   background:
-                    "linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 100%)",
+                    "radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--pr-accent) 18%, transparent), transparent 55%), var(--pr-surface, var(--surface))",
                 }}
-                aria-hidden="true"
-              />
-              {/* Name over portrait, bottom-left */}
-              {name && (
-                <div className="absolute bottom-0 left-0 p-5">
+              >
+                <span
+                  className="
+                    select-none
+                    text-7xl
+                    font-semibold
+                    tracking-[-0.06em]
+                  "
+                  style={{
+                    color: "var(--pr-accent)",
+                  }}
+                  aria-label={name ?? ""}
+                >
+                  {initial}
+                </span>
+              </div>
+            )}
+
+            {/* Image tint */}
+            <div
+              className="
+                pointer-events-none
+                absolute
+                inset-0
+                opacity-70
+                transition-opacity
+                duration-500
+                group-hover:opacity-40
+              "
+              style={{
+                background:
+                  "linear-gradient(145deg, color-mix(in srgb, var(--pr-accent) 8%, transparent), transparent 45%, color-mix(in srgb, var(--pr-background, #000) 20%, transparent))",
+              }}
+              aria-hidden="true"
+            />
+
+            {/* Bottom glass information */}
+            {name ? (
+              <div
+                className="
+                  absolute
+                  inset-x-4
+                  bottom-4
+                  overflow-hidden
+                  rounded-xl
+                  px-4
+                  py-3
+                  backdrop-blur-md
+                "
+                style={{
+                  background:
+                    "color-mix(in srgb, var(--pr-background, #000) 62%, transparent)",
+                  border:
+                    "1px solid color-mix(in srgb, white 14%, transparent)",
+                }}
+              >
+                <div className="flex items-center justify-between gap-4">
                   <p
-                    className="text-white font-semibold leading-tight"
-                    style={{
-                      fontSize: "clamp(1.1rem, 2.5vw, 1.5rem)",
-                      letterSpacing: "var(--pr-heading-tracking, -0.02em)",
-                      textShadow: "0 1px 8px rgba(0,0,0,0.4)",
-                    }}
+                    className="
+                      min-w-0
+                      truncate
+                      text-sm
+                      font-medium
+                      tracking-[-0.01em]
+                      text-white
+                    "
                   >
                     {name}
                   </p>
+
+                  <span
+                    className="h-1.5 w-1.5 shrink-0 rounded-full"
+                    style={{
+                      background: "var(--pr-accent)",
+                      boxShadow:
+                        "0 0 12px color-mix(in srgb, var(--pr-accent) 70%, transparent)",
+                    }}
+                  />
                 </div>
-              )}
-            </>
-          ) : (
-            /* No avatar: accent-filled placeholder with giant initial */
-            <div
-              className="w-full h-full flex flex-col items-center justify-center gap-4"
+              </div>
+            ) : null}
+          </div>
+
+          {/* Small visual index */}
+          <div
+            className="
+              mt-4
+              flex
+              items-center
+              justify-between
+              px-1
+            "
+          >
+            <span
+              className="text-[0.6rem] font-medium uppercase tracking-[0.2em]"
               style={{
-                background:
-                  "color-mix(in srgb, var(--pr-accent) 10%, var(--surface-2, hsl(var(--muted))))",
+                color:
+                  "var(--pr-muted, var(--muted-foreground))",
               }}
             >
-              <span
-                className="font-bold leading-none select-none"
-                style={{
-                  fontSize: "clamp(5rem, 15vw, 10rem)",
-                  color: "var(--pr-accent)",
-                  opacity: 0.25,
-                  letterSpacing: "-0.05em",
-                }}
-                aria-hidden="true"
-              >
-                {initial}
-              </span>
-              {name && (
-                <p
-                  className="font-semibold text-foreground text-center px-4"
-                  style={{
-                    fontSize: "clamp(1rem, 2vw, 1.25rem)",
-                    letterSpacing: "var(--pr-heading-tracking, -0.02em)",
-                  }}
-                >
-                  {name}
-                </p>
-              )}
-            </div>
-          )}
+              About / 01
+            </span>
 
-          {/* Left accent stripe */}
-          <div
-            className="absolute top-0 left-0 w-1 h-full"
-            style={{ background: "var(--pr-accent)" }}
-            aria-hidden="true"
-          />
+            <div
+              className="h-px w-12"
+              style={{
+                background:
+                  "color-mix(in srgb, var(--pr-border) 80%, transparent)",
+              }}
+            />
+          </div>
         </motion.div>
 
-        {/* ── Right: text + metadata column ── */}
+        {/* =========================================================
+            CONTENT
+        ========================================================== */}
+
         <motion.div
-          className="flex flex-col justify-between gap-8 border border-l-0 border-border p-7 md:p-10"
-          style={{
-            borderRadius: `0 var(--pr-radius) var(--pr-radius) 0`,
-          }}
-          variants={stagger}
+          className="
+            flex
+            min-w-0
+            flex-col
+            justify-center
+            lg:py-8
+            xl:py-12
+          "
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, margin: "-60px" }}
+          viewport={{
+            once: true,
+            margin: "-60px",
+          }}
+          variants={reduceMotion ? undefined : stagger}
         >
-          {/* Section label */}
-          <motion.div variants={fadeSlide} className="flex items-center gap-3">
-            <div
-              className="h-px w-6"
-              style={{ background: "var(--pr-accent)" }}
+          {/* Eyebrow */}
+          <motion.div
+            variants={fadeUp}
+            className="mb-7 flex items-center gap-3"
+          >
+            <span
+              className="
+                text-[0.64rem]
+                font-semibold
+                uppercase
+                tracking-[0.24em]
+              "
+              style={{
+                color:
+                  "var(--pr-muted, var(--muted-foreground))",
+              }}
+            >
+              About me
+            </span>
+
+            <span
+              className="h-px w-10"
+              style={{
+                background: "var(--pr-accent)",
+              }}
               aria-hidden="true"
             />
-            <span className="text-xs text-muted-foreground font-medium tracking-widest">
-              ABOUT
-            </span>
           </motion.div>
 
-          {/* About text */}
-          <motion.p
-            variants={fadeSlide}
-            className="whitespace-pre-line text-foreground flex-1"
-            style={{
-              fontSize: "clamp(0.975rem, 1.4vw, 1.1rem)",
-              lineHeight: "var(--pr-body-leading, 1.8)",
-              maxWidth: "55ch",
-            }}
+          {/* Heading */}
+          <motion.div
+            variants={fadeUp}
+            className="max-w-3xl"
           >
-            {about}
-          </motion.p>
+            <h2
+              className="
+                text-[clamp(2.4rem,5vw,4.8rem)]
+                font-semibold
+                leading-[0.98]
+                tracking-[-0.055em]
+              "
+            >
+              A little
+              <span
+                className="relative mx-2 inline-block"
+                style={{
+                  color: "var(--pr-accent)",
+                }}
+              >
+                about
+              </span>
+              me.
+            </h2>
+          </motion.div>
 
-          {/* Metadata grid */}
+          {/* Accent divider */}
+          <motion.div
+            variants={fadeUp}
+            className="my-8 h-px w-full max-w-2xl"
+            style={{
+              background:
+                "linear-gradient(to right, var(--pr-border), transparent)",
+            }}
+            aria-hidden="true"
+          />
+
+          {/* Main paragraph */}
+          <motion.div
+            variants={fadeUp}
+            className="max-w-2xl"
+          >
+            <p
+              className="
+                whitespace-pre-line
+                text-[clamp(1.05rem,1.5vw,1.25rem)]
+                leading-[1.75]
+                tracking-[-0.015em]
+              "
+              style={{
+                color:
+                  "var(--pr-foreground, var(--foreground))",
+              }}
+            >
+              {about}
+            </p>
+          </motion.div>
+
+          {/* Metadata */}
           {(location || phone) && (
             <motion.div
-              variants={stagger}
-              className="flex flex-col gap-0 mt-auto"
+              variants={fadeUp}
+              className="
+                mt-10
+                grid
+                max-w-2xl
+                grid-cols-1
+                gap-x-10
+                sm:grid-cols-2
+              "
             >
-              {location && <MetaRow label="Location" value={location} />}
-              {phone && <MetaRow label="Contact" value={phone} />}
-              {/* Decorative bottom cap */}
-              <motion.div
-                variants={fadeSlide}
-                className="border-t border-border pt-3"
-              >
-                <div
-                  className="h-0.5 w-10 rounded-full"
-                  style={{ background: "var(--pr-accent)" }}
-                  aria-hidden="true"
+              {location ? (
+                <MetaItem
+                  label="Based in"
+                  value={location}
                 />
-              </motion.div>
+              ) : null}
+
+              {phone ? (
+                <MetaItem
+                  label="Phone"
+                  value={phone}
+                />
+              ) : null}
             </motion.div>
           )}
+
+          {/* Bottom accent */}
+          <motion.div
+            variants={fadeUp}
+            className="mt-10 flex items-center gap-4"
+          >
+            <div
+              className="h-8 w-px"
+              style={{
+                background:
+                  "linear-gradient(to bottom, var(--pr-accent), transparent)",
+              }}
+              aria-hidden="true"
+            />
+
+            <span
+              className="
+                text-[0.62rem]
+                font-medium
+                uppercase
+                tracking-[0.2em]
+              "
+              style={{
+                color:
+                  "var(--pr-muted, var(--muted-foreground))",
+              }}
+            >
+              Personal profile
+            </span>
+          </motion.div>
         </motion.div>
       </div>
     </section>
   );
-};
+}
+
+export default PortraitAbout;
