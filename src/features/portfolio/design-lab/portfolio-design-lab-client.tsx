@@ -3,9 +3,6 @@
 import { useCallback, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { isPremiumDna } from "@/constants/billing";
-
-
 import { DesignEngine } from "@/portfolio-renderer/DesignEngine";
 import {
   SECTION_VARIANTS,
@@ -13,12 +10,9 @@ import {
   DEFAULT_DESIGN_PREFERENCES,
   type ComponentSelection,
 } from "@/features/portfolio/component-variants";
-import {
-  DESIGN_DNAS,
-  type DesignDna,
-  type DesignIntent,
-  resolveDesignFromIntent,
-} from "@/lib/ai/design-dna";
+import { getThemeIdFromPreferences, getSectionVariantsForTheme, listThemesForLab, normalizeSelectionForTheme } from "@/themes/lab-helpers";
+import { getTheme } from "@/themes/registry";
+import type { ThemeId } from "@/themes/types";
 import type {
   PortfolioRenderConfig,
   PublicProfileMeta,
@@ -26,6 +20,7 @@ import type {
 } from "@/portfolio-renderer/types";
 import { savePortfolioDesign } from "@/actions/portfolio/save-portfolio-design";
 import { Button } from "@/components/UI/Button";
+import { isPremiumTheme } from "@/constants/billing";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -116,18 +111,10 @@ portfolioId,
 
   // ── Design state ────────────────────────────────────────────────────────────
 
-  const [dna, setDna] = useState<DesignDna>(
-    (initialPrefs.designDna as DesignDna) || "soft-luxury",
-  );
+  const [dna, setDna] = useState<ThemeId>(getThemeIdFromPreferences(initialPrefs));
   const [themeMode, setThemeMode] = useState<"light" | "dark">(
     initialPrefs.themeMode === "light" ? "light" : "dark",
   );
-  const [energy, setEnergy] = useState<DesignIntent["energy"]>("balanced");
-  const [contentBias, setContentBias] =
-    useState<DesignIntent["contentBias"]>("balanced");
-  const [accentFamily, setAccentFamily] =
-    useState<DesignIntent["accentFamily"]>("cool");
-  const [packForce, setPackForce] = useState<"auto" | "0" | "1">("auto");
   const [accentColor, setAccentColor] = useState(
     initialPrefs.accentColor || "#6c5cff",
   );
@@ -144,55 +131,18 @@ portfolioId,
     }
     return o;
   });
-  const [seed] = useState(portfolioId);
-
   // ── Derived config ──────────────────────────────────────────────────────────
 
   const contentOnly = useMemo(() => {
-    const {
-      componentSelection: _c,
-      designPreferences: _d,
-      ...rest
-    } = initialConfig;
-    return rest;
+    return Object.fromEntries(
+      Object.entries(initialConfig).filter(
+        ([key]) => key !== "componentSelection" && key !== "designPreferences",
+      ),
+    ) as Omit<PortfolioRenderConfig, "componentSelection" | "designPreferences">;
   }, [initialConfig]);
 
-  const signals = useMemo(
-    () => ({
-      projectCount: initialConfig.projects?.length ?? 0,
-      skillCount: initialConfig.skills?.length ?? 0,
-      experienceCount: initialConfig.experience?.length ?? 0,
-      educationCount: initialConfig.education?.length ?? 0,
-      certificateCount: initialConfig.certificates?.length ?? 0,
-      hasAbout: Boolean(initialConfig.about?.trim()),
-      headline: initialConfig.headline ?? "",
-    }),
-    [initialConfig],
-  );
-
-  const resolved = useMemo(() => {
-    const intent: DesignIntent = {
-      designDna: dna,
-      themeMode,
-      energy: packForce === "0" ? "calm" : packForce === "1" ? "bold" : energy,
-      contentBias,
-      accentFamily,
-    };
-    if (packForce === "auto") intent.energy = energy;
-    return resolveDesignFromIntent(intent, signals, seed);
-  }, [
-    dna,
-    themeMode,
-    energy,
-    contentBias,
-    accentFamily,
-    packForce,
-    seed,
-    signals,
-  ]);
-
   const componentSelection: ComponentSelection = useMemo(() => {
-    const base = { ...resolved.componentSelection };
+    const base = normalizeSelectionForTheme(getTheme(dna), initialSelection);
     for (const key of SECTION_KEYS) {
       const override = variantOverrides[key];
       if (override) {
@@ -202,17 +152,20 @@ portfolioId,
         };
       }
     }
-    return base;
-  }, [resolved.componentSelection, variantOverrides]);
+    return base as ComponentSelection;
+  }, [dna, initialSelection, variantOverrides]);
 
   const designPreferences: RendererDesignPreferences = useMemo(
     () => ({
-      ...resolved.designPreferences,
-      themeMode,
+      ...initialPrefs,
+      themeId: dna,
       designDna: dna,
-      accentColor: accentColor || resolved.designPreferences.accentColor,
+      themeMode: getTheme(dna).tokens.themeMode,
+      accentColor: accentColor || getTheme(dna).tokens.accentColor,
+      fontFamily: getTheme(dna).tokens.fontSans,
+      sectionVariants: Object.fromEntries(Object.entries(componentSelection).map(([key, value]) => [key, value.variant])),
     }),
-    [resolved.designPreferences, themeMode, dna, accentColor],
+    [initialPrefs, componentSelection, dna, accentColor],
   );
 
   const liveConfig: PortfolioRenderConfig = useMemo(
@@ -222,12 +175,10 @@ portfolioId,
 
   // ── Handlers ────────────────────────────────────────────────────────────────
 
-  const applyDna = (next: DesignDna) => {
+  const applyDna = (next: ThemeId) => {
     setDna(next);
     setVariantOverrides({});
-    setThemeMode(
-      next === "editorial" || next === "soft-luxury" ? "light" : "dark",
-    );
+    setThemeMode(getTheme(next).tokens.themeMode);
   };
 
   const applyHex = (hex: string) => {
@@ -244,13 +195,10 @@ portfolioId,
   };
 
   const handleReset = () => {
-    setDna((initialPrefs.designDna as DesignDna) || "soft-luxury");
+    setDna(getThemeIdFromPreferences(initialPrefs));
     setThemeMode(initialPrefs.themeMode === "light" ? "light" : "dark");
     setAccentColor(initialPrefs.accentColor || "#6c5cff");
     setCustomHex(initialPrefs.accentColor || "#6c5cff");
-    setEnergy("balanced");
-    setPackForce("auto");
-    setContentBias("balanced");
     const o: Partial<Record<SectionKey, string>> = {};
     for (const key of SECTION_KEYS) {
       const v = initialSelection[key]?.variant;
@@ -264,7 +212,7 @@ portfolioId,
     setMessage(null);
 
     // Free user cannot save premium DNA
-    if (!isPremium && isPremiumDna(dna)) {
+    if (!isPremium && isPremiumTheme(dna)) {
       setMessage({
         type: "error",
         text: "This is a Premium design. Upgrade to apply it, or pick a free DNA.",
@@ -297,8 +245,9 @@ portfolioId,
       <div>
         <SectionLabel>Design DNA</SectionLabel>
                <div className="flex flex-wrap gap-1.5">
-          {DESIGN_DNAS.map((d) => {
-            const locked = !isPremium && isPremiumDna(d);
+          {listThemesForLab(isPremium).map((theme) => {
+            const d = theme.id;
+            const locked = !isPremium && theme.premium;
             return (
               <button
                 key={d}
@@ -315,13 +264,13 @@ portfolioId,
                     : "bg-zinc-800/80 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
                 }`}
               >
-                {d}
+                {theme.name}
                 {locked ? " ★" : ""}
               </button>
             );
           })}
         </div>
-        {!isPremium && isPremiumDna(dna) && (
+        {!isPremium && isPremiumTheme(dna) && (
           <p className="mt-2 text-[11px] text-amber-400/90">
             Preview only.{" "}
             <Link href="/pricing" className="underline underline-offset-2">
@@ -397,58 +346,6 @@ portfolioId,
 
       <Divider />
 
-      {/* Energy / Pack */}
-      <div>
-        <SectionLabel>Layout energy</SectionLabel>
-        <div className="flex gap-1.5">
-          {(
-            [
-              ["calm", "Pack A"],
-              ["balanced", "Auto"],
-              ["bold", "Pack B"],
-            ] as const
-          ).map(([v, label]) => (
-            <button
-              key={v}
-              type="button"
-              onClick={() => {
-                setEnergy(v);
-                setPackForce("auto");
-                setVariantOverrides({});
-              }}
-              className={`flex-1 rounded-xl py-2 text-[11px] font-medium transition-all ${
-                energy === v && packForce === "auto"
-                  ? "bg-violet-600 text-white"
-                  : "bg-zinc-800/80 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <Divider />
-
-      {/* Content Bias */}
-      <div>
-        <SectionLabel>Content order</SectionLabel>
-        <select
-          value={contentBias}
-          onChange={(e) =>
-            setContentBias(e.target.value as DesignIntent["contentBias"])
-          }
-          className="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-2.5 text-xs text-zinc-200 focus:border-violet-500 focus:outline-none"
-        >
-          <option value="projects-first">Projects first</option>
-          <option value="experience-first">Experience first</option>
-          <option value="balanced">Balanced</option>
-          <option value="about-first">About first</option>
-        </select>
-      </div>
-
-      <Divider />
-
       {/* Section Variants */}
       <div>
         <div className="mb-2 flex items-center justify-between">
@@ -465,7 +362,7 @@ portfolioId,
           {SECTION_KEYS.map((key) => {
             const current =
               variantOverrides[key] ?? componentSelection[key]?.variant ?? "";
-            const options = SECTION_VARIANTS[key] as readonly string[];
+            const options = getSectionVariantsForTheme(dna, key);
             return (
               <div key={key} className="flex items-center gap-2">
                 <span className="w-[4.5rem] shrink-0 text-[10px] capitalize text-zinc-500">

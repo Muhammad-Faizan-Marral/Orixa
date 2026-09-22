@@ -1,0 +1,1 @@
+export const tokens = { themeMode: "light", accentColor: "#2563eb", backgroundColor: "#f8fafc", foregroundColor: "#172033", mutedColor: "#64748b", fontSans: "Inter", fontDisplay: "Bricolage Grotesque" } as const;

@@ -4,10 +4,10 @@ import { revalidatePath } from "next/cache";
 
 import { requireProfile } from "@/lib/auth/require-profile";
 import { requireUser } from "@/lib/auth/require-user";
-import { decideDesignWithGemini } from "@/lib/ai/decide-design";
 import { portfolioService } from "@/services/portfolio/portfolio.service";
-import { aiRequestService } from "@/services/portfolio/ai-request.service";
 import { uploadService } from "@/services/profile/upload.service";
+import { pickRandomFreeTheme } from "@/themes/pick-random-theme";
+import { defaultSelectionForTheme } from "@/themes/lab-helpers";
 import {
   updatePortfolioDataSchema,
   type UpdatePortfolioDataInput,
@@ -92,12 +92,9 @@ export async function finalizePortfolioAction(input: unknown) {
 
     let componentSelection: ComponentSelection = data.componentSelection;
     let designPreferences: DesignPreferences = data.designPreferences;
-    let usedAi = false;
+    const usedAi = false;
     let skippedDesign = false;
     let designError: string | undefined;
-    let inputTokens = 0;
-    let outputTokens = 0;
-    let latencyMs = 0;
 
     if (alreadyDesigned && savedSelection) {
       // EDIT path: keep DB design, do NOT call AI again
@@ -105,68 +102,17 @@ export async function finalizePortfolioAction(input: unknown) {
       componentSelection = savedSelection;
       designPreferences = savedPrefs ?? data.designPreferences;
     } else {
-      // FIRST save: run design AI
-      const design = await decideDesignWithGemini({
-        prompt: finalPrompt,
-        headline: data.headline,
-        about: data.about,
-        portfolioId: data.portfolioId,
-        projectCount: Array.isArray(data.projects) ? data.projects.length : 0,
-        skillCount: Array.isArray(data.skills) ? data.skills.length : 0,
-        experienceCount: Array.isArray(data.experience)
-          ? data.experience.length
-          : 0,
-        educationCount: Array.isArray(data.education)
-          ? data.education.length
-          : 0,
-        certificateCount: Array.isArray(data.certificates)
-          ? data.certificates.length
-          : 0,
-      });
-
-      // decideDesign returns typed decision — assign through schema parse for safety
-      const designPayload = updatePortfolioDataSchema
-        .pick({ componentSelection: true, designPreferences: true })
-        .safeParse({
-          componentSelection: design.decision.componentSelection,
-          designPreferences: design.decision.designPreferences,
-        });
-
-      if (designPayload.success) {
-        componentSelection = designPayload.data.componentSelection;
-        designPreferences = designPayload.data.designPreferences;
-      } else {
-        // fallback to whatever decideDesign returned (cast once)
-        componentSelection = design.decision
-          .componentSelection as unknown as ComponentSelection;
-        designPreferences = design.decision
-          .designPreferences as unknown as DesignPreferences;
-      }
-
-      usedAi = design.usedAi;
-      designError = design.errorMessage;
-      inputTokens = design.inputTokens;
-      outputTokens = design.outputTokens;
-      latencyMs = design.latencyMs;
-
-      if (design.usedAi) {
-        await aiRequestService.recordUsage({
-          portfolioId: data.portfolioId,
-          requestType: "design_decision",
-          model: "meta-llama/llama-3.1-8b-instruct",
-          inputTokens,
-          outputTokens,
-          latencyMs,
-          status: "success",
-        });
-      } else if (finalPrompt.trim()) {
-        await aiRequestService.recordUsage({
-          portfolioId: data.portfolioId,
-          requestType: "design_decision",
-          model: "meta-llama/llama-3.1-8b-instruct",
-          status: "failed",
-        });
-      }
+      const theme = pickRandomFreeTheme();
+      componentSelection = defaultSelectionForTheme(theme) as ComponentSelection;
+      designPreferences = {
+        ...data.designPreferences,
+        themeId: theme.id,
+        designDna: theme.id,
+        themeMode: theme.tokens.themeMode,
+        accentColor: theme.tokens.accentColor,
+        fontFamily: theme.tokens.fontSans,
+        sectionVariants: theme.defaults,
+      } as DesignPreferences;
     }
 
     const avatarUrl = (data.avatarUrl ?? "").trim();

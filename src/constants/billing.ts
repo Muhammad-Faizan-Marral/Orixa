@@ -12,18 +12,23 @@ export const BILLING = {
   /**
    * Free Design DNAs — sab preview + apply kar sakte hain
    */
-  FREE_DNAS: ["minimal-airy", "tech-dense", "editorial"] as const,
+  FREE_THEMES: ["minimal-airy", "tech-dense", "editorial"] as const,
 
   /**
    * Premium Design DNAs — free users preview kar sakte hain, apply/save nahi
    */
-  PREMIUM_DNAS: [
+  PREMIUM_THEMES: [
     "soft-luxury",
     "neo-glass",
     "brutalist",
     "cinematic",
   ] as const,
 } as const;
+
+export const FREE_THEMES = BILLING.FREE_THEMES;
+export const PREMIUM_THEMES = BILLING.PREMIUM_THEMES;
+export const PRICE_MONTHLY = BILLING.PRICE_MONTHLY;
+export const PRICE_YEARLY = BILLING.PRICE_YEARLY;
 
 export type Plan = "free" | "premium";
 
@@ -43,5 +48,7 @@ export function isPremiumActive(profile: {
 }
 
 export function isPremiumDna(dna: string): boolean {
-  return (BILLING.PREMIUM_DNAS as readonly string[]).includes(dna);
+  return (BILLING.PREMIUM_THEMES as readonly string[]).includes(dna);
 }
+
+export const isPremiumTheme = isPremiumDna;

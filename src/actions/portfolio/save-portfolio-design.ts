@@ -40,7 +40,7 @@ export async function savePortfolioDesign(input: {
       premiumUntil: profile.premiumUntil ?? null,
     });
 
-    const dna = input.designPreferences?.designDna;
+    const dna = (input.designPreferences?.themeId ?? input.designPreferences?.designDna) as string | undefined;
     if (dna && isPremiumDna(dna) && !premium) {
       return {
         success: false,

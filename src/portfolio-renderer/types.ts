@@ -70,6 +70,8 @@ export type RendererComponentSelection = {
 };
 
 export type RendererDesignPreferences = {
+  themeId?: DesignDna;
+  sectionVariants?: Partial<Record<keyof RendererComponentSelection, string>>;
   themeMode?: "light" | "dark";
   layout?: "standard" | "wide" | "centered";
   accentColor?: string;
