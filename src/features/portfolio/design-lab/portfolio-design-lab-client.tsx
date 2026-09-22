@@ -3,6 +3,8 @@
 import { useCallback, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { isPremiumDna } from "@/constants/billing";
+
 
 import { DesignEngine } from "@/portfolio-renderer/DesignEngine";
 import {
@@ -48,7 +50,7 @@ type Props = {
   portfolioTitle: string;
   profile: PublicProfileMeta;
   initialConfig: PortfolioRenderConfig;
-  isPremium: boolean;
+  isPremium?: boolean;
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -84,11 +86,11 @@ function Divider() {
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export function PortfolioDesignLabClient({
-  portfolioId,
+portfolioId,
   portfolioTitle,
   profile,
   initialConfig,
-  isPremium,
+  isPremium = false,
 }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -258,8 +260,18 @@ export function PortfolioDesignLabClient({
     setMessage({ type: "success", text: "Reset to last saved design." });
   };
 
-  const handleSave = useCallback(() => {
+   const handleSave = useCallback(() => {
     setMessage(null);
+
+    // Free user cannot save premium DNA
+    if (!isPremium && isPremiumDna(dna)) {
+      setMessage({
+        type: "error",
+        text: "This is a Premium design. Upgrade to apply it, or pick a free DNA.",
+      });
+      return;
+    }
+
     startTransition(async () => {
       const result = await savePortfolioDesign({
         portfolioId,
@@ -275,7 +287,7 @@ export function PortfolioDesignLabClient({
 
       router.push(`/dashboard/portfolios/${portfolioId}`);
     });
-  }, [portfolioId, componentSelection, designPreferences, router]);
+  }, [portfolioId, componentSelection, designPreferences, router, isPremium, dna]);
 
   // ── Controls content (shared) ───────────────────────────────────────────────
 
@@ -284,22 +296,40 @@ export function PortfolioDesignLabClient({
       {/* Design DNA */}
       <div>
         <SectionLabel>Design DNA</SectionLabel>
-        <div className="flex flex-wrap gap-1.5">
-          {DESIGN_DNAS.map((d) => (
-            <button
-              key={d}
-              type="button"
-              onClick={() => applyDna(d)}
-              className={`rounded-full px-2.5 py-1 text-[11px] font-medium capitalize transition-all ${
-                dna === d
-                  ? "bg-violet-600 text-white shadow-md shadow-violet-900/40"
-                  : "bg-zinc-800/80 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
-              }`}
-            >
-              {d}
-            </button>
-          ))}
+               <div className="flex flex-wrap gap-1.5">
+          {DESIGN_DNAS.map((d) => {
+            const locked = !isPremium && isPremiumDna(d);
+            return (
+              <button
+                key={d}
+                type="button"
+                onClick={() => applyDna(d)}
+                title={
+                  locked
+                    ? "Premium — preview only. Upgrade to apply."
+                    : undefined
+                }
+                className={`rounded-full px-2.5 py-1 text-[11px] font-medium capitalize transition-all ${
+                  dna === d
+                    ? "bg-violet-600 text-white shadow-md shadow-violet-900/40"
+                    : "bg-zinc-800/80 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
+                }`}
+              >
+                {d}
+                {locked ? " ★" : ""}
+              </button>
+            );
+          })}
         </div>
+        {!isPremium && isPremiumDna(dna) && (
+          <p className="mt-2 text-[11px] text-amber-400/90">
+            Preview only.{" "}
+            <Link href="/pricing" className="underline underline-offset-2">
+              Upgrade to Premium
+            </Link>{" "}
+            to save this design.
+          </p>
+        )}
       </div>
 
       <Divider />

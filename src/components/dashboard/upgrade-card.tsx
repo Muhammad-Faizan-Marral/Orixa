@@ -55,8 +55,8 @@ export function UpgradeCard({ profile }: Props) {
         </div>
 
         <div className="flex flex-shrink-0 flex-col gap-2 sm:flex-row">
-          <UpgradeButton productKey="yearly" className="whitespace-nowrap">
-            $49 / year
+                    <UpgradeButton productKey="yearly" className="whitespace-nowrap">
+            ${BILLING.PRICE_YEARLY} / year
           </UpgradeButton>
           <Link
             href="/pricing"

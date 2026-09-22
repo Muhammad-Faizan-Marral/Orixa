@@ -6,6 +6,7 @@ import { portfolioService } from "@/services/portfolio/portfolio.service";
 import { PortfolioDesignLabClient } from "@/features/portfolio/design-lab/portfolio-design-lab-client";
 import type { PortfolioRenderConfig } from "@/portfolio-renderer/types";
 import { isPremiumActive } from "@/constants/billing";
+
 type Props = {
   params: Promise<{ portfolioId: string }>;
 };
@@ -24,10 +25,12 @@ export default async function PortfolioDesignLabPage({ params }: Props) {
 
   const { portfolio, data } = result;
   const d = (data ?? {}) as Record<string, unknown>;
+
   const isPremium = isPremiumActive({
-    isPremium: profile.isPremium,
-    premiumUntil: profile.premiumUntil,
+    isPremium: profile.isPremium ?? false,
+    premiumUntil: profile.premiumUntil ?? null,
   });
+
   const initialConfig: PortfolioRenderConfig = {
     name: (d.name as string) || portfolio.title,
     headline: (d.headline as string) || undefined,
@@ -55,14 +58,14 @@ export default async function PortfolioDesignLabPage({ params }: Props) {
     <PortfolioDesignLabClient
       portfolioId={portfolio.id}
       portfolioTitle={portfolio.title}
-      isPremium={isPremium}
       profile={{
         username: profile.username,
         fullName: profile.fullName,
         avatarUrl: profile.avatarUrl,
-        
+        isPremium,
       }}
       initialConfig={initialConfig}
+      isPremium={isPremium}
     />
   );
 }

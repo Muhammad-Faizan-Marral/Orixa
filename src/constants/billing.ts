@@ -4,6 +4,25 @@ export const BILLING = {
   REFERRALS_FOR_PREMIUM: 20,
   REFERRAL_PREMIUM_DAYS: 365,
   WATERMARK_TEXT: "Built with OrixaAi",
+
+  /** Pricing (USD) */
+  PRICE_MONTHLY: 6,
+  PRICE_YEARLY: 50,
+
+  /**
+   * Free Design DNAs — sab preview + apply kar sakte hain
+   */
+  FREE_DNAS: ["minimal-airy", "tech-dense", "editorial"] as const,
+
+  /**
+   * Premium Design DNAs — free users preview kar sakte hain, apply/save nahi
+   */
+  PREMIUM_DNAS: [
+    "soft-luxury",
+    "neo-glass",
+    "brutalist",
+    "cinematic",
+  ] as const,
 } as const;
 
 export type Plan = "free" | "premium";
@@ -21,4 +40,8 @@ export function isPremiumActive(profile: {
   if (!profile.isPremium) return false;
   if (!profile.premiumUntil) return true;
   return new Date(profile.premiumUntil) > new Date();
+}
+
+export function isPremiumDna(dna: string): boolean {
+  return (BILLING.PREMIUM_DNAS as readonly string[]).includes(dna);
 }

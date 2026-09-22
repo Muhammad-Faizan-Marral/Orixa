@@ -32,7 +32,22 @@ export async function savePortfolioDesign(input: {
   try {
     await requireUser();
     const profile = await requireProfile();
+    const { isPremiumActive, isPremiumDna } =
+      await import("@/constants/billing");
 
+    const premium = isPremiumActive({
+      isPremium: profile.isPremium ?? false,
+      premiumUntil: profile.premiumUntil ?? null,
+    });
+
+    const dna = input.designPreferences?.designDna;
+    if (dna && isPremiumDna(dna) && !premium) {
+      return {
+        success: false,
+        message:
+          "Premium design. Upgrade to apply, or choose a free Design DNA.",
+      };
+    }
     const existing = await portfolioService.getPortfolioWithData(
       input.portfolioId,
       profile.id,
