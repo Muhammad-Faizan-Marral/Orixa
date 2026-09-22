@@ -1,0 +1,2 @@
+import type { ThemeSectionProps } from "../../../types";
+export function AboutDefault({ config }: ThemeSectionProps) { if (!config.about) return null; return <section id="about" className="mx-auto max-w-6xl px-6 py-20"><h2 className="text-xs font-semibold uppercase tracking-[.25em] text-blue-600">About</h2><p className="mt-6 max-w-3xl whitespace-pre-line text-2xl leading-relaxed">{config.about}</p></section>; }

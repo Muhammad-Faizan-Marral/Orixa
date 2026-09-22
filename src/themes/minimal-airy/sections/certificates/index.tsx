@@ -1,2 +1,1 @@
-import { makeThemeSection } from "../../../shared/section-factory";
-export const Default = makeThemeSection("certificates"); export const Alternate = makeThemeSection("certificates"); export default Default;
+import type { ThemeSectionProps } from "../../../types"; import { CertificatesDefault } from "./CertificatesDefault"; import { CertificatesAlt } from "./CertificatesAlt"; export const variants={default:CertificatesDefault,alt:CertificatesAlt} as const; export function Certificates({variant="default",...props}:ThemeSectionProps&{variant?:string}){const C=variants[variant as keyof typeof variants]||CertificatesDefault;return <C {...props}/>;}

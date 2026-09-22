@@ -1,2 +1,2 @@
-import { makeThemeSection } from "../../../shared/section-factory";
-export const Default = makeThemeSection("experience"); export const Alternate = makeThemeSection("experience"); export default Default;
+import type { ThemeSectionProps } from "../../../types"; import { ExperienceDefault } from "./ExperienceDefault"; import { ExperienceAlt } from "./ExperienceAlt";
+export const variants={default:ExperienceDefault,alt:ExperienceAlt} as const; export function Experience({variant="default",...props}:ThemeSectionProps&{variant?:string}){const C=variants[variant as keyof typeof variants]||ExperienceDefault;return <C {...props}/>;}

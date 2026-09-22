@@ -1,0 +1,2 @@
+import type { ThemeSectionProps } from "../../../types";
+export function HeroDefault({ config }: ThemeSectionProps) { return <section id="hero" className="mx-auto max-w-6xl px-6 py-28"><p className="mb-5 text-sm uppercase tracking-[.25em] text-blue-600">Portfolio</p><h1 className="max-w-4xl font-[var(--theme-font-display)] text-5xl font-semibold tracking-tight md:text-7xl">{config.headline || config.name || "Creative work, clearly presented."}</h1>{config.about && <p className="mt-8 max-w-2xl whitespace-pre-line text-lg leading-8 opacity-70">{config.about}</p>}</section>; }

@@ -88,7 +88,13 @@ export async function finalizePortfolioAction(input: unknown) {
       existingData?.componentSelection,
     );
     const savedPrefs = asDesignPreferences(existingData?.designPreferences);
-    const alreadyDesigned = savedSelection !== null;
+    const savedThemeId =
+      existingData?.designPreferences &&
+      typeof existingData.designPreferences === "object"
+        ? ((existingData.designPreferences as Record<string, unknown>).themeId ??
+          (existingData.designPreferences as Record<string, unknown>).designDna)
+        : undefined;
+    const alreadyDesigned = savedSelection !== null || typeof savedThemeId === "string";
 
     let componentSelection: ComponentSelection = data.componentSelection;
     let designPreferences: DesignPreferences = data.designPreferences;

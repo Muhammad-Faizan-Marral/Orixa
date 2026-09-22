@@ -1,2 +1,2 @@
-import { makeThemeSection } from "../../../shared/section-factory";
-export const Default = makeThemeSection("education"); export const Alternate = makeThemeSection("education"); export default Default;
+import type { ThemeSectionProps } from "../../../types"; import { EducationDefault } from "./EducationDefault"; import { EducationAlt } from "./EducationAlt";
+export const variants={default:EducationDefault,alt:EducationAlt} as const; export function Education({variant="default",...props}:ThemeSectionProps&{variant?:string}){const C=variants[variant as keyof typeof variants]||EducationDefault;return <C {...props}/>;}

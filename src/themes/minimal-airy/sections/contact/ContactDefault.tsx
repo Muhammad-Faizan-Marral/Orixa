@@ -1,0 +1,2 @@
+import type { ThemeSectionProps } from "../../../types";
+export function ContactDefault({config}:ThemeSectionProps){return <section id="contact" className="mx-auto max-w-6xl px-6 py-24"><h2 className="text-4xl font-semibold">Let’s work together.</h2><div className="mt-6 flex flex-wrap gap-5 text-sm">{config.linkedinUrl&&<a className="underline" href={config.linkedinUrl}>LinkedIn</a>}{config.githubUrl&&<a className="underline" href={config.githubUrl}>GitHub</a>}{config.phone&&<span>{config.phone}</span>}</div></section>;}

@@ -1,0 +1,2 @@
+import type { ThemeSectionProps } from "../../../types";
+export function SkillsDefault({ config }: ThemeSectionProps) { if (!config.skills?.length) return null; return <section id="skills" className="mx-auto max-w-6xl px-6 py-20"><h2 className="text-3xl font-semibold">Skills</h2><div className="mt-8 flex flex-wrap gap-3">{config.skills.map(skill=><span key={skill.id||skill.name} className="border border-slate-200 px-4 py-2 text-sm">{skill.name}</span>)}</div></section>; }

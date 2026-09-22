@@ -1,0 +1,2 @@
+import type { ThemeSectionProps } from "../../../types";
+export function ProjectsAlt({config}:ThemeSectionProps){if(!config.projects?.length)return null;return <section id="projects" className="mx-auto max-w-5xl px-6 py-16"><h2 className="text-xs uppercase tracking-[.25em] text-blue-600">Projects</h2><div className="mt-6 divide-y divide-slate-200">{config.projects.map(project=><article key={project.id||project.title} className="py-5"><h3 className="text-2xl font-medium">{project.title}</h3><p className="mt-2 opacity-60">{project.description}</p></article>)}</div></section>;}

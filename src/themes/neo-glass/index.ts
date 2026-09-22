@@ -1,3 +1,2 @@
-import { getTheme } from "../registry";
-export const neoGlassTheme = getTheme("neo-glass");
-export default neoGlassTheme;
+import type { ThemeDefinition } from "../types"; import { ThemePage } from "./ThemePage"; import { tokens } from "./tokens";
+export default {id:"neo-glass",name:"Neo Glass",description:"Layered contrast and translucent rhythm.",premium:true,tokens,defaults:{navbar:"default",hero:"default",about:"default",skills:"default",projects:"default",experience:"default",education:"default",certificates:"default",contact:"default",footer:"default"},variants:{navbar:["default","alt"],hero:["default","alt"],about:["default","alt"],skills:["default","alt"],projects:["default","alt"],experience:["default","alt"],education:["default","alt"],certificates:["default","alt"],contact:["default","alt"],footer:["default","alt"]},ThemePage} satisfies ThemeDefinition;

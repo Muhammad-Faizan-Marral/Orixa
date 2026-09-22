@@ -1,0 +1,2 @@
+import type { ThemeSectionProps } from "../../../types";
+export function SkillsAlt({ config }: ThemeSectionProps) { if (!config.skills?.length) return null; return <section id="skills" className="mx-auto max-w-5xl px-6 py-16"><h2 className="text-xs uppercase tracking-[.25em] text-blue-600">Capabilities</h2><ul className="mt-6 grid gap-2 md:grid-cols-2">{config.skills.map(skill=><li key={skill.id||skill.name} className="border-b border-slate-200 py-3 text-lg">{skill.name}<span className="float-right text-sm opacity-50">{skill.level}</span></li>)}</ul></section>; }

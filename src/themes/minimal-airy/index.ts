@@ -1,3 +1,36 @@
-import { getTheme } from "../registry";
-export const minimalAiryTheme = getTheme("minimal-airy");
+import type { ThemeDefinition } from "../types";
+import { ThemePage } from "./ThemePage";
+import { tokens } from "./tokens";
+export const minimalAiryTheme: ThemeDefinition = {
+  id: "minimal-airy",
+  name: "Minimal Airy",
+  description: "Quiet spacing and clear typography.",
+  premium: false,
+  tokens,
+  defaults: {
+    navbar: "default",
+    hero: "default",
+    about: "default",
+    skills: "default",
+    projects: "default",
+    experience: "default",
+    education: "default",
+    certificates: "default",
+    contact: "default",
+    footer: "default",
+  },
+  variants: {
+    navbar: ["default", "alt"],
+    hero: ["default", "alt"],
+    about: ["default", "alt"],
+    skills: ["default", "alt"],
+    projects: ["default", "alt"],
+    experience: ["default", "alt"],
+    education: ["default", "alt"],
+    certificates: ["default", "alt"],
+    contact: ["default", "alt"],
+    footer: ["default", "alt"],
+  },
+  ThemePage,
+};
 export default minimalAiryTheme;

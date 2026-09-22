@@ -32,7 +32,7 @@ export async function savePortfolioDesign(input: {
   try {
     await requireUser();
     const profile = await requireProfile();
-    const { isPremiumActive, isPremiumDna } =
+    const { isPremiumActive, isPremiumTheme } =
       await import("@/constants/billing");
 
     const premium = isPremiumActive({
@@ -41,7 +41,7 @@ export async function savePortfolioDesign(input: {
     });
 
     const dna = (input.designPreferences?.themeId ?? input.designPreferences?.designDna) as string | undefined;
-    if (dna && isPremiumDna(dna) && !premium) {
+    if (dna && isPremiumTheme(dna) && !premium) {
       return {
         success: false,
         message:

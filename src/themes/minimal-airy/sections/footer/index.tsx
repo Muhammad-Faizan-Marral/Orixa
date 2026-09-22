@@ -1,2 +1,1 @@
-import { makeThemeSection } from "../../../shared/section-factory";
-export const Default = makeThemeSection("footer"); export const Alternate = makeThemeSection("footer"); export default Default;
+import type { ThemeSectionProps } from "../../../types"; import { FooterDefault } from "./FooterDefault"; import { FooterAlt } from "./FooterAlt"; export const variants={default:FooterDefault,alt:FooterAlt} as const; export function Footer({variant="default",...props}:ThemeSectionProps&{variant?:string}){const C=variants[variant as keyof typeof variants]||FooterDefault;return <C {...props}/>;}

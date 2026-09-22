@@ -1,2 +1,1 @@
-import { makeThemeSection } from "../../../shared/section-factory";
-export const Default = makeThemeSection("hero"); export const Alternate = makeThemeSection("hero"); export default Default;
+import type { ThemeSectionProps } from "../../../types"; import { HeroDefault } from "./HeroDefault"; import { HeroAlt } from "./HeroAlt"; export const variants={default:HeroDefault,alt:HeroAlt} as const; export function Hero({variant="default",...props}:ThemeSectionProps&{variant?:string}){const C=variants[variant as keyof typeof variants]||HeroDefault;return <C {...props}/>;}

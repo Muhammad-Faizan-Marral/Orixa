@@ -1,0 +1,2 @@
+import type { ThemeSectionProps } from "../../../types";
+export function HeroAlt({ config }: ThemeSectionProps) { return <section id="hero" className="mx-auto max-w-5xl px-6 py-20 text-center"><h1 className="font-[var(--theme-font-display)] text-4xl font-bold md:text-6xl">{config.name || "Hello, I’m a creative professional."}</h1><p className="mx-auto mt-6 max-w-xl text-base leading-7 opacity-70">{config.headline || config.about || "Selected work, experience, and ideas."}</p></section>; }

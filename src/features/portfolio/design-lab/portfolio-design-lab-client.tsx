@@ -4,12 +4,7 @@ import { useCallback, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { DesignEngine } from "@/portfolio-renderer/DesignEngine";
-import {
-  SECTION_VARIANTS,
-  DEFAULT_COMPONENT_SELECTION,
-  DEFAULT_DESIGN_PREFERENCES,
-  type ComponentSelection,
-} from "@/features/portfolio/component-variants";
+import { DEFAULT_COMPONENT_SELECTION, DEFAULT_DESIGN_PREFERENCES, type ComponentSelection } from "@/features/portfolio/component-variants";
 import { getThemeIdFromPreferences, getSectionVariantsForTheme, listThemesForLab, normalizeSelectionForTheme } from "@/themes/lab-helpers";
 import { getTheme } from "@/themes/registry";
 import type { ThemeId } from "@/themes/types";
@@ -24,21 +19,8 @@ import { isPremiumTheme } from "@/constants/billing";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type SectionKey = keyof typeof SECTION_VARIANTS;
-const SECTION_KEYS = Object.keys(SECTION_VARIANTS) as SectionKey[];
-
-const PRESET_COLORS = [
-  "#6c5cff",
-  "#22d3ee",
-  "#34d399",
-  "#fbbf24",
-  "#fb7185",
-  "#a78bfa",
-  "#3b82f6",
-  "#f97316",
-  "#e4e4e7",
-  "#000000",
-];
+type SectionKey = keyof ComponentSelection;
+const SECTION_KEYS = Object.keys(DEFAULT_COMPONENT_SELECTION) as SectionKey[];
 
 type Props = {
   portfolioId: string;
@@ -112,15 +94,6 @@ portfolioId,
   // ── Design state ────────────────────────────────────────────────────────────
 
   const [dna, setDna] = useState<ThemeId>(getThemeIdFromPreferences(initialPrefs));
-  const [themeMode, setThemeMode] = useState<"light" | "dark">(
-    initialPrefs.themeMode === "light" ? "light" : "dark",
-  );
-  const [accentColor, setAccentColor] = useState(
-    initialPrefs.accentColor || "#6c5cff",
-  );
-  const [customHex, setCustomHex] = useState(
-    initialPrefs.accentColor || "#6c5cff",
-  );
   const [variantOverrides, setVariantOverrides] = useState<
     Partial<Record<SectionKey, string>>
   >(() => {
@@ -131,6 +104,7 @@ portfolioId,
     }
     return o;
   });
+  const [activeSection, setActiveSection] = useState<SectionKey>("hero");
   // ── Derived config ──────────────────────────────────────────────────────────
 
   const contentOnly = useMemo(() => {
@@ -161,11 +135,11 @@ portfolioId,
       themeId: dna,
       designDna: dna,
       themeMode: getTheme(dna).tokens.themeMode,
-      accentColor: accentColor || getTheme(dna).tokens.accentColor,
+      accentColor: getTheme(dna).tokens.accentColor,
       fontFamily: getTheme(dna).tokens.fontSans,
       sectionVariants: Object.fromEntries(Object.entries(componentSelection).map(([key, value]) => [key, value.variant])),
     }),
-    [initialPrefs, componentSelection, dna, accentColor],
+    [initialPrefs, componentSelection, dna],
   );
 
   const liveConfig: PortfolioRenderConfig = useMemo(
@@ -178,27 +152,11 @@ portfolioId,
   const applyDna = (next: ThemeId) => {
     setDna(next);
     setVariantOverrides({});
-    setThemeMode(getTheme(next).tokens.themeMode);
-  };
-
-  const applyHex = (hex: string) => {
-    const cleaned = hex.trim();
-    if (/^#[0-9A-Fa-f]{6}$/.test(cleaned)) {
-      setAccentColor(cleaned);
-      setCustomHex(cleaned);
-    } else if (/^[0-9A-Fa-f]{6}$/.test(cleaned)) {
-      setAccentColor(`#${cleaned}`);
-      setCustomHex(`#${cleaned}`);
-    } else {
-      setCustomHex(cleaned);
-    }
+    
   };
 
   const handleReset = () => {
     setDna(getThemeIdFromPreferences(initialPrefs));
-    setThemeMode(initialPrefs.themeMode === "light" ? "light" : "dark");
-    setAccentColor(initialPrefs.accentColor || "#6c5cff");
-    setCustomHex(initialPrefs.accentColor || "#6c5cff");
     const o: Partial<Record<SectionKey, string>> = {};
     for (const key of SECTION_KEYS) {
       const v = initialSelection[key]?.variant;
@@ -241,9 +199,9 @@ portfolioId,
 
   const ControlsContent = (
     <div className="space-y-5 p-4 pb-6">
-      {/* Design DNA */}
+      {/* Theme */}
       <div>
-        <SectionLabel>Design DNA</SectionLabel>
+        <SectionLabel>Theme ecosystem</SectionLabel>
                <div className="flex flex-wrap gap-1.5">
           {listThemesForLab(isPremium).map((theme) => {
             const d = theme.id;
@@ -283,70 +241,7 @@ portfolioId,
 
       <Divider />
 
-      {/* Theme Mode */}
-      <div>
-        <SectionLabel>Theme Mode</SectionLabel>
-        <div className="grid grid-cols-2 gap-2">
-          {(["dark", "light"] as const).map((m) => (
-            <button
-              key={m}
-              type="button"
-              onClick={() => setThemeMode(m)}
-              className={`flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-medium transition-all ${
-                themeMode === m
-                  ? "bg-white text-zinc-900 shadow-sm"
-                  : "bg-zinc-800/80 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
-              }`}
-            >
-              <span>{m === "dark" ? "🌙" : "☀️"}</span>
-              <span className="capitalize">{m}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <Divider />
-
-      {/* Accent Color */}
-      <div>
-        <SectionLabel>Accent color</SectionLabel>
-        <div className="mb-3 flex flex-wrap gap-2">
-          {PRESET_COLORS.map((c) => (
-            <button
-              key={c}
-              type="button"
-              title={c}
-              onClick={() => applyHex(c)}
-              className={`h-7 w-7 rounded-full border-2 transition-all ${
-                accentColor.toLowerCase() === c.toLowerCase()
-                  ? "scale-110 border-white shadow-lg"
-                  : "border-transparent hover:scale-105 hover:border-zinc-600"
-              }`}
-              style={{ backgroundColor: c }}
-            />
-          ))}
-        </div>
-        <div className="flex gap-2">
-          <input
-            type="color"
-            value={
-              /^#[0-9A-Fa-f]{6}$/.test(accentColor) ? accentColor : "#6c5cff"
-            }
-            onChange={(e) => applyHex(e.target.value)}
-            className="h-9 w-11 shrink-0 cursor-pointer rounded-lg border border-zinc-700 bg-zinc-900 p-1"
-          />
-          <input
-            value={customHex}
-            onChange={(e) => applyHex(e.target.value)}
-            placeholder="#6c5cff"
-            className="min-w-0 flex-1 rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-2 font-mono text-xs text-zinc-200 placeholder:text-zinc-600 focus:border-violet-500 focus:outline-none"
-          />
-        </div>
-      </div>
-
-      <Divider />
-
-      {/* Section Variants */}
+      {/* Current theme section variants */}
       <div>
         <div className="mb-2 flex items-center justify-between">
           <SectionLabel>Section variants</SectionLabel>
@@ -358,35 +253,18 @@ portfolioId,
             DNA defaults
           </button>
         </div>
-        <div className="space-y-2">
-          {SECTION_KEYS.map((key) => {
-            const current =
-              variantOverrides[key] ?? componentSelection[key]?.variant ?? "";
-            const options = getSectionVariantsForTheme(dna, key);
-            return (
-              <div key={key} className="flex items-center gap-2">
-                <span className="w-[4.5rem] shrink-0 text-[10px] capitalize text-zinc-500">
-                  {key}
-                </span>
-                <select
-                  value={current}
-                  onChange={(e) =>
-                    setVariantOverrides((prev) => ({
-                      ...prev,
-                      [key]: e.target.value,
-                    }))
-                  }
-                  className="min-w-0 flex-1 rounded-lg border border-zinc-700 bg-zinc-900 px-2 py-1.5 text-[11px] text-zinc-300 focus:border-violet-500 focus:outline-none"
-                >
-                  {options.map((v) => (
-                    <option key={v} value={v}>
-                      {v}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            );
-          })}
+        <div className="mb-3 flex flex-wrap gap-1.5">
+          {SECTION_KEYS.map((key) => <button key={key} type="button" onClick={() => setActiveSection(key)} className={`rounded-lg px-2 py-1 text-[10px] capitalize ${activeSection === key ? "bg-violet-600 text-white" : "bg-zinc-800 text-zinc-400"}`}>{key}</button>)}
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="w-[4.5rem] shrink-0 text-[10px] capitalize text-zinc-500">{activeSection}</span>
+          <select
+            value={variantOverrides[activeSection] ?? componentSelection[activeSection]?.variant ?? ""}
+            onChange={(e) => setVariantOverrides((prev) => ({ ...prev, [activeSection]: e.target.value }))}
+            className="min-w-0 flex-1 rounded-lg border border-zinc-700 bg-zinc-900 px-2 py-1.5 text-[11px] text-zinc-300 focus:border-violet-500 focus:outline-none"
+          >
+            {getSectionVariantsForTheme(dna, activeSection).map((variant) => <option key={variant} value={variant}>{variant}</option>)}
+          </select>
         </div>
       </div>
 

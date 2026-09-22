@@ -1,0 +1,2 @@
+import type { ThemeSectionProps } from "../../../types";
+export function EducationAlt({config}:ThemeSectionProps){if(!config.education?.length)return null;return <section id="education" className="mx-auto max-w-5xl px-6 py-16"><h2 className="text-xs uppercase tracking-[.25em] text-blue-600">Learning</h2>{config.education.map(item=><p key={item.id||item.institution} className="mt-5 border-b border-slate-200 pb-4 text-lg">{item.degree||item.field} · {item.institution}</p>)}</section>;}

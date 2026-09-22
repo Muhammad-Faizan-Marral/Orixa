@@ -1,3 +1,2 @@
-import { getTheme } from "../registry";
-export const techDenseTheme = getTheme("tech-dense");
-export default techDenseTheme;
+import type { ThemeDefinition } from "../types"; import { ThemePage } from "./ThemePage"; import { tokens } from "./tokens";
+export default {id:"tech-dense",name:"Tech Dense",description:"Structured technical portfolio.",premium:false,tokens,defaults:{navbar:"default",hero:"default",about:"default",skills:"default",projects:"default",experience:"default",education:"default",certificates:"default",contact:"default",footer:"default"},variants:{navbar:["default","alt"],hero:["default","alt"],about:["default","alt"],skills:["default","alt"],projects:["default","alt"],experience:["default","alt"],education:["default","alt"],certificates:["default","alt"],contact:["default","alt"],footer:["default","alt"]},ThemePage} satisfies ThemeDefinition;

@@ -1,2 +1,2 @@
-import { makeThemeSection } from "../../../shared/section-factory";
-export const Default = makeThemeSection("projects"); export const Alternate = makeThemeSection("projects"); export default Default;
+import type { ThemeSectionProps } from "../../../types"; import { ProjectsDefault } from "./ProjectsDefault"; import { ProjectsAlt } from "./ProjectsAlt";
+export const variants={default:ProjectsDefault,alt:ProjectsAlt} as const; export function Projects({variant="default",...props}:ThemeSectionProps&{variant?:string}){const C=variants[variant as keyof typeof variants]||ProjectsDefault;return <C {...props}/>;}

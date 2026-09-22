@@ -1,0 +1,2 @@
+import type { ThemeSectionProps } from "../../../types";
+export function AboutAlt({ config }: ThemeSectionProps) { if (!config.about) return null; return <section id="about" className="mx-auto max-w-5xl px-6 py-16"><div className="border-l-4 border-blue-500 pl-6"><h2 className="text-3xl font-semibold">A little context</h2><p className="mt-5 max-w-2xl whitespace-pre-line leading-8 opacity-70">{config.about}</p></div></section>; }
