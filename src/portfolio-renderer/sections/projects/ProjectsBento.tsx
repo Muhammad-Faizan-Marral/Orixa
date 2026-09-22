@@ -5,7 +5,8 @@ import type {
   RendererDesignPreferences,
   RendererProject,
 } from "../../types";
-import { cardClass } from "../../theme";
+import { cardClass } from "@/portfolio-renderer/theme";
+
 
 type Props = {
   projects: RendererProject[];
@@ -47,7 +48,7 @@ export function ProjectsBento({ projects, design }: Props) {
   const valid = projects.filter((p) => p.title?.trim());
   if (!valid.length) return null;
 
-  const card = cardClass(design?.cardStyle);
+  const card = cardClass();
 
   return (
     <div className="w-full">

@@ -473,6 +473,8 @@ export class PortfolioRepository {
           username: profiles.username,
           fullName: profiles.fullName,
           avatarUrl: profiles.avatarUrl,
+          isPremium: profiles.isPremium,
+          premiumUntil: profiles.premiumUntil,
         },
       })
       .from(portfolios)

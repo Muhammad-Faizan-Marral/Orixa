@@ -2,7 +2,8 @@
 
 import { motion,Variants } from "framer-motion";
 import type { RendererSkill } from "../../types";
-import { cardClass } from "../../theme";
+import { cardClass } from "@/portfolio-renderer/theme";
+
 
 type Props = {
   skills: RendererSkill[];
@@ -40,7 +41,7 @@ export function SkillsCards({ skills }: Props) {
   const valid = skills.filter((s) => s.name?.trim());
   if (!valid.length) return null;
 
-  const card = cardClass("bordered");
+  const card = cardClass();
 
   return (
     <div className="w-full">

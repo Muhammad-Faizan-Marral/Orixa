@@ -1,1 +1,3 @@
-export function cardClass(): string { return "rounded-xl border border-current/15 p-5"; }
+export function cardClass(): string {
+  return "rounded-xl border border-current/15 p-5";
+}

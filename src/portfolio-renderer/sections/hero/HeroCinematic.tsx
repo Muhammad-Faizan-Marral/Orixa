@@ -30,9 +30,13 @@ import type { PortfolioRenderConfig, PublicProfileMeta } from "../../types";
    STAT CALCULATION
 ═══════════════════════════════════════════════════════════════════════════ */
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   STAT CALCULATION
+═══════════════════════════════════════════════════════════════════════════ */
+
 type Stat = { value: string; label: string };
 
-function parseConfigDate(s: string): Date | null {
+function parseConfigDate(s?: string): Date | null {
   if (!s?.trim()) return null;
   const p = s.trim().split("-");
   const year = parseInt(p[0], 10);
@@ -43,11 +47,10 @@ function parseConfigDate(s: string): Date | null {
 }
 
 function calcExperienceStat(
-  exp?: Array<{ startDate: string; [k: string]: unknown }>
+  exp?: Array<{ startDate?: string; [k: string]: unknown }>
 ): Stat | null {
   if (!exp?.length) return null;
   const dates = exp
-    .filter((e) => e.startDate)
     .map((e) => parseConfigDate(e.startDate))
     .filter((d): d is Date => d !== null);
   if (!dates.length) return null;
@@ -64,7 +67,7 @@ function calcExperienceStat(
 }
 
 function calcProjectsStat(
-  projects?: Array<{ id: string; [k: string]: unknown }>
+  projects?: Array<{ id?: string; [k: string]: unknown }>
 ): Stat | null {
   if (!projects?.length) return null;
   return { value: `${projects.length}+`, label: "Projects" };

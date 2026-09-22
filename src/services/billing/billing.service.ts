@@ -33,7 +33,6 @@ export class BillingService {
         params.successUrl ??
         `${appUrl}/dashboard?checkout=success&checkout_id={CHECKOUT_ID}`,
       customerEmail: params.email,
-      customerExternalId: params.userId,
       metadata: {
         userId: params.userId,
         productKey: params.productKey,
@@ -123,12 +122,17 @@ export class BillingService {
    * Called when a user publishes their first portfolio.
    * Credits the referrer once (idempotent via referralCreditedAt).
    */
-   async creditReferralOnFirstPublish(profileId: string) {
+  async creditReferralOnFirstPublish(profileId: string) {
     const profile = await profileRepository.findById(profileId);
+    const referralCreditedAt = (
+      profile as
+        | (typeof profile & { referralCreditedAt?: string | null })
+        | null
+    )?.referralCreditedAt;
     console.log("[referral] creditReferralOnFirstPublish", {
       profileId,
       referredBy: profile?.referredBy ?? null,
-      referralCreditedAt: profile?.referralCreditedAt ?? null,
+      referralCreditedAt: referralCreditedAt ?? null,
     });
 
     if (!profile) return;
@@ -136,19 +140,18 @@ export class BillingService {
       console.log("[referral] skip — no referredBy on profile");
       return;
     }
-    if (profile.referralCreditedAt) {
+    if (referralCreditedAt) {
       console.log("[referral] skip — already credited");
       return;
     }
 
     await profileRepository.updateById(profileId, {
       referralCreditedAt: new Date().toISOString(),
-    });
+    } as unknown as Parameters<typeof profileRepository.updateById>[1]);
 
     await this.recordSuccessfulReferral(profile.referredBy);
     console.log("[referral] credited referrer", profile.referredBy);
   }
-  
 }
 
 export const billingService = new BillingService();

@@ -1,8 +1,8 @@
 "use client"
 import { trackProjectClick } from "@/features/portfolio/components/use-portfolio-events";
 import { SectionHeading } from "../../shared/SectionHeading";
-import { cardClass } from "../../theme";
 import type { RendererDesignPreferences, RendererProject } from "../../types";
+import { cardClass } from "@/portfolio-renderer/theme";
 
 export function ProjectsCards({ projects, design, portfolioId}: { projects: RendererProject[]; design?: RendererDesignPreferences; portfolioId?: string;}) {
   if (!projects?.length) return null;
@@ -14,7 +14,7 @@ export function ProjectsCards({ projects, design, portfolioId}: { projects: Rend
         {projects.map((p, i) => (
           <article
             key={p.id || `${p.title}-${i}`}
-            className={`overflow-hidden ${cardClass(design?.cardStyle)}`}
+            className={`overflow-hidden ${cardClass()}`}
             style={{ borderRadius: "var(--pr-radius, 12px)" }}
           >
             {p.imageUrl && (

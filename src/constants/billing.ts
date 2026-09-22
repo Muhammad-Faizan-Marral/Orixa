@@ -39,6 +39,7 @@ export function getPortfolioLimit(isPremium: boolean): number {
 }
 
 export function isPremiumActive(profile: {
+  
   isPremium: boolean;
   premiumUntil: string | null;
 }): boolean {

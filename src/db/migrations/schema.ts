@@ -34,7 +34,11 @@ export const profiles = pgTable(
     headline: text(),
     bio: text(),
     location: text(),
+    
     avatarUrl: text("avatar_url"),
+    referredBy: text("referred_by"),
+  referralCode: text("referral_code"),
+  referralCreditedAt: text("referral_credited_at"),
     createdAt: timestamp("created_at", { mode: "string" })
       .defaultNow()
       .notNull(),
