@@ -62,22 +62,10 @@ export class PortfolioService {
     "@/constants/billing"
   );
 
-  const ownerProfile = await profileRepository.findByUserId(profileId);
+  const ownerProfile = await profileRepository.findById(profileId);
 
-  if (ownerProfile) {
-    const active = isPremiumActive(ownerProfile);
-    const limit = getPortfolioLimit(active);
-    const currentPortfolios =
-      await portfolioRepository.findByProfileId(profileId);
-
-    if (currentPortfolios.length >= limit) {
-      throw new Error(
-        active
-          ? `You have reached the premium limit of ${limit} portfolios.`
-          : `Free plan allows only ${limit} portfolio. Upgrade to Premium to create more.`,
-      );
-    }
-  }
+  const active = ownerProfile ? isPremiumActive(ownerProfile) : false;
+  const limit = getPortfolioLimit(active);
 
   const existing = await portfolioRepository.findByProfileAndSlug(
     profileId,
@@ -88,7 +76,7 @@ export class PortfolioService {
     throw new Error("This portfolio slug is already in use.");
   }
 
-  return portfolioRepository.create(profileId, {
+  return portfolioRepository.createWithLimit(profileId, limit, {
     title: data.title,
     slug: data.slug,
     headline: data.headline,

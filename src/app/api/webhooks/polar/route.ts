@@ -1,14 +1,23 @@
 import { Webhooks } from "@polar-sh/nextjs";
-import { eq } from "drizzle-orm";
-
-import { db } from "@/db";
-import { profiles } from "@/db/schema";
 import { billingService } from "@/services/billing/billing.service";
 
 function metadataUserId(metadata: unknown) {
   if (!metadata || typeof metadata !== "object") return undefined;
   const userId = (metadata as Record<string, unknown>).userId;
   return typeof userId === "string" ? userId : undefined;
+}
+
+function metadataProductKey(metadata: unknown) {
+  if (!metadata || typeof metadata !== "object") return null;
+  const productKey = (metadata as Record<string, unknown>).productKey;
+  return productKey === "monthly" || productKey === "yearly" ? productKey : null;
+}
+
+function addBillingPeriod(productKey: "monthly" | "yearly") {
+  const until = new Date();
+  if (productKey === "monthly") until.setMonth(until.getMonth() + 1);
+  else until.setFullYear(until.getFullYear() + 1);
+  return until.toISOString();
 }
 
 export const POST = Webhooks({
@@ -29,13 +38,21 @@ export const POST = Webhooks({
       return;
     }
 
+    const premiumUntil = order.subscription?.currentPeriodEnd
+      ? order.subscription.currentPeriodEnd.toISOString()
+      : metadataProductKey(order.metadata)
+        ? addBillingPeriod(metadataProductKey(order.metadata)!)
+        : null;
+    if (!premiumUntil) {
+      console.error("[Polar] order.paid missing subscription expiry");
+      return;
+    }
+
     await billingService.activatePremium({
       userId,
       polarCustomerId: order.customer?.id ?? null,
       polarSubscriptionId: order.subscriptionId,
-      premiumUntil: order.subscription?.currentPeriodEnd
-        ? order.subscription.currentPeriodEnd.toISOString()
-        : null,
+      premiumUntil,
     });
 
     console.log(`[Polar] order.paid → premium activated for user ${userId}`);
@@ -87,15 +104,7 @@ export const POST = Webhooks({
 
     if (!userId) return;
 
-    if (sub.currentPeriodEnd) {
-      await db
-        .update(profiles)
-        .set({
-          premiumUntil: new Date(sub.currentPeriodEnd).toISOString(),
-          updatedAt: new Date().toISOString(),
-        })
-        .where(eq(profiles.userId, userId));
-    }
+    await billingService.deactivatePremium(userId);
 
     console.log(`[Polar] subscription.canceled → ${userId}`);
   },

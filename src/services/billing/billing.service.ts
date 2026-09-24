@@ -10,6 +10,24 @@ import {
 } from "@/constants/billing";
 import { profileRepository } from "@/repositories/profile.repository";
 
+type ProductKey = "monthly" | "yearly";
+
+function addBillingPeriod(productKey: ProductKey, from = new Date()) {
+  const until = new Date(from);
+  if (productKey === "monthly") {
+    until.setMonth(until.getMonth() + 1);
+  } else {
+    until.setFullYear(until.getFullYear() + 1);
+  }
+  return until.toISOString();
+}
+
+function metadataString(metadata: unknown, key: string) {
+  if (!metadata || typeof metadata !== "object") return null;
+  const value = (metadata as Record<string, unknown>)[key];
+  return typeof value === "string" ? value : null;
+}
+
 export class BillingService {
   async createCheckout(params: {
     userId: string;
@@ -48,9 +66,13 @@ export class BillingService {
     polarSubscriptionId?: string | null;
     premiumUntil?: string | null;
   }) {
+    if (!params.premiumUntil) {
+      throw new Error("Premium activation requires an expiry date.");
+    }
+
     await profileRepository.update(params.userId, {
       isPremium: true,
-      premiumUntil: params.premiumUntil ?? null,
+      premiumUntil: params.premiumUntil,
       polarCustomerId: params.polarCustomerId ?? undefined,
       polarSubscriptionId: params.polarSubscriptionId ?? undefined,
     });
@@ -75,6 +97,15 @@ export class BillingService {
       premiumUntil = subscription.currentPeriodEnd.toISOString();
     }
 
+    const productKey = metadataString(checkout.metadata, "productKey");
+    if (!premiumUntil && (productKey === "monthly" || productKey === "yearly")) {
+      premiumUntil = addBillingPeriod(productKey);
+    }
+
+    if (!premiumUntil) {
+      throw new Error("Unable to determine Premium expiry.");
+    }
+
     await this.activatePremium({
       userId,
       polarCustomerId: checkout.customerId,
@@ -88,6 +119,7 @@ export class BillingService {
       isPremium: false,
       premiumUntil: null,
       polarSubscriptionId: null,
+      successfulReferrals: 0,
     });
   }
 

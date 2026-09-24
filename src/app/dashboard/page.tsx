@@ -7,6 +7,7 @@ import { UpgradeCard } from "@/components/dashboard/upgrade-card";
 import { ReferralCard } from "@/components/dashboard/referral-card";
 import { isPremiumActive } from "@/constants/billing";
 import { billingService } from "@/services/billing/billing.service";
+import { profileRepository } from "@/repositories/profile.repository";
 import { Button } from "@/components/UI/Button";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { PortfolioCard } from "@/components/dashboard/portfolio-card";
@@ -34,7 +35,7 @@ export default async function DashboardPage({
 }: {
   searchParams: Promise<{ checkout?: string; checkout_id?: string }>;
 }) {
-  const profile = await requireProfile();
+  let profile = await requireProfile();
   const params = await searchParams;
   if (params.checkout === "success" && params.checkout_id) {
     try {
@@ -42,6 +43,7 @@ export default async function DashboardPage({
         profile.userId,
         params.checkout_id,
       );
+      profile = (await profileRepository.findByUserId(profile.userId)) ?? profile;
     } catch (error) {
       console.error("[dashboard] checkout activation failed", error);
     }

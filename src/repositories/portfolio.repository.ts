@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, count, desc, eq, sql } from "drizzle-orm";
 
 import { db } from "@/db";
 import {
@@ -75,8 +75,30 @@ export class PortfolioRepository {
     return result ?? null;
   }
 
-  async create(profileId: string, data: CreatePortfolioInput) {
+
+  async createWithLimit(
+    profileId: string,
+    limit: number,
+    data: CreatePortfolioInput,
+  ) {
     return db.transaction(async (tx) => {
+      await tx.execute(
+        sql`select id from ${profiles} where id = ${profileId} for update`,
+      );
+
+      const [{ portfolioCount }] = await tx
+        .select({ portfolioCount: count() })
+        .from(portfolios)
+        .where(eq(portfolios.profileId, profileId));
+
+      if (portfolioCount >= limit) {
+        throw new Error(
+          limit === 1
+            ? "Free plan allows only 1 portfolio. Upgrade to Premium to create more."
+            : `You have reached the premium limit of ${limit} portfolios.`,
+        );
+      }
+
       const [portfolio] = await tx
         .insert(portfolios)
         .values({
@@ -88,9 +110,7 @@ export class PortfolioRepository {
         })
         .returning();
 
-      if (!portfolio) {
-        throw new Error("Unable to create portfolio.");
-      }
+      if (!portfolio) throw new Error("Unable to create portfolio.");
 
       await tx.insert(portfolioData).values({
         portfolioId: portfolio.id,
@@ -102,7 +122,6 @@ export class PortfolioRepository {
         githubUrl: null,
         headline: data.headline || null,
         about: data.about || null,
-        
         animations: true,
         projects: [],
         experience: [],
