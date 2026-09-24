@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { requireProfile } from "@/lib/auth/require-profile";
 import { portfolioService } from "@/services/portfolio/portfolio.service";
+import { billingService } from "@/services/billing/billing.service";
 
 import { Button } from "@/components/UI/Button";
 import { PortfolioCard } from "@/components/dashboard/portfolio-card";
@@ -9,6 +10,7 @@ import { PortfolioCard } from "@/components/dashboard/portfolio-card";
 export default async function PortfoliosPage() {
   const profile = await requireProfile();
   const portfolios = await portfolioService.getUserPortfolios(profile.id);
+  const canCreate = portfolios.length < billingService.getLimits(profile).portfolioLimit;
 
   const sorted = [...portfolios].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
 
@@ -25,9 +27,15 @@ export default async function PortfoliosPage() {
           </p>
         </div>
 
-        <Link href="/dashboard/portfolios/new">
-          <Button variant="gradient">+ Create portfolio</Button>
-        </Link>
+        {canCreate ? (
+          <Link href="/dashboard/portfolios/new">
+            <Button variant="gradient">+ Create portfolio</Button>
+          </Link>
+        ) : (
+          <p className="text-small max-w-xs text-right text-muted-foreground">
+            Free plan allows one portfolio. Upgrade to Premium to create more.
+          </p>
+        )}
       </header>
 
       {portfolios.length === 0 ? (

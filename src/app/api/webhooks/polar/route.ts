@@ -5,6 +5,12 @@ import { db } from "@/db";
 import { profiles } from "@/db/schema";
 import { billingService } from "@/services/billing/billing.service";
 
+function metadataUserId(metadata: unknown) {
+  if (!metadata || typeof metadata !== "object") return undefined;
+  const userId = (metadata as Record<string, unknown>).userId;
+  return typeof userId === "string" ? userId : undefined;
+}
+
 export const POST = Webhooks({
   webhookSecret: process.env.POLAR_WEBHOOK_SECRET!,
 
@@ -16,7 +22,7 @@ export const POST = Webhooks({
     const order = payload.data;
     const userId =
       order.customer?.externalId ||
-      (order.metadata as any)?.userId;
+      metadataUserId(order.metadata);
 
     if (!userId) {
       console.warn("[Polar] order.paid missing externalId / userId");
@@ -26,7 +32,10 @@ export const POST = Webhooks({
     await billingService.activatePremium({
       userId,
       polarCustomerId: order.customer?.id ?? null,
-      premiumUntil: null,
+      polarSubscriptionId: order.subscriptionId,
+      premiumUntil: order.subscription?.currentPeriodEnd
+        ? order.subscription.currentPeriodEnd.toISOString()
+        : null,
     });
 
     console.log(`[Polar] order.paid → premium activated for user ${userId}`);
@@ -36,7 +45,7 @@ export const POST = Webhooks({
     const sub = payload.data;
     const userId =
       sub.customer?.externalId ||
-      (sub.metadata as any)?.userId;
+      metadataUserId(sub.metadata);
 
     if (!userId) return;
 
@@ -56,7 +65,7 @@ export const POST = Webhooks({
     const sub = payload.data;
     const userId =
       sub.customer?.externalId ||
-      (sub.metadata as any)?.userId;
+      metadataUserId(sub.metadata);
 
     if (!userId) return;
 
@@ -74,7 +83,7 @@ export const POST = Webhooks({
     const sub = payload.data;
     const userId =
       sub.customer?.externalId ||
-      (sub.metadata as any)?.userId;
+      metadataUserId(sub.metadata);
 
     if (!userId) return;
 
@@ -95,7 +104,7 @@ export const POST = Webhooks({
     const sub = payload.data;
     const userId =
       sub.customer?.externalId ||
-      (sub.metadata as any)?.userId;
+      metadataUserId(sub.metadata);
 
     if (!userId) return;
 

@@ -4,8 +4,17 @@ import { useCallback, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { DesignEngine } from "@/portfolio-renderer/DesignEngine";
-import { DEFAULT_COMPONENT_SELECTION, DEFAULT_DESIGN_PREFERENCES, type ComponentSelection } from "@/features/portfolio/component-variants";
-import { getThemeIdFromPreferences, getSectionVariantsForTheme, listThemesForLab, normalizeSelectionForTheme } from "@/themes/lab-helpers";
+import {
+  DEFAULT_COMPONENT_SELECTION,
+  DEFAULT_DESIGN_PREFERENCES,
+  type ComponentSelection,
+} from "@/features/portfolio/component-variants";
+import {
+  getThemeIdFromPreferences,
+  getSectionVariantsForTheme,
+  listThemesForLab,
+  normalizeSelectionForTheme,
+} from "@/themes/lab-helpers";
 import { getTheme } from "@/themes/registry";
 import type { ThemeId } from "@/themes/types";
 import type {
@@ -63,7 +72,7 @@ function Divider() {
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export function PortfolioDesignLabClient({
-portfolioId,
+  portfolioId,
   portfolioTitle,
   profile,
   initialConfig,
@@ -86,6 +95,7 @@ portfolioId,
     () => asComponentSelection(initialConfig.componentSelection),
     [initialConfig.componentSelection],
   );
+
   const initialPrefs = useMemo(
     () => asDesignPreferences(initialConfig.designPreferences),
     [initialConfig.designPreferences],
@@ -95,7 +105,7 @@ portfolioId,
 
   const [dna, setDna] = useState<ThemeId>(getThemeIdFromPreferences(initialPrefs));
   const [variantOverrides, setVariantOverrides] = useState<
-    Partial<Record<SectionKey, string>>
+   Partial<Record<SectionKey, string>>
   >(() => {
     const o: Partial<Record<SectionKey, string>> = {};
     for (const key of SECTION_KEYS) {
@@ -112,7 +122,10 @@ portfolioId,
       Object.entries(initialConfig).filter(
         ([key]) => key !== "componentSelection" && key !== "designPreferences",
       ),
-    ) as Omit<PortfolioRenderConfig, "componentSelection" | "designPreferences">;
+    ) as Omit<
+      PortfolioRenderConfig,
+      "componentSelection" | "designPreferences"
+    >;
   }, [initialConfig]);
 
   const componentSelection: ComponentSelection = useMemo(() => {
@@ -137,7 +150,12 @@ portfolioId,
       themeMode: getTheme(dna).tokens.themeMode,
       accentColor: getTheme(dna).tokens.accentColor,
       fontFamily: getTheme(dna).tokens.fontSans,
-      sectionVariants: Object.fromEntries(Object.entries(componentSelection).map(([key, value]) => [key, value.variant])),
+      sectionVariants: Object.fromEntries(
+        Object.entries(componentSelection).map(([key, value]) => [
+          key,
+          value.variant,
+        ]),
+      ),
     }),
     [initialPrefs, componentSelection, dna],
   );
@@ -152,7 +170,6 @@ portfolioId,
   const applyDna = (next: ThemeId) => {
     setDna(next);
     setVariantOverrides({});
-    
   };
 
   const handleReset = () => {
@@ -166,7 +183,7 @@ portfolioId,
     setMessage({ type: "success", text: "Reset to last saved design." });
   };
 
-   const handleSave = useCallback(() => {
+  const handleSave = useCallback(() => {
     setMessage(null);
 
     // Free user cannot save premium DNA
@@ -193,7 +210,14 @@ portfolioId,
 
       router.push(`/dashboard/portfolios/${portfolioId}`);
     });
-  }, [portfolioId, componentSelection, designPreferences, router, isPremium, dna]);
+  }, [
+    portfolioId,
+    componentSelection,
+    designPreferences,
+    router,
+    isPremium,
+    dna,
+  ]);
 
   // ── Controls content (shared) ───────────────────────────────────────────────
 
@@ -202,7 +226,7 @@ portfolioId,
       {/* Theme */}
       <div>
         <SectionLabel>Theme ecosystem</SectionLabel>
-               <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-1.5">
           {listThemesForLab(isPremium).map((theme) => {
             const d = theme.id;
             const locked = !isPremium && theme.premium;
@@ -254,16 +278,40 @@ portfolioId,
           </button>
         </div>
         <div className="mb-3 flex flex-wrap gap-1.5">
-          {SECTION_KEYS.map((key) => <button key={key} type="button" onClick={() => setActiveSection(key)} className={`rounded-lg px-2 py-1 text-[10px] capitalize ${activeSection === key ? "bg-violet-600 text-white" : "bg-zinc-800 text-zinc-400"}`}>{key}</button>)}
+          {SECTION_KEYS.map((key) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setActiveSection(key)}
+              className={`rounded-lg px-2 py-1 text-[10px] capitalize ${activeSection === key ? "bg-violet-600 text-white" : "bg-zinc-800 text-zinc-400"}`}
+            >
+              {key}
+            </button>
+          ))}
         </div>
         <div className="flex items-center gap-2">
-          <span className="w-[4.5rem] shrink-0 text-[10px] capitalize text-zinc-500">{activeSection}</span>
+          <span className="w-[4.5rem] shrink-0 text-[10px] capitalize text-zinc-500">
+            {activeSection}
+          </span>
           <select
-            value={variantOverrides[activeSection] ?? componentSelection[activeSection]?.variant ?? ""}
-            onChange={(e) => setVariantOverrides((prev) => ({ ...prev, [activeSection]: e.target.value }))}
+            value={
+              variantOverrides[activeSection] ??
+              componentSelection[activeSection]?.variant ??
+              ""
+            }
+            onChange={(e) =>
+              setVariantOverrides((prev) => ({
+                ...prev,
+                [activeSection]: e.target.value,
+              }))
+            }
             className="min-w-0 flex-1 rounded-lg border border-zinc-700 bg-zinc-900 px-2 py-1.5 text-[11px] text-zinc-300 focus:border-violet-500 focus:outline-none"
           >
-            {getSectionVariantsForTheme(dna, activeSection).map((variant) => <option key={variant} value={variant}>{variant}</option>)}
+            {getSectionVariantsForTheme(dna, activeSection).map((variant) => (
+              <option key={variant} value={variant}>
+                {variant}
+              </option>
+            ))}
           </select>
         </div>
       </div>

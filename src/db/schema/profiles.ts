@@ -43,6 +43,10 @@ export const profiles = pgTable(
     polarSubscriptionId: text("polar_subscription_id"),
     referralCode: text("referral_code"),
     referredBy: uuid("referred_by"),
+    referralCreditedAt: timestamp("referral_credited_at", {
+      withTimezone: true,
+      mode: "string",
+    }),
     successfulReferrals: integer("successful_referrals").default(0).notNull(),
 
     createdAt: timestamp("created_at", {

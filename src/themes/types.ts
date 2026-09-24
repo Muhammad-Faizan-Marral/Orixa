@@ -44,5 +44,5 @@ export type ThemeDefinition = {
   tokens: ThemeTokens;
   defaults: Record<ThemeSectionId, string>;
   variants: Record<ThemeSectionId, readonly string[]>;
-  ThemePage: ThemePageComponent;
+  ThemePage?: ThemePageComponent;
 };

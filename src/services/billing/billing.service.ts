@@ -1,4 +1,4 @@
-import { eq, sql } from "drizzle-orm";
+import { eq, isNull, sql } from "drizzle-orm";
 
 import { db } from "@/db";
 import { profiles } from "@/db/schema";
@@ -53,6 +53,33 @@ export class BillingService {
       premiumUntil: params.premiumUntil ?? null,
       polarCustomerId: params.polarCustomerId ?? undefined,
       polarSubscriptionId: params.polarSubscriptionId ?? undefined,
+    });
+  }
+
+  async activateSuccessfulCheckout(userId: string, checkoutId: string) {
+    const checkout = await polar.checkouts.get({ id: checkoutId });
+    const checkoutUserId = checkout.externalCustomerId ?? checkout.metadata.userId;
+
+    if (
+      checkoutUserId !== userId ||
+      (checkout.status !== "succeeded" && checkout.status !== "confirmed")
+    ) {
+      throw new Error("Checkout is not valid for this account.");
+    }
+
+    let premiumUntil: string | null = null;
+    if (checkout.subscriptionId) {
+      const subscription = await polar.subscriptions.get({
+        id: checkout.subscriptionId,
+      });
+      premiumUntil = subscription.currentPeriodEnd.toISOString();
+    }
+
+    await this.activatePremium({
+      userId,
+      polarCustomerId: checkout.customerId,
+      polarSubscriptionId: checkout.subscriptionId,
+      premiumUntil,
     });
   }
 
@@ -124,11 +151,7 @@ export class BillingService {
    */
   async creditReferralOnFirstPublish(profileId: string) {
     const profile = await profileRepository.findById(profileId);
-    const referralCreditedAt = (
-      profile as
-        | (typeof profile & { referralCreditedAt?: string | null })
-        | null
-    )?.referralCreditedAt;
+    const referralCreditedAt = profile?.referralCreditedAt;
     console.log("[referral] creditReferralOnFirstPublish", {
       profileId,
       referredBy: profile?.referredBy ?? null,
@@ -145,9 +168,18 @@ export class BillingService {
       return;
     }
 
-    await profileRepository.updateById(profileId, {
-      referralCreditedAt: new Date().toISOString(),
-    } as unknown as Parameters<typeof profileRepository.updateById>[1]);
+    const [claimed] = await db
+      .update(profiles)
+      .set({
+        referralCreditedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      })
+      .where(
+        sql`${profiles.id} = ${profileId} AND ${isNull(profiles.referralCreditedAt)}`,
+      )
+      .returning({ id: profiles.id });
+
+    if (!claimed) return;
 
     await this.recordSuccessfulReferral(profile.referredBy);
     console.log("[referral] credited referrer", profile.referredBy);

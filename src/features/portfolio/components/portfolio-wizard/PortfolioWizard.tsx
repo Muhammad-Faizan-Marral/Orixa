@@ -3274,6 +3274,7 @@ export function PortfolioWizard({
     }
     setMessage(null);
     setIsSubmitting(true);
+    let navigationStarted = false;
     try {
       let finalResumeUrl = (data?.resumeUrl ?? resumeUrl ?? "").trim();
       if (autoGenerateResume) {
@@ -3315,12 +3316,13 @@ export function PortfolioWizard({
       const result = await finalizePortfolioAction(payload);
       if (!result.success)
         throw new Error(result.message ?? "Failed to save portfolio.");
-      if (autoGenerateResume) {
+      const resumePromise = autoGenerateResume
+        ? generateAndAttachResume(portfolio.id, data?.resumeUrl ?? resumeUrl)
+        : null;
+      const versionPromise = createWorkingPortfolioVersion(portfolio.id);
+      if (resumePromise) {
         setIsGeneratingResume(true);
-        const generateResult = await generateAndAttachResume(
-          portfolio.id,
-          data?.resumeUrl ?? resumeUrl,
-        );
+        const generateResult = await resumePromise;
         if (!generateResult.success)
           throw new Error(
             generateResult.message ??
@@ -3335,15 +3337,17 @@ export function PortfolioWizard({
           setHasUploadedResume(false);
         }
       }
-      const versionResult = await createWorkingPortfolioVersion(portfolio.id);
+      const versionResult = await versionPromise;
       if (!versionResult.success)
         throw new Error(
           versionResult.message ??
             "Portfolio saved, but version creation failed.",
         );
       setMessage({ type: "success", text: "Portfolio saved successfully." });
+      navigationStarted = true;
       router.push(`/dashboard/portfolios/${portfolio.id}`);
       router.refresh();
+      return;
     } catch (err) {
       setMessage({
         type: "error",
@@ -3353,7 +3357,7 @@ export function PortfolioWizard({
             : "Something went wrong while saving the portfolio.",
       });
     } finally {
-      setIsSubmitting(false);
+      if (!navigationStarted) setIsSubmitting(false);
       setIsGeneratingResume(false);
     }
   }, [

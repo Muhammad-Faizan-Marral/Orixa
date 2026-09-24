@@ -29,8 +29,23 @@ function computeProfileCompletion(profile: {
   return Math.round((filled / fields.length) * 100);
 }
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ checkout?: string; checkout_id?: string }>;
+}) {
   const profile = await requireProfile();
+  const params = await searchParams;
+  if (params.checkout === "success" && params.checkout_id) {
+    try {
+      await billingService.activateSuccessfulCheckout(
+        profile.userId,
+        params.checkout_id,
+      );
+    } catch (error) {
+      console.error("[dashboard] checkout activation failed", error);
+    }
+  }
     const referralCode =
     profile.referralCode ||
     (await billingService.ensureReferralCode(profile.userId, profile.username));
@@ -40,6 +55,10 @@ export default async function DashboardPage() {
     premiumUntil: profile.premiumUntil ?? null,
   });
   const portfolios = await portfolioService.getUserPortfolios(profile.id);
+  const portfolioLimit = billingService.getLimits({
+    isPremium: profile.isPremium ?? false,
+    premiumUntil: profile.premiumUntil ?? null,
+  }).portfolioLimit;
 
   const publishedCount = portfolios.filter((p) => p.status === "published").length;
 
@@ -70,9 +89,15 @@ export default async function DashboardPage() {
           </h1>
         </div>
 
-        <Link href="/dashboard/portfolios/new">
-          <Button variant="gradient">+ Create portfolio</Button>
-        </Link>
+        {portfolios.length < portfolioLimit ? (
+          <Link href="/dashboard/portfolios/new">
+            <Button variant="gradient">+ Create portfolio</Button>
+          </Link>
+        ) : (
+          <p className="text-small max-w-xs text-right text-muted-foreground">
+            Free plan allows one portfolio. Upgrade to Premium to create more.
+          </p>
+        )}
       </header>
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
