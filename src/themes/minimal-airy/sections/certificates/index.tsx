@@ -10,5 +10,5 @@ export function Certificates({
   ...props
 }: ThemeSectionProps & { variant?: string }) {
   const C = variants[variant as keyof typeof variants] || CertificatesDefault;
-  return <C certificates={[]} {...props} />;
+  return <C {...props} />;
 }

@@ -94,6 +94,7 @@ export type PortfolioRenderConfig = {
   name?: string | null;
   avatarUrl?: string | null;
   phone?: string | null;
+  location?: string | null;
   linkedinUrl?: string | null;
   githubUrl?: string | null;
   headline?: string | null;
