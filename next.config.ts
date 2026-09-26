@@ -5,6 +5,15 @@ const nextConfig: NextConfig = {
 
   serverExternalPackages: ["pdf-parse"],
 
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "encrypted-tbn0.gstatic.com",
+      },
+    ],
+  },
+
   experimental: {
     serverActions: {
       bodySizeLimit: "6mb",

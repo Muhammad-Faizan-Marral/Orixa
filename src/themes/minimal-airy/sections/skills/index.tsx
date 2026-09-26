@@ -1,1 +1,11 @@
-import type { ThemeSectionProps } from "../../../types"; import { SkillsDefault } from "./SkillsDefault"; import { SkillsAlt } from "./SkillsAlt"; export const variants={default:SkillsDefault,alt:SkillsAlt} as const; export function Skills({variant="default",...props}:ThemeSectionProps&{variant?:string}){const C=variants[variant as keyof typeof variants]||SkillsDefault;return <C {...props}/>;}
+import type { ThemeSectionProps } from "../../../types";
+import { SkillsDefault } from "./SkillsDefault";
+import { SkillsAlt } from "./SkillsAlt";
+export const variants = { default: SkillsDefault, alt: SkillsAlt } as const;
+export function Skills({
+  variant = "default",
+  ...props
+}: ThemeSectionProps & { variant?: string }) {
+  const C = variants[variant as keyof typeof variants] || SkillsDefault;
+  return <C {...props} />;
+}

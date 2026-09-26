@@ -1,2 +1,14 @@
-import type { ThemeSectionProps } from "../../../types"; import { EducationDefault } from "./EducationDefault"; import { EducationAlt } from "./EducationAlt";
-export const variants={default:EducationDefault,alt:EducationAlt} as const; export function Education({variant="default",...props}:ThemeSectionProps&{variant?:string}){const C=variants[variant as keyof typeof variants]||EducationDefault;return <C {...props}/>;}
+import type { ThemeSectionProps } from "../../../types";
+import { EducationDefault } from "./EducationDefault";
+import { EducationAlt } from "./EducationAlt";
+export const variants = {
+  default: EducationDefault,
+  alt: EducationAlt,
+} as const;
+export function Education({
+  variant = "default",
+  ...props
+}: ThemeSectionProps & { variant?: string }) {
+  const C = variants[variant as keyof typeof variants] || EducationDefault;
+  return <C education={[]} {...props} />;
+}

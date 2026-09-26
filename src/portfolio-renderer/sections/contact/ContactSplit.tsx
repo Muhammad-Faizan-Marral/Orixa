@@ -71,15 +71,9 @@ export const ContactSplit: React.FC<ContactSplitProps> = ({ config }) => {
   const links = buildLinks(config);
   const name = config?.name?.trim() || undefined;
 
-  const [state, formAction, isPending] = useActionState(
-    sendContactMessage,
-    initialState,
-  );
+  const [state, formAction, isPending] = useActionState( sendContactMessage, initialState);
 
-  const [displayMessage, setDisplayMessage] = useState<{
-    text: string;
-    isSuccess: boolean;
-  } | null>(null);
+  const [displayMessage, setDisplayMessage] = useState<{ text: string; isSuccess: boolean; } | null>(null);
 
   const formRef = useRef<HTMLFormElement>(null);
 
