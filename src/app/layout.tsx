@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { ReferralCapture } from "@/components/referral-capture";
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Inter, Bricolage_Grotesque, JetBrains_Mono } from "next/font/google";
+import { Bodoni_Moda, Schibsted_Grotesk } from "next/font/google";
 
 import { ThemeProvider } from "@/components/theme-provider";
 import { LocaleProvider } from "@/components/locale-provider";
@@ -41,6 +42,20 @@ const jetbrainsMono = JetBrains_Mono({
     "monospace",
   ],
 });
+
+const display = Bodoni_Moda({
+  variable: "--font-display",
+  subsets: ["latin"],
+  style: ["normal", "italic"],
+  display: "swap",
+});
+
+const text = Schibsted_Grotesk({
+  variable: "--font-text",
+  subsets: ["latin"],
+  display: "swap",
+});
+
 //Our Desired google Fonts implement here and use
 export const metadata: Metadata = {
   title: {
@@ -67,7 +82,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${inter.variable} ${bricolage.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${bricolage.variable} ${jetbrainsMono.variable} ${display.variable} ${text.variable} h-full antialiased`}
     >
       <head>
         <script

@@ -1,107 +1,28 @@
 import type { ThemePageProps } from "../types";
-function Block({
-  id,
-  title,
-  children,
-  show = true,
-}: {
-  id: string;
-  title: string;
-  children?: React.ReactNode;
-  show?: boolean;
-}) {
-  if (!show) return null;
+import { Navbar } from "./sections/navbar";
+import { Hero } from "./sections/hero";
+import { About } from "./sections/about";
+import { Skills } from "./sections/skills";
+import { Projects } from "./sections/projects";
+import { Experience } from "./sections/experience";
+import { Education } from "./sections/education";
+import { Certificates } from "./sections/certificates";
+import { Contact } from "./sections/contact";
+import { Footer } from "./sections/footer";
+export function ThemePage({ config, profile, selection }: ThemePageProps) {
+  const p = { config, profile };
   return (
-    <section id={id} className="mx-auto max-w-5xl px-6 py-20">
-      <p className="text-sm italic opacity-60">{title}</p>
-      <div className="mt-5">{children}</div>
-    </section>
-  );
-}
-export function ThemePage({ config, profile }: ThemePageProps) {
-  return (
-    <main>
-      <nav className="mx-auto flex max-w-5xl justify-between px-6 py-8 font-serif">
-        <a href="#hero">{config.name || profile.username}</a>
-        <span>Contents</span>
-      </nav>
-      <Block id="hero" title="A portfolio">
-        <h1 className="font-serif text-6xl leading-none md:text-8xl">
-          {config.headline || config.name || "Selected work"}
-        </h1>
-        <p className="mt-8 max-w-2xl text-xl leading-8 opacity-70">
-          {config.about}
-        </p>
-      </Block>
-      <Block id="about" title="The person" show={!!config.about}>
-        <p className="max-w-3xl font-serif text-3xl leading-relaxed">
-          {config.about}
-        </p>
-      </Block>
-      <Block id="skills" title="Practice" show={!!config.skills?.length}>
-        <p className="text-xl">
-          {config.skills?.map((x) => x.name).join(" · ")}
-        </p>
-      </Block>
-      <Block
-        id="projects"
-        title="Selected projects"
-        show={!!config.projects?.length}
-      >
-        {config.projects?.map((x) => (
-          <article
-            key={x.id || x.title}
-            className="border-t border-current/20 py-6"
-          >
-            <h2 className="font-serif text-3xl">{x.title}</h2>
-            <p className="mt-2 opacity-70">{x.description}</p>
-          </article>
-        ))}
-      </Block>
-      <Block
-        id="experience"
-        title="Experience"
-        show={!!config.experience?.length}
-      >
-        {config.experience?.map((x) => (
-          <p
-            key={x.id || x.company}
-            className="border-t border-current/20 py-4"
-          >
-            {x.role}, {x.company}
-          </p>
-        ))}
-      </Block>
-      <Block id="education" title="Education" show={!!config.education?.length}>
-        {config.education?.map((x) => (
-          <p key={x.id || x.institution}>
-            {x.degree} · {x.institution}
-          </p>
-        ))}
-      </Block>
-      <Block
-        id="certificates"
-        title="Credentials"
-        show={!!config.certificates?.length}
-      >
-        {config.certificates?.map((x) => (
-          <p key={x.id || x.name}>
-            {x.name} · {x.issuer}
-          </p>
-        ))}
-      </Block>
-      <Block id="contact" title="Correspondence">
-        <div className="flex gap-5 underline">
-          {config.linkedinUrl && <a href={config.linkedinUrl}>LinkedIn</a>}
-          {config.githubUrl && <a href={config.githubUrl}>GitHub</a>}
-        </div>
-      </Block>
-      <footer className="mx-auto max-w-5xl border-t border-current/20 px-6 py-10 text-sm">
-        {config.name || profile.username}
-        {!profile.isPremium && (
-          <span className="float-right">Built with OrixaAi</span>
-        )}
-      </footer>
-    </main>
+    <>
+      <Navbar {...p} variant={selection.navbar} />
+      <Hero {...p} variant={selection.hero} />
+      <About {...p} variant={selection.about} />
+      <Skills {...p} variant={selection.skills} />
+      <Projects {...p} variant={selection.projects} />
+      <Experience {...p} variant={selection.experience} />
+      <Education {...p} variant={selection.education} />
+      <Certificates {...p} variant={selection.certificates} />
+      <Contact {...p} variant={selection.contact} />
+      <Footer {...p} variant={selection.footer} />
+    </>
   );
 }

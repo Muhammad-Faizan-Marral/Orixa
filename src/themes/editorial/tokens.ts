@@ -1,1 +1,9 @@
-export const tokens = { themeMode: "light", accentColor: "#b45309", backgroundColor: "#fffaf0", foregroundColor: "#30251b", mutedColor: "#806f5d", fontSans: "Inter", fontDisplay: "Bricolage Grotesque" } as const;
+export const tokens = {
+  themeMode: "dark",
+  accentColor: "#22d3ee",
+  backgroundColor: "#07111c",
+  foregroundColor: "#e6f7ff",
+  mutedColor: "#7f9bad",
+  fontSans: "JetBrains Mono",
+  fontDisplay: "Inter",
+} as const;
