@@ -1,1 +1,10 @@
-import type { ThemeSectionProps } from "../../../types"; export const variants={default:({config}:ThemeSectionProps)=><section id="hero" className="px-6 py-24"><h1>{config.headline||config.name}</h1></section>,alt:({config}:ThemeSectionProps)=><section id="hero" className="px-6 py-16 text-cyan-300"><h1>{config.headline||config.name}</h1></section>}; export function Hero({variant="default",...props}:ThemeSectionProps&{variant?:string}){return (variants[variant as keyof typeof variants]||variants.default)(props);}
+import type { ThemeSectionProps } from "../../../types";
+import HeroDefault from "./HeroDefault";
+
+
+export function Hero({
+  ...props
+}: ThemeSectionProps & { variant?: string }) {
+  const C =  HeroDefault;
+  return <C {...props} />;
+}

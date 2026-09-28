@@ -1,1 +1,14 @@
-import type { ThemeSectionProps } from "../../../types"; export const variants={default:({config}:ThemeSectionProps)=><section id="experience" className="px-6 py-14">{config.experience?.map(x=><p key={x.id||x.company}>{x.role} · {x.company}</p>)}</section>,alt:({config}:ThemeSectionProps)=><section id="experience" className="border-t border-cyan-400/20 px-6 py-14">{config.experience?.map(x=><p key={x.id||x.company}>{x.role} · {x.company}</p>)}</section>}; export function Experience({variant="default",...props}:ThemeSectionProps&{variant?:string}){if(!props.config.experience?.length)return null;return (variants[variant as keyof typeof variants]||variants.default)(props);}
+import type { ThemeSectionProps } from "../../../types";
+import { ExperienceDefault } from "./ExperienceDefault";
+
+export const variants = {
+  default: ExperienceDefault,
+
+} as const;
+export function Experience({
+ 
+  ...props
+}: ThemeSectionProps & { variant?: string }) {
+  const C =  ExperienceDefault;
+  return <C {...props} />;
+}

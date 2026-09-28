@@ -41,7 +41,7 @@ const jetbrainsMono = JetBrains_Mono({
     "monospace",
   ],
 });
-
+//Our Desired google Fonts implement here and use
 export const metadata: Metadata = {
   title: {
     default: "Orixa AI — Portfolios that build and think with you",

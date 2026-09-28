@@ -1,1 +1,11 @@
-import type { ThemeSectionProps } from "../../../types"; export const variants={default:({config}:ThemeSectionProps)=><section id="skills" className="px-6 py-14">{config.skills?.map(x=><span className="mr-3" key={x.id||x.name}>{x.name}</span>)}</section>,alt:({config}:ThemeSectionProps)=><section id="skills" className="border-t border-cyan-400/20 px-6 py-14">{config.skills?.map(x=><span className="mr-3" key={x.id||x.name}>{x.name}</span>)}</section>}; export function Skills({variant="default",...props}:ThemeSectionProps&{variant?:string}){if(!props.config.skills?.length)return null;return (variants[variant as keyof typeof variants]||variants.default)(props);}
+import type { ThemeSectionProps } from "../../../types";
+import { SkillsDefault } from "./SkillsDefault";
+
+export const variants = { default: SkillsDefault, } as const;
+export function Skills({
+  variant = "default",
+  ...props
+}: ThemeSectionProps & { variant?: string }) {
+  const C = SkillsDefault;
+  return <C {...props} />;
+}

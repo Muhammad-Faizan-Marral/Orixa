@@ -1,1 +1,10 @@
-import type { ThemeSectionProps } from "../../../types"; export const variants={default:({config}:ThemeSectionProps)=><section id="contact" className="px-6 py-14">{config.githubUrl}</section>,alt:({config}:ThemeSectionProps)=><section id="contact" className="border border-cyan-400/30 px-6 py-14">{config.linkedinUrl||config.githubUrl}</section>}; export function Contact({variant="default",...props}:ThemeSectionProps&{variant?:string}){return (variants[variant as keyof typeof variants]||variants.default)(props);}
+import type { ThemeSectionProps } from "../../../types";
+import { ContactDefault } from "./ContactDefault";
+export const variants = { default: ContactDefault, } as const;
+export function Contact({
+  variant = "default",
+  ...props
+}: ThemeSectionProps & { variant?: string }) {
+  const C = variants[variant as keyof typeof variants] || ContactDefault;
+  return <C {...props} />;
+}

@@ -106,8 +106,8 @@ export function ExperienceDefault({ config }: ThemeSectionProps) {
   );
 
   const [activeIndex, setActiveIndex] = useState(0);
-
   if (!valid.length) return null;
+
 
   const safeIndex = Math.min(activeIndex, valid.length - 1);
   const activeExperience = valid[safeIndex];

@@ -1,1 +1,14 @@
-import type { ThemeSectionProps } from "../../../types"; export const variants={default:({config}:ThemeSectionProps)=><section id="certificates" className="px-6 py-14">{config.certificates?.map(x=><p key={x.id||x.name}>{x.name}</p>)}</section>,alt:({config}:ThemeSectionProps)=><section id="certificates" className="border-t border-cyan-400/20 px-6 py-14">{config.certificates?.map(x=><p key={x.id||x.name}>{x.name}</p>)}</section>}; export function Certificates({variant="default",...props}:ThemeSectionProps&{variant?:string}){if(!props.config.certificates?.length)return null;return (variants[variant as keyof typeof variants]||variants.default)(props);}
+import type { ThemeSectionProps } from "../../../types";
+import  {CertificatesDefault}  from "./CertificatesDefault";
+
+export const variants = {
+  default: CertificatesDefault,
+ 
+} as const;
+export function Certificates({
+  variant = "default",
+  ...props
+}: ThemeSectionProps & { variant?: string }) {
+  const C =  CertificatesDefault;
+  return <C {...props} />;
+}

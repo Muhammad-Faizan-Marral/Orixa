@@ -1,1 +1,11 @@
-import type { ThemeSectionProps } from "../../../types"; export const variants={default:({config}:ThemeSectionProps)=><nav id="navbar" className="px-6 py-5">{config.name}</nav>,alt:({config}:ThemeSectionProps)=><nav id="navbar" className="border-b border-cyan-400/30 px-6 py-5">{config.name}</nav>}; export function Navbar({variant="default",...props}:ThemeSectionProps&{variant?:string}){return (variants[variant as keyof typeof variants]||variants.default)(props);}
+import type { ThemeSectionProps } from "../../../types";
+import { NavbarDefault } from "./NavbarDefault";
+
+export const variants = { default: NavbarDefault, } as const;
+export function Navbar({
+  variant = "default",
+  ...props
+}: ThemeSectionProps & { variant?: string }) {
+  const Component = NavbarDefault;
+  return <Component {...props} />;
+}

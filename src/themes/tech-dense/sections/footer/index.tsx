@@ -1,1 +1,11 @@
-import type { ThemeSectionProps } from "../../../types"; export const variants={default:({config,profile}:ThemeSectionProps)=><footer id="footer" className="px-6 py-10">{config.name||profile.username}</footer>,alt:({config,profile}:ThemeSectionProps)=><footer id="footer" className="border-t border-cyan-400/20 px-6 py-10">{config.name||profile.username}</footer>}; export function Footer({variant="default",...props}:ThemeSectionProps&{variant?:string}){return (variants[variant as keyof typeof variants]||variants.default)(props);}
+import type { ThemeSectionProps } from "../../../types";
+import { FooterDefault } from "./FooterDefault";
+
+export const variants = { default: FooterDefault } as const;
+export function Footer({
+
+  ...props
+}: ThemeSectionProps & { variant?: string }) {
+  const C =  FooterDefault;
+  return <C {...props} />;
+}

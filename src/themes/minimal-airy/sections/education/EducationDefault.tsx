@@ -6,9 +6,10 @@
 
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 import { RendererEducation } from "@/portfolio-renderer/types";
+import { ThemeSectionProps } from "@/themes/types";
 
 type Props = {
   education: RendererEducation[];
@@ -29,11 +30,20 @@ function formatDegree(degree?: string, field?: string) {
   return null;
 }
 
-export function EducationDefault({ education }: Props) {
-  const valid = education.filter(
-    (item) =>
-      item.institution?.trim() || item.degree?.trim() || item.field?.trim(),
-  );
+export function EducationDefault({ config }: ThemeSectionProps) {
+    const valid = useMemo(
+      () =>
+        (config.education ?? []).filter(
+          (item) =>
+           item.institution?.trim() || item.degree?.trim() || item.field?.trim(),
+        ),
+      [config.experience],
+    );
+    
+  // const valid = education.filter(
+  //   (item) =>
+  //     item.institution?.trim() || item.degree?.trim() || item.field?.trim(),
+  // );
 
   if (!valid.length) return null;
 
