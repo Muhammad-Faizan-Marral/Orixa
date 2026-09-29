@@ -18,7 +18,7 @@ export const LAB_CONFIG_BASE: PortfolioRenderConfig = {
   phone: "+1 415 555 0198",
   linkedinUrl: "https://linkedin.com/in/avachen",
   githubUrl: "https://github.com/avachen",
-  avatarUrl: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSheEBDUNMMb-6PHYzfbK4QgACCFAgCLJ2Ys-nCYS1uaw&s=10",
+  avatarUrl: "https://i.ibb.co/tTZGyfTW/profile-removebg-preview.png",
   resumeUrl: null,
   animations: true,
   skills: [
