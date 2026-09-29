@@ -1,8 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { ReferralCapture } from "@/components/referral-capture";
-import { SpeedInsights } from '@vercel/speed-insights/next';
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Inter, Bricolage_Grotesque, JetBrains_Mono } from "next/font/google";
 import { Bodoni_Moda, Schibsted_Grotesk } from "next/font/google";
+import { Instrument_Serif,Geist } from "next/font/google";
+
 
 import { ThemeProvider } from "@/components/theme-provider";
 import { LocaleProvider } from "@/components/locale-provider";
@@ -42,14 +44,24 @@ const jetbrainsMono = JetBrains_Mono({
     "monospace",
   ],
 });
-
+const instrument = Instrument_Serif({
+  variable: "--font-instrument",
+  subsets: ["latin"],
+  weight: ["400"],
+  style: ["normal", "italic"],
+  display: "swap",
+});
 const display = Bodoni_Moda({
   variable: "--font-display",
   subsets: ["latin"],
   style: ["normal", "italic"],
   display: "swap",
 });
-
+const geist = Geist({
+  variable: "--font-geist",
+  subsets: ["latin"],
+  display: "swap",
+});
 const text = Schibsted_Grotesk({
   variable: "--font-text",
   subsets: ["latin"],
@@ -82,7 +94,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${inter.variable} ${bricolage.variable} ${jetbrainsMono.variable} ${display.variable} ${text.variable} h-full antialiased`}
+      className={`${inter.variable} ${bricolage.variable} ${jetbrainsMono.variable} ${display.variable} ${text.variable} ${instrument.variable} ${geist.variable} h-full antialiased`}
     >
       <head>
         <script
@@ -98,7 +110,7 @@ export default function RootLayout({
           <LocaleProvider>
             <TimezoneProvider>
               <ReferralCapture />
-                {children}
+              {children}
             </TimezoneProvider>
           </LocaleProvider>
         </ThemeProvider>
