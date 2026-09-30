@@ -1,3 +1,28 @@
-/* eslint-disable react-hooks/static-components */
 import type { ThemePageProps } from "../types";
-export function ThemePage({config,profile}:ThemePageProps){const Scene=({id,title,children,show=true}:{id:string;title:string;children?:React.ReactNode;show?:boolean})=>show?<section id={id} className="mx-auto max-w-6xl px-6 py-24"><p className="text-xs uppercase tracking-[.35em] text-amber-300">{title}</p><div className="mt-7">{children}</div></section>:null;return <main className="bg-black text-stone-100"><nav className="mx-auto flex max-w-6xl justify-between px-6 py-7"><a href="#hero" className="font-serif text-xl">{config.name||profile.username}</a><span className="text-xs uppercase tracking-widest opacity-50">A film in progress</span></nav><Scene id="hero" title="Opening frame"><h1 className="max-w-5xl font-serif text-6xl leading-none md:text-9xl">{config.headline||config.name||"Stories worth remembering."}</h1><p className="mt-9 max-w-2xl text-lg leading-8 text-stone-300">{config.about}</p></Scene><Scene id="about" title="The subject" show={!!config.about}><p className="max-w-3xl font-serif text-3xl leading-relaxed">{config.about}</p></Scene><Scene id="skills" title="Craft" show={!!config.skills?.length}><div className="flex flex-wrap gap-x-6 gap-y-3 text-xl">{config.skills?.map(x=><span key={x.id||x.name}>{x.name}</span>)}</div></Scene><Scene id="projects" title="Scenes" show={!!config.projects?.length}>{config.projects?.map(x=><article key={x.id||x.title} className="border-t border-stone-700 py-7"><h2 className="font-serif text-3xl">{x.title}</h2><p className="mt-3 text-stone-400">{x.description}</p></article>)}</Scene><Scene id="experience" title="Credits" show={!!config.experience?.length}>{config.experience?.map(x=><p key={x.id||x.company} className="py-2 text-lg">{x.role} · {x.company}</p>)}</Scene><Scene id="education" title="Training" show={!!config.education?.length}>{config.education?.map(x=><p key={x.id||x.institution}>{x.degree} · {x.institution}</p>)}</Scene><Scene id="certificates" title="Recognition" show={!!config.certificates?.length}>{config.certificates?.map(x=><p key={x.id||x.name}>{x.name} · {x.issuer}</p>)}</Scene><Scene id="contact" title="Final frame"><div className="flex gap-5 underline">{config.githubUrl&&<a href={config.githubUrl}>GitHub</a>}{config.linkedinUrl&&<a href={config.linkedinUrl}>LinkedIn</a>}</div></Scene><footer className="mx-auto max-w-6xl border-t border-stone-700 px-6 py-10 text-sm text-stone-400">{config.name||profile.username}{!profile.isPremium&&<span className="float-right">Built with OrixaAi</span>}</footer></main>;}
+import { Navbar } from "./sections/navbar";
+import { Hero } from "./sections/hero";
+import { About } from "./sections/about";
+import { Skills } from "./sections/skills";
+import { Projects } from "./sections/projects";
+import { Experience } from "./sections/experience";
+import { Education } from "./sections/education";
+import { Certificates } from "./sections/certificates";
+import { Contact } from "./sections/contact";
+import { Footer } from "./sections/footer";
+export function ThemePage({ config, profile, selection }: ThemePageProps) {
+  const p = { config, profile };
+  return (
+    <>
+      <Navbar {...p} variant={selection.navbar} />
+      <Hero {...p} variant={selection.hero} />
+      <About {...p} variant={selection.about} />
+      <Skills {...p} variant={selection.skills} />
+      <Projects {...p} variant={selection.projects} />
+      <Experience {...p} variant={selection.experience} />
+      <Education {...p} variant={selection.education} />
+      <Certificates {...p} variant={selection.certificates} />
+      <Contact {...p} variant={selection.contact} />
+      <Footer {...p} variant={selection.footer} />
+    </>
+  );
+}
