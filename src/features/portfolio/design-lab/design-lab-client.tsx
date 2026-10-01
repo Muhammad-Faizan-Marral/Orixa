@@ -19,7 +19,7 @@ export function DesignLabClient() {
   };
   return (
     <div className="min-h-screen">
-      <div className="fixed bottom-4 right-4 z-10 flex gap-2 rounded-xl bg-black/80 p-3">
+      <div className="fixed bottom-4 right-4 z-99 flex gap-2 rounded-xl bg-black/80 p-3">
         {listThemes().map((item) => (
           <button
             key={item.id}

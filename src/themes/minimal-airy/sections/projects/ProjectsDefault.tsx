@@ -1,8 +1,10 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
+import Link from "next/link";
 import { motion, useReducedMotion, type Variants } from "framer-motion";
-
+import { trackProjectClick } from "@/features/portfolio/components/use-portfolio-events";
 import type { ThemeSectionProps } from "../../../types";
 
 const ORANGE = "#ff5a00";
@@ -10,7 +12,6 @@ const INK = "#111111";
 const PAPER = "#f4f1eb";
 const MUTED = "#6d6963";
 const BORDER = "rgba(17, 17, 17, 0.14)";
-
 const ease = [0.22, 1, 0.36, 1] as const;
 
 const reveal: Variants = {
@@ -51,15 +52,26 @@ function ProjectCard({
   project,
   index,
   reduceMotion,
+  portfolioId
 }: {
   project: {
     id?: string | null;
     title: string;
     description?: string | null;
+    imageUrl?: string | null;
+    url?: string | null;
   };
   index: number;
   reduceMotion: boolean;
+  portfolioId?: string | null;
 }) {
+  const imageUrl = project.imageUrl?.trim();
+  const url = project.url?.trim();
+ const handleProjectClick = () => {
+    if (portfolioId) {
+      trackProjectClick(portfolioId, project.title);
+    }
+  }
   return (
     <motion.article
       variants={cardReveal}
@@ -85,7 +97,6 @@ function ProjectCard({
       {/* ================================================================
           TOP PROJECT META
       ================================================================= */}
-
       <div
         className="
           flex
@@ -113,7 +124,6 @@ function ProjectCard({
         >
           Project / {getProjectNumber(index)}
         </span>
-
         <span
           className="
             flex
@@ -156,11 +166,9 @@ function ProjectCard({
           </svg>
         </span>
       </div>
-
       {/* ================================================================
           PROJECT BODY
       ================================================================= */}
-
       <div
         className="
           relative
@@ -175,7 +183,6 @@ function ProjectCard({
         "
       >
         {/* Large background number */}
-
         <span
           aria-hidden="true"
           className="
@@ -198,10 +205,23 @@ function ProjectCard({
         >
           {getProjectNumber(index)}
         </span>
-
+        {imageUrl ? (
+          <div
+            className="relative z-10 mb-8 aspect-[16/9] w-full overflow-hidden border"
+            style={{ borderColor: BORDER }}
+          >
+            <Image
+              src={imageUrl}
+              alt={`${project.title} preview`}
+              fill
+              sizes="(min-width: 1024px) 50vw, 100vw"
+              unoptimized
+              className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+            />
+          </div>
+        ) : null}
         <div className="relative z-10">
           {/* Small orange marker */}
-
           <div className="mb-8 flex items-center gap-3">
             <span
               className="
@@ -216,7 +236,6 @@ function ProjectCard({
                 background: ORANGE,
               }}
             />
-
             <span
               className="
                 text-[9px]
@@ -231,9 +250,7 @@ function ProjectCard({
               Selected work
             </span>
           </div>
-
           {/* Title */}
-
           <h3
             className="
               max-w-[600px]
@@ -252,11 +269,21 @@ function ProjectCard({
               color: INK,
             }}
           >
-            {project.title}
+            {url ? (
+              <Link
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-inherit no-underline"
+                onClick={handleProjectClick}
+              >
+                {project.title}
+              </Link>
+            ) : (
+              project.title
+            )}
           </h3>
-
           {/* Orange underline */}
-
           <div
             className="
               mt-7
@@ -271,9 +298,7 @@ function ProjectCard({
               background: ORANGE,
             }}
           />
-
           {/* Description */}
-
           {project.description?.trim() ? (
             <p
               className="
@@ -292,11 +317,9 @@ function ProjectCard({
             </p>
           ) : null}
         </div>
-
         {/* ================================================================
             BOTTOM PROJECT SIGNATURE
         ================================================================= */}
-
         <div
           className="
             relative
@@ -323,7 +346,6 @@ function ProjectCard({
             >
               Case study
             </span>
-
             <span
               className="
                 mt-2
@@ -339,7 +361,6 @@ function ProjectCard({
               }}
             />
           </div>
-
           <span
             className="
               text-[9px]
@@ -357,11 +378,9 @@ function ProjectCard({
             0{index + 1}
           </span>
         </div>
-
         {/* ================================================================
             HOVER ACCENT
         ================================================================= */}
-
         <div
           aria-hidden="true"
           className="
@@ -387,15 +406,14 @@ function ProjectCard({
 
 export function ProjectsDefault({ config }: ThemeSectionProps) {
   const reduceMotion = useReducedMotion();
-
+  const portfolioId = config?.portfolioId;          // ← add this
   const projects = (config.projects ?? []).filter((project) =>
     project.title?.trim(),
   );
-
+ 
   if (!projects.length) {
     return null;
   }
-
   return (
     <section
       id="projects"
@@ -413,7 +431,6 @@ export function ProjectsDefault({ config }: ThemeSectionProps) {
       {/* ==================================================================
           AMBIENT ORANGE LIGHT
       ================================================================== */}
-
       <div
         aria-hidden="true"
         className="
@@ -431,11 +448,9 @@ export function ProjectsDefault({ config }: ThemeSectionProps) {
           background: ORANGE,
         }}
       />
-
       {/* ==================================================================
           MAIN CONTAINER
       ================================================================== */}
-
       <div
         className="
           relative
@@ -454,7 +469,6 @@ export function ProjectsDefault({ config }: ThemeSectionProps) {
         {/* ==================================================================
             HEADER
         ================================================================== */}
-
         <motion.div
           initial={reduceMotion ? false : "hidden"}
           whileInView={reduceMotion ? undefined : "visible"}
@@ -476,7 +490,6 @@ export function ProjectsDefault({ config }: ThemeSectionProps) {
           "
         >
           {/* Left label */}
-
           <div className="flex items-start">
             <div className="flex items-center gap-4">
               <span
@@ -492,7 +505,6 @@ export function ProjectsDefault({ config }: ThemeSectionProps) {
               >
                 Portfolio
               </span>
-
               <span
                 aria-hidden="true"
                 className="h-px w-12"
@@ -502,9 +514,7 @@ export function ProjectsDefault({ config }: ThemeSectionProps) {
               />
             </div>
           </div>
-
           {/* Right intro */}
-
           <div>
             <div className="flex items-center justify-between gap-6">
               <span
@@ -520,7 +530,6 @@ export function ProjectsDefault({ config }: ThemeSectionProps) {
               >
                 Selected work
               </span>
-
               <span
                 className="
                   hidden
@@ -537,7 +546,6 @@ export function ProjectsDefault({ config }: ThemeSectionProps) {
                 03 / Projects
               </span>
             </div>
-
             <h2
               className="
                 mt-6
@@ -558,11 +566,9 @@ export function ProjectsDefault({ config }: ThemeSectionProps) {
             </h2>
           </div>
         </motion.div>
-
         {/* ==================================================================
             PROJECT COUNT STRIP
         ================================================================== */}
-
         <motion.div
           initial={reduceMotion ? false : "hidden"}
           whileInView={reduceMotion ? undefined : "visible"}
@@ -594,7 +600,6 @@ export function ProjectsDefault({ config }: ThemeSectionProps) {
             >
               {String(projects.length).padStart(2, "0")}
             </span>
-
             <span
               className="
                 text-[9px]
@@ -609,7 +614,6 @@ export function ProjectsDefault({ config }: ThemeSectionProps) {
               Projects
             </span>
           </div>
-
           <div className="flex items-center gap-3">
             <span
               className="
@@ -626,7 +630,6 @@ export function ProjectsDefault({ config }: ThemeSectionProps) {
             >
               Explore the work
             </span>
-
             <span
               aria-hidden="true"
               className="h-1.5 w-1.5 rounded-full"
@@ -636,11 +639,9 @@ export function ProjectsDefault({ config }: ThemeSectionProps) {
             />
           </div>
         </motion.div>
-
         {/* ==================================================================
             PROJECT GRID
         ================================================================== */}
-
         <div
           className="
             grid
@@ -650,20 +651,19 @@ export function ProjectsDefault({ config }: ThemeSectionProps) {
             lg:gap-5
           "
         >
-          {projects.map((project, index) => (
-            <ProjectCard
-              key={project.id ?? `${project.title}-${index}`}
-              project={project}
-              index={index}
-              reduceMotion={Boolean(reduceMotion)}
-            />
-          ))}
+         {projects.map((project, index) => (
+    <ProjectCard
+      key={project.id ?? `${project.title}-${index}`}
+      project={project}
+      index={index}
+      reduceMotion={Boolean(reduceMotion)}
+      portfolioId={portfolioId}                   
+    />
+  ))}
         </div>
-
         {/* ==================================================================
             BOTTOM SIGNATURE
         ================================================================== */}
-
         <motion.div
           initial={reduceMotion ? false : "hidden"}
           whileInView={reduceMotion ? undefined : "visible"}
@@ -686,7 +686,6 @@ export function ProjectsDefault({ config }: ThemeSectionProps) {
                 "linear-gradient(to right, rgba(17,17,17,0.14), transparent)",
             }}
           />
-
           <span
             className="
               text-[9px]
@@ -700,7 +699,6 @@ export function ProjectsDefault({ config }: ThemeSectionProps) {
           >
             Selected work / 03
           </span>
-
           <div
             className="h-px w-8"
             style={{

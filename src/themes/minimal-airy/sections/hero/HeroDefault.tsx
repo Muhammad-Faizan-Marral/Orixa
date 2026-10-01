@@ -118,7 +118,7 @@ function getThemeAccentColor(): THREE.Color {
   const raw = getComputedStyle(root).getPropertyValue("--pr-accent").trim();
 
   if (!raw) {
-    return new THREE.Color("#f97316");
+    return new THREE.Color("#f5f1eb");
   }
 
   const probe = document.createElement("span");
@@ -141,7 +141,7 @@ function getThemeAccentColor(): THREE.Color {
     try {
       return new THREE.Color(raw);
     } catch {
-      return new THREE.Color("#f97316");
+      return new THREE.Color("#f5f1eb");
     }
   }
 }

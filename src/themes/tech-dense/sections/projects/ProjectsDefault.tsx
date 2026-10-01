@@ -12,7 +12,7 @@ import {
 } from "framer-motion";
 
 import type { ThemeSectionProps } from "../../../types";
-
+import { trackProjectClick } from "@/features/portfolio/components/use-portfolio-events"; 
 /* ==========================================================================
    DATA HELPERS
    Only `title` is guaranteed. Everything else is read defensively so the
@@ -77,10 +77,18 @@ function toView(project: unknown, index: number): ProjectView {
     description: readString(r, ["description", "summary", "about"]),
     imageUrl: readUrl(r, [
       "imageUrl",
+      "image_url",
       "image",
       "thumbnail",
+      "thumbnailUrl",
+      "thumbnail_url",
       "coverUrl",
+      "cover_url",
+      "coverImage",
+      "coverImageUrl",
       "screenshot",
+      "previewUrl",
+      "previewImage",
     ]),
     liveUrl: readUrl(r, [
       "liveUrl",
@@ -132,8 +140,13 @@ function ArrowIcon({ className = "" }: { className?: string }) {
   );
 }
 
-function ProjectLinks({ project }: { project: ProjectView }) {
+function ProjectLinks({ project,portfolioId }: { project: ProjectView,portfolioId?: string | null; }) {
   if (!project.liveUrl && !project.sourceUrl) return null;
+  const handleClick = () => {
+    if (portfolioId) {
+      trackProjectClick(portfolioId, project.title);
+    }
+  };
   return (
     <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
       {project.liveUrl && (
@@ -143,6 +156,7 @@ function ProjectLinks({ project }: { project: ProjectView }) {
           rel="noopener noreferrer"
           aria-label={`View ${project.title} live (opens in a new tab)`}
           style={{ clipPath: CUT_SM }}
+          onClick={handleClick}
           className="group relative inline-flex bg-gradient-to-br from-blue-300/70 via-blue-500/40 to-blue-600/70 p-px outline-none transition-shadow duration-500 hover:shadow-[0_0_32px_-6px_rgba(59,130,246,0.7)] focus-visible:ring-2 focus-visible:ring-blue-300"
         >
           <span
@@ -164,6 +178,7 @@ function ProjectLinks({ project }: { project: ProjectView }) {
           target="_blank"
           rel="noopener noreferrer"
           aria-label={`View ${project.title} source code (opens in a new tab)`}
+          onClick={handleClick}
           className="group relative inline-flex min-h-9 items-center gap-2 font-[var(--font-inter)] text-[13px] text-white/55 outline-none transition-colors duration-300 hover:text-white focus-visible:text-white focus-visible:ring-2 focus-visible:ring-blue-400/60"
         >
           Source code
@@ -241,19 +256,30 @@ function ProjectImage({
   project: ProjectView;
   sizes: string;
 }) {
+  const [imageFailed, setImageFailed] = useState(false);
+
+  const imageUrl = project.imageUrl;
+
   return (
     <>
-      {project.imageUrl ? (
+      {imageUrl && !imageFailed ? (
         <Image
-          src={project.imageUrl}
+          key={imageUrl}
+          src={imageUrl}
           alt={`${project.title} preview`}
           fill
           sizes={sizes}
+          unoptimized
+          onError={() => {
+            console.error("Project image failed to load:", imageUrl);
+            setImageFailed(true);
+          }}
           className="object-cover saturate-[0.9] contrast-[1.04]"
         />
       ) : (
         <ImageFallback title={project.title} />
       )}
+
       <div
         aria-hidden="true"
         className="absolute inset-0"
@@ -273,10 +299,11 @@ function ProjectImage({
 export function ProjectsDefault({ config }: ThemeSectionProps) {
   const reduced = Boolean(useReducedMotion());
   const [activeIndex, setActiveIndex] = useState(0);
-
+const portfolioId = config?.portfolioId;          
   const projects = (config.projects ?? []).filter((project) =>
     project.title?.trim(),
   );
+  
 
   const views = useMemo(
     () => projects.map((project, i) => toView(project, i)),
@@ -295,6 +322,7 @@ export function ProjectsDefault({ config }: ThemeSectionProps) {
 
   const safeIndex = Math.min(activeIndex, views.length - 1);
   const active = views[safeIndex];
+
   const glowTop = views.length > 1 ? (safeIndex / (views.length - 1)) * 60 : 20;
 
   const fade = {
@@ -449,7 +477,7 @@ export function ProjectsDefault({ config }: ThemeSectionProps) {
                             </p>
                           )}
                           <TagList tags={project.tags} />
-                          <ProjectLinks project={project} />
+                         <ProjectLinks project={project} portfolioId={portfolioId} />
                         </div>
                       </motion.div>
                     )}
@@ -532,7 +560,7 @@ export function ProjectsDefault({ config }: ThemeSectionProps) {
                   </p>
                 )}
                 <TagList tags={project.tags} max={5} />
-                <ProjectLinks project={project} />
+               <ProjectLinks project={project} portfolioId={portfolioId} />
               </div>
             </motion.li>
           ))}
