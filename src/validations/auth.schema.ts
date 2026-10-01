@@ -1,5 +1,18 @@
 import { z } from "zod";
 
+const ALLOWED_SIGNUP_EMAIL_DOMAINS = new Set([
+  "gmail.com",
+  "outlook.com",
+  "yahoo.com",
+  "hotmail.com",
+  "icloud.com",
+  "proton.me",
+  "protonmail.com",
+  "zoho.com",
+  "aol.com",
+  "mail.com",
+]);
+
 export const loginSchema = z.object({
   email: z
     .string()
@@ -19,7 +32,14 @@ export const signupSchema = z.object({
     .string()
     .trim()
     .min(1, "Email is required.")
-    .email("Please enter a valid email address."),
+    .email("Please enter a valid email address.")
+    .refine(
+      (email) =>
+        ALLOWED_SIGNUP_EMAIL_DOMAINS.has(
+          email.slice(email.lastIndexOf("@") + 1).toLowerCase(),
+        ),
+      "Please use an email address from a supported provider.",
+    ),
   password: z
     .string()
     .min(8, "Password must be at least 8 characters.")

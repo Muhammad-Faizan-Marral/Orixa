@@ -6,8 +6,8 @@ export const BILLING = {
   WATERMARK_TEXT: "Built with OrixaAi",
 
   /** Pricing (USD) */
-  PRICE_MONTHLY: 6,
-  PRICE_YEARLY: 50,
+  PRICE_MONTHLY: 9,
+  PRICE_YEARLY: 69,
 
   /**
    * Free Design DNAs — sab preview + apply kar sakte hain

@@ -88,6 +88,7 @@ export function PortfolioDesignLabClient({
   // Panel open state (desktop + mobile)
   const [panelOpen, setPanelOpen] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [comingSoonOpen, setComingSoonOpen] = useState(false);
 
   // ── Initial values ──────────────────────────────────────────────────────────
 
@@ -221,33 +222,88 @@ export function PortfolioDesignLabClient({
 
   // ── Controls content (shared) ───────────────────────────────────────────────
 
+  const labThemeOptions = useMemo(
+    () => [
+      ...listThemesForLab(isPremium),
+      {
+        id: "coming-soon" as const,
+        name: "Coming Soon",
+        description: "More premium portfolio experiences are on the way.",
+        premium: false,
+      },
+    ],
+    [isPremium],
+  );
+
   const ControlsContent = (
     <div className="space-y-5 p-4 pb-6">
       {/* Theme */}
       <div>
-        <SectionLabel>Theme ecosystem</SectionLabel>
-        <div className="flex flex-wrap gap-1.5">
-          {listThemesForLab(isPremium).map((theme) => {
+        <SectionLabel>Designs</SectionLabel>
+        <div className="space-y-2.5">
+          {labThemeOptions.map((theme) => {
             const d = theme.id;
+            const isComingSoon = d === "coming-soon";
             const locked = !isPremium && theme.premium;
+            const isSelected = dna === d && !isComingSoon;
+
             return (
               <button
                 key={d}
                 type="button"
-                onClick={() => applyDna(d)}
+                onClick={() => {
+                  if (isComingSoon) {
+                    setComingSoonOpen(true);
+                    return;
+                  }
+                  applyDna(d as ThemeId);
+                }}
                 title={
                   locked
                     ? "Premium — preview only. Upgrade to apply."
-                    : undefined
+                    : isComingSoon
+                      ? "More designs are on the way."
+                      : undefined
                 }
-                className={`rounded-full px-2.5 py-1 text-[11px] font-medium capitalize transition-all ${
-                  dna === d
-                    ? "bg-violet-600 text-white shadow-md shadow-violet-900/40"
-                    : "bg-zinc-800/80 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
-                }`}
+                className={`w-full rounded-2xl border p-3 text-left transition-all ${
+                  isSelected
+                    ? "border-violet-500 bg-violet-600/10 shadow-lg shadow-violet-900/20"
+                    : "border-zinc-800 bg-zinc-900/60 hover:border-zinc-700 hover:bg-zinc-900"
+                } ${isComingSoon ? "ring-1 ring-violet-500/40" : ""}`}
               >
-                {theme.name}
-                {locked ? " ★" : ""}
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold text-zinc-100">
+                        {theme.name}
+                      </span>
+                      {isComingSoon && (
+                        <span className="rounded-full border border-violet-500/40 bg-violet-500/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.18em] text-violet-300">
+                          Soon
+                        </span>
+                      )}
+                      {!isComingSoon && locked && (
+                        <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.18em] text-amber-300">
+                          Premium
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-1 line-clamp-2 text-[11px] text-zinc-400">
+                      {isComingSoon
+                        ? "More premium portfolio experiences are on the way."
+                        : theme.description}
+                    </p>
+                  </div>
+                  {isComingSoon ? (
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-violet-500/40 bg-gradient-to-br from-violet-500/20 to-fuchsia-500/10 text-violet-200">
+                      ✦
+                    </div>
+                  ) : (
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-700 bg-zinc-950 text-[11px] text-zinc-500">
+                      {locked ? "★" : "✓"}
+                    </div>
+                  )}
+                </div>
               </button>
             );
           })}
@@ -333,21 +389,20 @@ export function PortfolioDesignLabClient({
   // ── Render ──────────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-zinc-950 text-zinc-100">
+    <div className="flex h-screen flex-col overflow-hidden bg-[#07080d] text-zinc-100">
       {/* ── Sticky header (minimal) ─────────────────────────────────────────── */}
-      <header className="z-40 shrink-0 border-b border-zinc-800/80 bg-zinc-950/95 backdrop-blur-xl">
-        <div className="flex h-13 items-center justify-between gap-3 px-4 sm:px-5">
-          {/* Left */}
+      <header className="z-40 shrink-0 border-b border-zinc-800/80 bg-zinc-950/90 backdrop-blur-xl">
+        <div className="flex h-16 items-center justify-between gap-3 px-4 sm:px-5">
           <div className="flex min-w-0 items-center gap-3">
             <Link
               href={`/dashboard/portfolios/${portfolioId}`}
-              className="shrink-0 rounded-lg px-2.5 py-1.5 text-xs text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white"
+              className="shrink-0 rounded-lg border border-zinc-700 bg-zinc-900/80 px-2.5 py-1.5 text-xs text-zinc-300 transition-colors hover:border-zinc-600 hover:text-white"
             >
               ← Back
             </Link>
-            <div className="h-4 w-px shrink-0 bg-zinc-800" />
+            <div className="h-5 w-px shrink-0 bg-zinc-800" />
             <div className="min-w-0">
-              <p className="text-[9px] font-bold uppercase tracking-widest text-violet-400">
+              <p className="text-[9px] font-bold uppercase tracking-[0.22em] text-violet-400">
                 Design Lab
               </p>
               <p className="truncate text-sm font-medium text-white">
@@ -356,19 +411,17 @@ export function PortfolioDesignLabClient({
             </div>
           </div>
 
-          {/* Right – only mobile Controls button + status */}
           <div className="flex shrink-0 items-center gap-2">
             <button
               type="button"
               onClick={() => setMobileOpen(true)}
-              className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 transition-colors hover:bg-zinc-800 lg:hidden"
+              className="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-xs text-zinc-300 transition-colors hover:bg-zinc-800 lg:hidden"
             >
               Controls
             </button>
           </div>
         </div>
 
-        {/* Status message */}
         {message && (
           <div
             className={`border-t px-4 py-2 text-center text-xs font-medium ${
@@ -382,14 +435,12 @@ export function PortfolioDesignLabClient({
         )}
       </header>
 
-      {/* ── Body ────────────────────────────────────────────────────────────── */}
       <div className="relative flex flex-1 overflow-hidden">
-        {/* ── Desktop left panel (collapsible) ─────────────────────────────── */}
         <aside
           className={`
-            hidden lg:flex flex-col shrink-0 border-r border-zinc-800/80 bg-zinc-950
+            hidden lg:flex flex-col shrink-0 border-r border-zinc-800/80 bg-zinc-950/95
             transition-all duration-300 ease-in-out
-            ${panelOpen ? "w-72 xl:w-80" : "w-12"}
+            ${panelOpen ? "w-[320px]" : "w-12"}
           `}
         >
           {/* Panel header + toggle */}
@@ -479,13 +530,12 @@ export function PortfolioDesignLabClient({
         </aside>
 
         {/* ── Preview pane ─────────────────────────────────────────────────── */}
-        <main className="relative flex-1 overflow-y-auto bg-zinc-950">
-          {/* Floating reopen button when panel is closed (desktop) */}
+        <main className="relative flex-1 overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(124,58,237,0.14),_transparent_28%),_linear-gradient(180deg,_#0b0d12_0%,_#090b11_100%)]">
           {!panelOpen && (
             <button
               type="button"
               onClick={() => setPanelOpen(true)}
-              className="absolute left-3 top-3 z-30 hidden lg:flex items-center gap-2 rounded-full border border-zinc-700 bg-zinc-900/90 px-3 py-1.5 text-xs text-zinc-300 shadow-lg backdrop-blur hover:bg-zinc-800 hover:text-white transition-all"
+              className="absolute left-3 top-3 z-30 hidden items-center gap-2 rounded-full border border-zinc-700 bg-zinc-900/90 px-3 py-1.5 text-xs text-zinc-300 shadow-lg backdrop-blur transition-all hover:bg-zinc-800 hover:text-white lg:flex"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -506,9 +556,59 @@ export function PortfolioDesignLabClient({
             </button>
           )}
 
-          <DesignEngine config={liveConfig} profile={profile} />
+          <div className="h-full w-full overflow-auto p-3 sm:p-4 lg:p-5">
+            <div className="h-full min-h-[640px] overflow-hidden rounded-[1.5rem] border border-zinc-800/80 bg-zinc-950/75 shadow-[0_18px_60px_rgba(15,23,42,0.5)]">
+              <DesignEngine config={liveConfig} profile={profile} />
+            </div>
+          </div>
         </main>
       </div>
+
+      {comingSoonOpen && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-xl rounded-[1.75rem] border border-violet-500/30 bg-zinc-950/95 p-6 shadow-[0_24px_80px_rgba(76,29,149,0.38)] sm:p-8">
+            <div className="mb-5 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-violet-500/40 bg-violet-500/10 text-base text-violet-200">
+                  ✦
+                </span>
+                <span className="text-[10px] font-bold uppercase tracking-[0.24em] text-violet-300">
+                  Coming Soon
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setComingSoonOpen(false)}
+                className="rounded-lg border border-zinc-700 px-2.5 py-1.5 text-xs text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-white"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <h2 className="text-2xl font-semibold tracking-tight text-white">
+                More is on the way.
+              </h2>
+              <p className="text-sm leading-7 text-zinc-300">
+                OrixaAI is continuously creating new premium portfolio
+                experiences for you. New templates will be added to Design Lab
+                over time, giving you more ways to evolve your portfolio without
+                starting over.
+              </p>
+              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-4">
+                <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-violet-300">
+                  Premium keeps you ahead
+                </p>
+                <p className="mt-2 text-sm leading-6 text-zinc-200">
+                  If you have an active yearly Premium plan, you&apos;ll also get
+                  access to new premium portfolio templates released in the
+                  future as part of your Premium experience.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Mobile bottom drawer ───────────────────────────────────────────── */}
       {mobileOpen && (

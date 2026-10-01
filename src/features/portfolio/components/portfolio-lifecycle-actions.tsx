@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -8,6 +8,7 @@ import { publishPortfolio } from "@/actions/portfolio/publish-portfolio";
 import { unpublishPortfolio } from "@/actions/portfolio/unpublish-portfolio";
 import { archivePortfolio } from "@/actions/portfolio/archive-portfolio";
 import { restorePortfolio } from "@/actions/portfolio/restore-portfolio";
+import { usePortfolioPublishing } from "@/features/portfolio/components/portfolio-publishing-context";
 
 import { Button } from "@/components/UI/Button";
 
@@ -30,18 +31,24 @@ export function PortfolioLifecycleActions({
 }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const actionInFlight = useRef(false);
   const [pendingAction, setPendingAction] = useState<ActionKey>(null);
   const [error, setError] = useState<string | null>(null);
   const [justPublished, setJustPublished] = useState(false);
+  const { setIsPublishing, setPublishedOverride } =
+    usePortfolioPublishing();
 
   // Local UI state — updates instantly; server refresh is background only
   const [status, setStatus] = useState(serverStatus);
   const [hasUnpublished, setHasUnpublished] = useState(serverUnpublished);
 
-  // Sync if server props change after real refresh
-  if (serverStatus !== status && !isPending && pendingAction === null) {
-    // avoid render loop: only when idle
-  }
+  useEffect(() => {
+    if (!actionInFlight.current) {
+      setStatus(serverStatus);
+      setHasUnpublished(serverUnpublished);
+      setPublishedOverride(null);
+    }
+  }, [serverStatus, serverUnpublished, setPublishedOverride]);
 
   const runAction = (
     key: Exclude<ActionKey, null>,
@@ -49,32 +56,44 @@ export function PortfolioLifecycleActions({
     nextStatus: PortfolioStatus,
     clearUnpublished: boolean,
   ) => {
+    if (actionInFlight.current) return;
+
+    actionInFlight.current = true;
     setError(null);
     setPendingAction(key);
-
-    // Instant UI
-    setStatus(nextStatus);
-    if (clearUnpublished) setHasUnpublished(false);
+    if (key === "publish") setIsPublishing(true);
 
     startTransition(async () => {
-      const result = await action();
+      let succeeded = false;
+      try {
+        const result = await action();
+        if (!result.success) {
+          setError(result.message ?? "Something went wrong.");
+          return;
+        }
 
-      if (!result.success) {
-        setError(result.message ?? "Something went wrong.");
-        setStatus(serverStatus);
-        setHasUnpublished(serverUnpublished);
+        setStatus(nextStatus);
+        setPublishedOverride(nextStatus === "published");
+        if (clearUnpublished) setHasUnpublished(false);
+        succeeded = true;
+
+        if (key === "publish") {
+          setJustPublished(true);
+          window.setTimeout(() => setJustPublished(false), 2000);
+        }
+      } catch (actionError) {
+        setError(
+          actionError instanceof Error
+            ? actionError.message
+            : "Something went wrong.",
+        );
+      } finally {
+        actionInFlight.current = false;
         setPendingAction(null);
-        return;
+        if (key === "publish") setIsPublishing(false);
       }
 
-      if (key === "publish") {
-        setJustPublished(true);
-        window.setTimeout(() => setJustPublished(false), 2000);
-      }
-
-      setPendingAction(null);
-      // Background revalidate — do NOT block UI; single refresh only
-      router.refresh();
+      if (succeeded) router.refresh();
     });
   };
 
@@ -85,7 +104,7 @@ export function PortfolioLifecycleActions({
           <Button
             type="button"
             variant="gradient"
-            disabled={isPending}
+            disabled={isPending || pendingAction !== null}
             loading={pendingAction === "publish"}
             onClick={() =>
               runAction("publish", () => publishPortfolio(portfolioId), "published", true)
@@ -100,7 +119,7 @@ export function PortfolioLifecycleActions({
             <Button
               type="button"
               variant="gradient"
-              disabled={isPending}
+              disabled={isPending || pendingAction !== null}
               loading={pendingAction === "publish"}
               onClick={() =>
                 runAction("publish", () => publishPortfolio(portfolioId), "published", true)
@@ -111,7 +130,7 @@ export function PortfolioLifecycleActions({
             <Button
               type="button"
               variant="secondary"
-              disabled={isPending}
+              disabled={isPending || pendingAction !== null}
               loading={pendingAction === "unpublish"}
               onClick={() =>
                 runAction("unpublish", () => unpublishPortfolio(portfolioId), "draft", true)
@@ -126,7 +145,7 @@ export function PortfolioLifecycleActions({
           <Button
             type="button"
             variant="secondary"
-            disabled={isPending}
+            disabled={isPending || pendingAction !== null}
             loading={pendingAction === "unpublish"}
             onClick={() =>
               runAction("unpublish", () => unpublishPortfolio(portfolioId), "draft", true)
@@ -140,7 +159,7 @@ export function PortfolioLifecycleActions({
           <Button
             type="button"
             variant="outline"
-            disabled={isPending}
+            disabled={isPending || pendingAction !== null}
             loading={pendingAction === "archive"}
             onClick={() => {
               if (
@@ -160,7 +179,7 @@ export function PortfolioLifecycleActions({
           <Button
             type="button"
             variant="gradient"
-            disabled={isPending}
+            disabled={isPending || pendingAction !== null}
             loading={pendingAction === "restore"}
             onClick={() =>
               runAction("restore", () => restorePortfolio(portfolioId), "draft", false)

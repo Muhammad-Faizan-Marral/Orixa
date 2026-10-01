@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { CreationModeSelect } from "../creation-mode-select";
@@ -1460,11 +1460,21 @@ function BasicsStepUI({
   clearFieldError,
   setMessage,
 }: any) {
+  const [isAvatarUploading, setIsAvatarUploading] = useState(false);
+  const avatarUploadInProgress = useRef(false);
+
   async function handleAvatarUpload(
     file: File | null,
     inputEl?: HTMLInputElement | null,
   ) {
     if (!file) return;
+    if (avatarUploadInProgress.current) {
+      if (inputEl) inputEl.value = "";
+      return;
+    }
+    avatarUploadInProgress.current = true;
+    setIsAvatarUploading(true);
+
     const formData = new FormData();
     formData.append("file", file);
     formData.append("type", "project-image");
@@ -1485,6 +1495,8 @@ function BasicsStepUI({
         text: "Unexpected error uploading avatar. Try again.",
       });
     } finally {
+      avatarUploadInProgress.current = false;
+      setIsAvatarUploading(false);
       if (inputEl) inputEl.value = "";
     }
   }
@@ -1592,27 +1604,52 @@ function BasicsStepUI({
           <div className="pw-avatar-hint">
             JPEG, PNG, or WebP. Shown on your public portfolio page.
           </div>
-          <label className="pw-file-btn">
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-              <path
-                d="M6 1v7M3 4l3-3 3 3"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M1 10h10"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
-            </svg>
-            {avatarUrl ? "Change photo" : "Upload photo"}
+          <label
+            className="pw-file-btn"
+            aria-disabled={isAvatarUploading}
+            style={{
+              opacity: isAvatarUploading ? 0.65 : undefined,
+              cursor: isAvatarUploading ? "wait" : undefined,
+              pointerEvents: isAvatarUploading ? "none" : undefined,
+            }}
+          >
+            {isAvatarUploading ? (
+              <>
+                <span
+                  className="pw-spinner"
+                  style={{
+                    borderColor: "var(--pw-border)",
+                    borderTopColor: "var(--pw-accent)",
+                  }}
+                  aria-hidden="true"
+                />
+                <span aria-live="polite">Uploading...</span>
+              </>
+            ) : (
+              <>
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path
+                    d="M6 1v7M3 4l3-3 3 3"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M1 10h10"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                  />
+                </svg>
+                {avatarUrl ? "Change photo" : "Upload photo"}
+              </>
+            )}
             <input
               type="file"
               accept="image/jpeg,image/png,image/webp,image/gif"
               className="pw-file-input"
+              disabled={isAvatarUploading}
               onChange={(e) =>
                 handleAvatarUpload(e.target.files?.[0] ?? null, e.target)
               }
@@ -1978,6 +2015,59 @@ function ProjectsStepUI({
   clearFieldError,
   setMessage,
 }: any) {
+  const [uploadingProjectIds, setUploadingProjectIds] = useState<Set<string>>(
+    () => new Set(),
+  );
+  const uploadingProjectIdsRef = useRef(new Set<string>());
+
+  async function handleProjectImageUpload(
+    projectId: string,
+    file: File | undefined,
+    inputEl: HTMLInputElement,
+  ) {
+    if (!file) return;
+    if (uploadingProjectIdsRef.current.has(projectId)) {
+      inputEl.value = "";
+      return;
+    }
+
+    uploadingProjectIdsRef.current.add(projectId);
+    setUploadingProjectIds((current) => new Set(current).add(projectId));
+
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("type", "project-image");
+    fd.append("portfolioId", portfolioId);
+    try {
+      const res = await uploadFile(fd);
+      if (res.success && res.data?.url) {
+        setProjects((c: any[]) =>
+          c.map((p) =>
+            p.id === projectId ? { ...p, imageUrl: res.data!.url! } : p,
+          ),
+        );
+      } else if (!res.success) {
+        setMessage({
+          type: "error",
+          text: res.message ?? "Image upload failed.",
+        });
+      }
+    } catch {
+      setMessage({
+        type: "error",
+        text: "Unexpected error uploading image.",
+      });
+    } finally {
+      uploadingProjectIdsRef.current.delete(projectId);
+      setUploadingProjectIds((current) => {
+        const next = new Set(current);
+        next.delete(projectId);
+        return next;
+      });
+      inputEl.value = "";
+    }
+  }
+
   return (
     <div className="pw-section">
       <div>
@@ -2090,60 +2180,61 @@ function ProjectsStepUI({
                 }}
               />
             )}
-            <label className="pw-file-btn">
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                <path
-                  d="M6 1v7M3 4l3-3 3 3"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M1 10h10"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                />
-              </svg>
-              {item.imageUrl ? "Change image" : "Upload image"}
+            <label
+              className="pw-file-btn"
+              aria-disabled={uploadingProjectIds.has(item.id)}
+              style={{
+                opacity: uploadingProjectIds.has(item.id) ? 0.65 : undefined,
+                cursor: uploadingProjectIds.has(item.id) ? "wait" : undefined,
+                pointerEvents: uploadingProjectIds.has(item.id)
+                  ? "none"
+                  : undefined,
+              }}
+            >
+              {uploadingProjectIds.has(item.id) ? (
+                <>
+                  <span
+                    className="pw-spinner"
+                    style={{
+                      borderColor: "var(--pw-border)",
+                      borderTopColor: "var(--pw-accent)",
+                    }}
+                    aria-hidden="true"
+                  />
+                  <span aria-live="polite">Uploading...</span>
+                </>
+              ) : (
+                <>
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path
+                      d="M6 1v7M3 4l3-3 3 3"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M1 10h10"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  {item.imageUrl ? "Change image" : "Upload image"}
+                </>
+              )}
               <input
                 type="file"
                 accept="image/jpeg,image/png,image/webp,image/gif"
                 className="pw-file-input"
-                onChange={async (e) => {
-                  const file = e.target.files?.[0];
-                  const inputEl = e.target;
-                  if (!file) return;
-                  const fd = new FormData();
-                  fd.append("file", file);
-                  fd.append("type", "project-image");
-                  fd.append("portfolioId", portfolioId);
-                  try {
-                    const res = await uploadFile(fd);
-                    if (res.success && res.data?.url) {
-                      setProjects((c: any[]) =>
-                        c.map((p) =>
-                          p.id === item.id
-                            ? { ...p, imageUrl: res.data!.url! }
-                            : p,
-                        ),
-                      );
-                    } else if (!res.success) {
-                      setMessage({
-                        type: "error",
-                        text: res.message ?? "Image upload failed.",
-                      });
-                    }
-                  } catch {
-                    setMessage({
-                      type: "error",
-                      text: "Unexpected error uploading image.",
-                    });
-                  } finally {
-                    inputEl.value = "";
-                  }
-                }}
+                disabled={uploadingProjectIds.has(item.id)}
+                onChange={(e) =>
+                  handleProjectImageUpload(
+                    item.id,
+                    e.target.files?.[0],
+                    e.target,
+                  )
+                }
               />
             </label>
           </div>

@@ -7,6 +7,7 @@ import { portfolioService } from "@/services/portfolio/portfolio.service";
 import { portfolioViewService } from "@/services/portfolio/portfolio-view.service";
 import { PublicLinkCard } from "@/features/portfolio/components/public-link-card";
 import { PortfolioLifecycleActions } from "@/features/portfolio/components/portfolio-lifecycle-actions";
+import { PortfolioPublishingProvider } from "@/features/portfolio/components/portfolio-publishing-context";
 import { LifecycleGuide } from "@/features/portfolio/components/lifecycle-guide";
 import { PortfolioViewTracker } from "@/features/portfolio/components/portfolio-view-tracker";
 import { Badge } from "@/components/UI/Badge";
@@ -60,6 +61,7 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
   );
 
   return (
+    <PortfolioPublishingProvider>
     <div className="space-y-10">
       {/* ── Back link ── */}
       <Link
@@ -171,5 +173,6 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
 
       <PortfolioViewTracker portfolioId={portfolio.id} />
     </div>
+    </PortfolioPublishingProvider>
   );
 }

@@ -1,5 +1,7 @@
 "use client";
 
+import { usePathname } from "next/navigation";
+
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Topbar } from "@/components/dashboard/topbar";
 
@@ -15,6 +17,15 @@ type DashboardShellProps = {
 };
 
 export function DashboardShell({ children, profile }: DashboardShellProps) {
+  const pathname = usePathname();
+  const isDesignLabRoute =
+    pathname?.startsWith("/dashboard/portfolios/") &&
+    pathname.endsWith("/design-lab");
+
+  if (isDesignLabRoute) {
+    return <>{children}</>;
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Sidebar profile={profile} />
