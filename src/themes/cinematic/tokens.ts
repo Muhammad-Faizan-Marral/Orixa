@@ -1,11 +1,1 @@
-import type { ThemeTokens } from "../types";
-
-export const tokens: ThemeTokens = {
-  themeMode: "dark",
-  accentColor: "#f25346",
-  backgroundColor: "#05081c",
-  foregroundColor: "#f7f3ea",
-  mutedColor: "#9aa3c7",
-  fontSans: "Inter, system-ui, sans-serif",
-  fontDisplay: "'Space Grotesk', Inter, system-ui, sans-serif",
-};
+export const tokens = { themeMode: "light", accentColor: "#ef4444", backgroundColor: "#f4f1e8", foregroundColor: "#111111", mutedColor: "#555555", fontSans: "JetBrains Mono", fontDisplay: "JetBrains Mono" } as const;

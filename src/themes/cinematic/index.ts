@@ -2,9 +2,9 @@ import type { ThemeDefinition } from "../types";
 import { ThemePage } from "./ThemePage";
 import { tokens } from "./tokens";
 export default {
-  id: "cinematic",
-  name: "Cinematic",
-  description: "Dark, dramatic, image-conscious portfolio.",
+  id: "brutalist",
+  name: "Brutalist",
+  description: "Direct graphic portfolio system.",
   premium: true,
   tokens,
   defaults: {
