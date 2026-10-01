@@ -198,7 +198,8 @@ export function normalizeContact(config: Config, profile: Profile): CinematicCon
   return {
     links,
     location: clean(config.location),
-    canMessage: true,
+    // mirrors existing ContactDefault: form exists only when portfolioId exists
+    canMessage: !!config.portfolioId,
     username: profile.username,
     portfolioId: config.portfolioId,
   };

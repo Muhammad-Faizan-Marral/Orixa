@@ -1,4 +1,4 @@
-import type { FilmLook, MoodId, MoodPreset, QualityBudget, QualityTier } from "../schema";
+import type { AmbienceId, FilmLook, MoodId, MoodPreset, QualityBudget, QualityTier } from "../schema";
 
 export const MOODS: Record<MoodId, MoodPreset> = {
   "petal-pond": {
@@ -33,9 +33,9 @@ export const MOODS: Record<MoodId, MoodPreset> = {
 
 /** Particle counts – tuned so "low" survives a budget phone. */
 export const QUALITY_BUDGETS: Record<QualityTier, QualityBudget> = {
-  low:    { petals: 40,  butterflies: 64,  wavefield: 4_000,  dust: 120 },
-  medium: { petals: 90,  butterflies: 144, wavefield: 12_000, dust: 260 },
-  high:   { petals: 160, butterflies: 324, wavefield: 25_000, dust: 480 },
+  low:    { petals: 40,  butterflies: 24,  wavefield: 4_000,  dust: 120 },
+  medium: { petals: 90,  butterflies: 48, wavefield: 12_000, dust: 260 },
+  high:   { petals: 160, butterflies: 90, wavefield: 25_000, dust: 480 },
 };
 
 export const FILM_LOOK: FilmLook = {
@@ -46,3 +46,6 @@ export const FILM_LOOK: FilmLook = {
   flicker: 0.02,
   timestamp: true,
 };
+
+/** Every ambience that can be crossfaded (implemented or not). */
+export const AMBIENCE_IDS: AmbienceId[] = ["petals", "butterflies", "wavefield", "dust"];

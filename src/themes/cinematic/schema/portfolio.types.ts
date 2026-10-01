@@ -96,7 +96,7 @@ export type CinematicCertificate = {
 export type CinematicContact = {
   links: CinematicLink[];
   location?: string;
-  /** Wire to existing send-contact-message action */
+  /** true when portfolioId exists -> render form wired to sendContactMessage + trackContactClick(portfolioId) */
   canMessage: boolean;
   username: string;
   portfolioId?: string;

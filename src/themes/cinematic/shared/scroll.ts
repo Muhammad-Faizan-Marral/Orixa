@@ -25,3 +25,8 @@ export function subscribeScroll(cb: (progress: number) => void): () => void {
     if (raf) cancelAnimationFrame(raf);
   };
 }
+/** Smooth-scroll the page so that film progress == p (0..1). */
+export function scrollToProgress(p: number) {
+  const max = document.documentElement.scrollHeight - window.innerHeight;
+  window.scrollTo({ top: clamp(p) * max, behavior: "smooth" });
+}

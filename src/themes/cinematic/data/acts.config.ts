@@ -95,7 +95,7 @@ export const ACT_DEFINITIONS: ActDefinition[] = [
     role: "epilogue",
     title: "Until Next Time",
     mood: "petal-pond",
-    requires: () => true, // always: message form works even with zero links
+    requires: (p) => p.contact.canMessage || p.contact.links.length > 0, // same rule as ContactDefault's `return null`
     count: (p) => p.contact.links.length,
     weight: () => 1.1,
     caption: () => undefined,

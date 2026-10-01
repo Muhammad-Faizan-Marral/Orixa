@@ -4,14 +4,15 @@ import { useSyncExternalStore, type ComponentType } from "react";
 import type { AmbienceId } from "../../../schema";
 import { useScene } from "../../state/scene-context";
 import { ButterflySwarm } from "./ButterflySwarm";
+import { LanternDust } from "./LanternDust";
 import { PetalPond } from "./PetalPond";
 
 /** Registry. Missing ids render nothing (sky/fog still blend) until implemented. */
 export const AMBIENCES: Partial<Record<AmbienceId, ComponentType>> = {
   petals: PetalPond,
   butterflies: ButterflySwarm,
+  dust: LanternDust,
   // wavefield: WaveField,  // next
-  // dust:      LanternDust, // next
 };
 
 /**

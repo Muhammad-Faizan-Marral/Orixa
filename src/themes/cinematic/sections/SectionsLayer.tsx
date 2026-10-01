@@ -6,9 +6,17 @@ import type { ActId } from "../schema";
 import { smoothstep } from "../shared/math";
 import { subscribeScroll } from "../shared/scroll";
 import { About } from "./about";
+
 import { Hero } from "./hero";
+import { Projects } from "./projects";
+import { Skills } from "./skills";
 import { ActTitleCard } from "./shared/ActTitleCard";
 import type { SectionProps } from "./shared/types";
+import { MOODS } from "../data/mood.config";
+import { Experience } from "./experience";
+import { Education } from "./education";
+import { Certificates } from "./certificates";
+import { Contact } from "./contact";
 
 /**
  * Act -> component. Anything missing falls back to a title card,
@@ -17,8 +25,13 @@ import type { SectionProps } from "./shared/types";
 const RENDERERS: Partial<Record<ActId, ComponentType<SectionProps>>> = {
   arrival: Hero,
   about: About,
+  skills: Skills,
+  projects: Projects,
+  experience: Experience,
+  education: Education,
+  certificates: Certificates,
+  contact: Contact,
 };
-
 const FADE = 0.14; // portion of an act used to dissolve in / out
 
 /**
@@ -53,13 +66,14 @@ export function SectionsLayer({ model }: { model: CinematicModel }) {
       {acts.map((act, i) => {
         const Comp = RENDERERS[act.id] ?? ActTitleCard;
         return (
-          <section
+           <section
             key={act.id}
             data-act={act.id}
             data-active={i === 0 ? "true" : "false"}
             data-first={i === 0 ? "" : undefined}
             aria-label={act.title}
             className="cin-act"
+            style={{ ["--cin-accent" as string]: MOODS[act.mood].palette.accent }}
           >
             <Comp portfolio={model.portfolio} act={act} />
           </section>
