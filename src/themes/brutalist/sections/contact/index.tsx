@@ -1,7 +1,8 @@
 import { getStation } from "../../data";
 import { frameProps, resolveModel, type SectionProps } from "../shared/model";
 import { StationFrame } from "../shared/StationFrame";
-import { ExtLink, Heading, Kicker, Panel } from "../shared/ui";
+import { Heading, Kicker, Panel } from "../shared/ui";
+import { TrackedExtLink } from "../shared/tracked-links";
 
 /** Contact / landing strip. Variants: "default" (center), "alt" (right). */
 export function Contact(props: SectionProps) {
@@ -10,6 +11,7 @@ export function Contact(props: SectionProps) {
   if (!s) return null;
   const { links, location, resumeUrl } = s.data;
   const alt = props.variant === "alt";
+  const portfolioId = props.config?.portfolioId;
   return (
     <StationFrame
       id="contact"
@@ -27,11 +29,21 @@ export function Contact(props: SectionProps) {
           {location && <p className="cin-chip mt-4">📍 {location}</p>}
           <div className={`mt-7 flex flex-wrap gap-3 ${alt ? "" : "justify-center"}`}>
             {links.map((l, i) => (
-              <ExtLink key={`${l.kind}-${l.href}`} href={l.href} external={l.external} solid={i === 0}>
+              <TrackedExtLink
+                key={`${l.kind}-${l.href}`}
+                portfolioId={portfolioId}
+                href={l.href}
+                external={l.external}
+                solid={i === 0}
+              >
                 {l.label}
-              </ExtLink>
+              </TrackedExtLink>
             ))}
-            {resumeUrl && !links.some((l) => l.kind === "resume") && <ExtLink href={resumeUrl} external>Resume</ExtLink>}
+            {resumeUrl && !links.some((l) => l.kind === "resume") && (
+              <TrackedExtLink portfolioId={portfolioId} href={resumeUrl} external>
+                Resume
+              </TrackedExtLink>
+            )}
           </div>
         </div>
       </Panel>

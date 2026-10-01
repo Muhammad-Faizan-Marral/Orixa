@@ -1,7 +1,7 @@
 import { getStation } from "../../data";
 import { frameProps, resolveModel, type SectionProps } from "../shared/model";
 import { StationFrame } from "../shared/StationFrame";
-import { ExtLink } from "../shared/ui";
+import { TrackedExtLink } from "../shared/tracked-links";
 
 /** Takeoff / runway. Variants: "default" (left), "alt" (centered). */
 export function Hero(props: SectionProps) {
@@ -10,6 +10,7 @@ export function Hero(props: SectionProps) {
   if (!s) return null;
   const { name, headline, roleWords, location, primaryCta, avatarUrl, initials } = s.data;
   const alt = props.variant === "alt";
+  const portfolioId = props.config?.portfolioId;
   const center = alt ? "items-center text-center" : "items-start";
 
   return (
@@ -69,9 +70,14 @@ export function Hero(props: SectionProps) {
 
           <div className={`mt-2 flex flex-wrap items-center gap-5 ${alt ? "justify-center" : ""}`}>
             {primaryCta && (
-              <ExtLink href={primaryCta.href} external={primaryCta.external} solid>
+              <TrackedExtLink
+                portfolioId={portfolioId}
+                href={primaryCta.href}
+                external={primaryCta.external}
+                solid
+              >
                 {primaryCta.label}
-              </ExtLink>
+              </TrackedExtLink>
             )}
             <span className="cin-scroll-cue"><span aria-hidden />Scroll to fly</span>
           </div>

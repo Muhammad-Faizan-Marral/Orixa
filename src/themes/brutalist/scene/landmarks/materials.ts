@@ -24,7 +24,8 @@ export function flat(color: string, o: Opts = {}): MeshStandardMaterial {
 }
 
 export const C = {
-  asphalt: "#2b2f3a", white: "#f1ece4", cream: "#eadfc8", red: "#f25346", brown: "#59332e",
-  rock: "#7a6a5a", grass: "#629265", grassDark: "#458248", glass: "#68c3c0", steel: "#8a94a6",
-  amber: "#ffb347", orange: "#f5986e", navy: "#23305a",
+  // Vintage / faded palette: saturation kam, warmth zyada
+  asphalt: "#3a3733", white: "#efe4cf", cream: "#e3d2b0", red: "#c9553d", brown: "#59332e",
+  rock: "#8a7863", grass: "#7a8f52", grassDark: "#5f7a45", glass: "#7fb0a6", steel: "#9a9486",
+  amber: "#e9a94c", orange: "#e08a5c", navy: "#2f3a52",
 } as const;

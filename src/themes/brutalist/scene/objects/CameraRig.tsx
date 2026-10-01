@@ -5,9 +5,11 @@ import { useFrame } from "@react-three/fiber";
 import { useMemo } from "react";
 import { Vector3 } from "three";
 
-import { damp } from "../lib/journey-math";
 import { useScene } from "../state/scene-context";
 
+
+import { airFactor, flightPlanOf } from "../lib/flight";
+import { damp, lerp } from "../lib/journey-math";
 /* ============================================================
    CAMERA CONFIG
 ============================================================ */
@@ -50,6 +52,10 @@ const LOOK_PARALLAX = {
 };
 
 const SMOOTH = 3.4;
+const GROUND_CAM = {
+  y: 74,
+  lookY: 62,
+};
 
 /**
  * Very subtle cinematic camera breathing.
@@ -113,8 +119,9 @@ const VELOCITY_LOOK = 12;
  * almost invisible breathing
  */
 export function CameraRig() {
-  const { journey } = useScene();
-
+  
+  const { journey, model } = useScene();
+  const plan = useMemo(() => flightPlanOf(model.stations), [model.stations]);
   /*
    * Reused target vector.
    *
@@ -144,7 +151,9 @@ export function CameraRig() {
       journey.reducedMotion
         ? 0
         : 1;
-
+    const ground = 1 - airFactor(journey.progress, plan);
+    const baseY = lerp(BASE.y, GROUND_CAM.y, ground);
+    const lookBaseY = lerp(LOOK.y, GROUND_CAM.lookY, ground);
     /* ========================================================
        POINTER
     ======================================================== */
@@ -226,7 +235,7 @@ export function CameraRig() {
       velocityX;
 
     const targetY =
-      BASE.y +
+      baseY  +
       py * PARALLAX.y * motion +
       breathingY +
       velocityY;
@@ -282,7 +291,7 @@ export function CameraRig() {
         motion;
 
     const targetLookY =
-      LOOK.y +
+      lookBaseY +
       py *
         LOOK_PARALLAX.y *
         motion;

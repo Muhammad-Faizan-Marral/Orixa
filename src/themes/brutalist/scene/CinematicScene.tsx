@@ -24,6 +24,28 @@ function GradientFallback({ className }: { className?: string }) {
     />
   );
 }
+/** Purani film jaisa look: warm tint + grain + vignette. Sirf CSS, GPU par halka. */
+const GRAIN =
+  "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.6 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>\")";
+
+function FilmLook() {
+  const layer = { position: "absolute", inset: 0, pointerEvents: "none" } as const;
+  return (
+    <>
+      {/* garam sepia tint */}
+      <div style={{ ...layer, background: "rgba(196,138,76,0.14)", mixBlendMode: "soft-light" }} />
+      {/* film grain */}
+      <div style={{ ...layer, backgroundImage: GRAIN, backgroundSize: "220px 220px", opacity: 0.16, mixBlendMode: "overlay" }} />
+      {/* vignette */}
+      <div
+        style={{
+          ...layer,
+          background: "radial-gradient(ellipse at center, rgba(0,0,0,0) 52%, rgba(34,16,6,0.5) 100%)",
+        }}
+      />
+    </>
+  );
+}
 
 export default function CinematicScene({ model, className }: Props) {
   const [quality, setQuality] = useState<WorldQuality>(model.world.quality);
@@ -69,6 +91,7 @@ export default function CinematicScene({ model, className }: Props) {
           <World />
         </SceneContext.Provider>
       </Canvas>
+      <FilmLook />
     </div>
   );
 }

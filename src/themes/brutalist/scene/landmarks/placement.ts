@@ -4,7 +4,7 @@
  */
 import type { CinematicStation, StationId } from "../../schema";
 import { SURFACE_RADIUS, stationAngle } from "../lib/journey-math";
-
+import { HERO_RUNWAY_PROGRESS, LANDING_RUNWAY_PROGRESS } from "../lib/flight";
 export type Placement = {
   stationId: StationId;
   index: number;
@@ -50,6 +50,7 @@ function itemCount(s: CinematicStation): number {
 
 export function computePlacements(stations: readonly CinematicStation[]): Placement[] {
   const out: Placement[] = [];
+  
   for (const s of stations) {
     const n = itemCount(s);
     const spec = SPEC[s.id];
@@ -57,9 +58,9 @@ export function computePlacements(stations: readonly CinematicStation[]): Placem
 
     for (let k = 0; k < n; k++) {
       // hero: takeoff (start), contact: landing (end), about: center, baaqi: range me barabar taqseem
-      let progress = s.range.start + ((k + 0.5) / n) * span;
-      if (s.id === "hero") progress = s.range.start;
-      else if (s.id === "contact") progress = s.range.end;
+          let progress = s.range.start + ((k + 0.5) / n) * span;
+      if (s.id === "hero") progress = HERO_RUNWAY_PROGRESS;
+      else if (s.id === "contact") progress = LANDING_RUNWAY_PROGRESS;
       else if (s.id === "about") progress = s.range.center;
 
       let z = spec.z;

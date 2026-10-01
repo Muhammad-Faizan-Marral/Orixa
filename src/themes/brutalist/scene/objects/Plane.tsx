@@ -12,9 +12,19 @@ import {
 } from "three";
 
 import { reshape } from "../lib/geometry";
-import { damp, mapRange } from "../lib/journey-math";
+import {
+  GROUND_X,
+  ROTATE_PITCH,
+  airFactor,
+  flightPlanOf,
+  flightSlope,
+  groundPitch,
+  planeHeight,
+  planeX,
+  rotationBump,
+} from "../lib/flight";
+import { damp, lerp, mapRange, smoothstep } from "../lib/journey-math";
 import { useScene } from "../state/scene-context";
-
 const C = {
   // Vintage aviation palette
   body: "#D95A43",
@@ -59,7 +69,9 @@ const flat = (
 const IDLE_AFTER_MS = 2500;
 
 export function Plane() {
-  const { journey } = useScene();
+    const { journey, model } = useScene();
+  const plan = useMemo(() => flightPlanOf(model.stations), [model.stations]);
+ 
 
   const root = useRef<Group>(null);
   const propeller = useRef<Group>(null);
@@ -247,6 +259,7 @@ export function Plane() {
     const dt = Math.min(rawDt, 0.05);
     const p = pos.current;
     const t = state.clock.elapsedTime;
+    const progress = journey.progress;
 
     const active =
       !journey.reducedMotion &&
@@ -270,60 +283,63 @@ export function Plane() {
     p.x = damp(p.x, p.tx, 5.2, dt);
     p.y = damp(p.y, p.ty, 5.2, dt);
 
+    /* TAKEOFF / LANDING: a = 0 runway par, a = 1 poori tarah hawa me */
+    const a = airFactor(progress, plan);
+    const x = planeX(p.x, a);
+    const baseY = planeHeight(progress, p.y, p.x, plan);
+
+    /* zameen par scroll karte waqt halka engine rumble */
+    const moving = Math.min(1, Math.abs(journey.velocity) * 40);
+    const onGround = 1 - smoothstep(0, 0.12, a);
+    const rumble = journey.reducedMotion
+      ? 0
+      : (Math.sin(t * 47) * 0.16 + Math.sin(t * 31 + 1.3) * 0.12) * onGround * moving;
+
+    /* pitch: zameen par 3-point attitude (+ takeoff rotation), hawa me path angle ke saath */
+    const pathPitch = Math.atan(flightSlope(progress, p.y, p.x, plan));
+    const groundAttitude =
+      groundPitch(x) + rotationBump(progress, plan) * ROTATE_PITCH;
+    const airAttitude = pathPitch * 0.9 + (p.ty - p.y) * 0.01;
+    const pitch = lerp(groundAttitude, airAttitude, smoothstep(0, 0.35, a));
+
     const r = root.current;
 
     if (r) {
-      r.position.set(p.x, p.y, -250);
+      r.position.set(x, baseY + rumble, -250);
 
-      /*
-       * Aircraft banking.
-       * Deliberately restrained so it feels cinematic,
-       * not arcade-like.
-       */
-      r.rotation.z = (p.ty - p.y) * 0.010;
-      r.rotation.x = (p.y - p.ty) * 0.0045;
-      r.rotation.y = (p.x - p.tx) * 0.006;
+      /* Aircraft banking, sirf hawa me */
+      r.rotation.z = pitch;
+      r.rotation.x = (p.y - p.ty) * 0.0045 * a;
+      r.rotation.y = (p.x - p.tx) * 0.006 * a;
 
       if (!active && !journey.reducedMotion) {
-        r.rotation.z += Math.sin(t * 0.8) * 0.008;
-        r.rotation.y += Math.sin(t * 0.55) * 0.006;
-        r.position.y += Math.sin(t * 0.9) * 0.35;
+        r.rotation.z += Math.sin(t * 0.8) * 0.008 * a;
+        r.rotation.y += Math.sin(t * 0.55) * 0.006 * a;
+        r.position.y += Math.sin(t * 0.9) * 0.35 * a;
       }
     }
 
-    /*
-     * Propeller speed reacts to journey velocity.
-     */
+    /* Propeller: zameen par idle, scroll shuru hote hi full power */
     if (propeller.current) {
       const boost = 1 + Math.min(Math.abs(journey.velocity) * 6, 2.4);
+      const throttle = Math.max(a, moving);
 
-      propeller.current.rotation.x += 20 * dt * boost;
+      propeller.current.rotation.x += lerp(7, 20, throttle) * dt * boost;
     }
 
-    /*
-     * Soft cockpit pulse.
-     */
+    /* Soft cockpit pulse */
     if (cockpitGlow.current && !journey.reducedMotion) {
       const pulse = 0.78 + Math.sin(t * 1.7) * 0.12;
-
-      const material = cockpitGlow.current
-        .material as MeshStandardMaterial;
-
+      const material = cockpitGlow.current.material as MeshStandardMaterial;
       material.emissiveIntensity = pulse;
     }
 
-    /*
-     * Navigation light pulse.
-     */
+    /* Navigation light pulse */
     if (navigationGlow.current && !journey.reducedMotion) {
-      const material = navigationGlow.current
-        .material as MeshStandardMaterial;
-
-      material.emissiveIntensity =
-        0.65 + Math.sin(t * 3.2) * 0.25;
+      const material = navigationGlow.current.material as MeshStandardMaterial;
+      material.emissiveIntensity = 0.65 + Math.sin(t * 3.2) * 0.25;
     }
   });
-
   const shadow = {
     castShadow: true,
     receiveShadow: true,
@@ -333,7 +349,7 @@ export function Plane() {
     <group
       ref={root}
       scale={0.5}
-      position={[-40, 110, -250]}
+       position={[GROUND_X, 22, -250]}
       rotation={[0, 0, 0]}
     >
       {/* =========================================================

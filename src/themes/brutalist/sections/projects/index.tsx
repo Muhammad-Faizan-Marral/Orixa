@@ -2,6 +2,7 @@ import { getStation } from "../../data";
 import { frameProps, resolveModel, type SectionProps } from "../shared/model";
 import { StationFrame } from "../shared/StationFrame";
 import { Chip, Heading, Kicker, Panel } from "../shared/ui";
+import { TrackedProjectLink } from "../shared/tracked-links";
 
 /** Projects / ring gates. Variants: "default" (grid, center), "alt" (compact list, left). */
 export function Projects(props: SectionProps) {
@@ -10,6 +11,7 @@ export function Projects(props: SectionProps) {
   if (!s) return null;
   const { items, total } = s.data;
   const alt = props.variant === "alt";
+  const portfolioId = props.config?.portfolioId;
 
   return (
     <StationFrame
@@ -40,9 +42,14 @@ export function Projects(props: SectionProps) {
                 />
                 <h3 className="cin-display pl-2 text-base font-semibold text-white">
                   {p.url ? (
-                    <a href={p.url} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                    <TrackedProjectLink
+                      portfolioId={portfolioId}
+                      projectTitle={p.title}
+                      href={p.url}
+                      className="hover:underline"
+                    >
                       {title}
-                    </a>
+                    </TrackedProjectLink>
                   ) : (
                     title
                   )}
