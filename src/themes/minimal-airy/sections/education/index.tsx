@@ -10,5 +10,5 @@ export function Education({
   ...props
 }: ThemeSectionProps & { variant?: string }) {
   const C = variants[variant as keyof typeof variants] || EducationDefault;
-  return <C education={[]} {...props} />;
+  return <C {...props} />;
 }

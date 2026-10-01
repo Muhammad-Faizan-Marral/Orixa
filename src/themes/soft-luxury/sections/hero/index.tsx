@@ -1,6 +1,5 @@
 import type { ThemeSectionProps } from "../../../types";
 import HeroDefault from "./HeroDefault";
-import HeroDinoBite from "./HeroDinoBite";
 
 
 export function Hero({

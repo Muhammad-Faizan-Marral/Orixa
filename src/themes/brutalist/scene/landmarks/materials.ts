@@ -1,6 +1,13 @@
 import { MeshStandardMaterial } from "three";
 
-type Opts = { emissive?: string; emissiveIntensity?: number; opacity?: number; roughness?: number };
+type Opts = {
+  emissive?: string;
+  emissiveIntensity?: number;
+  metalness?: number;
+  opacity?: number;
+  roughness?: number;
+  transparent?: boolean;
+};
 const cache = new Map<string, MeshStandardMaterial>();
 
 /** Shared flat-shaded material (same colour = same instance => kam draw state changes). */
@@ -25,7 +32,7 @@ export function flat(color: string, o: Opts = {}): MeshStandardMaterial {
 
 export const C = {
   // Vintage / faded palette: saturation kam, warmth zyada
-  asphalt: "#3a3733", white: "#efe4cf", cream: "#e3d2b0", red: "#c9553d", brown: "#59332e",
+  asphalt: "#3a3733", white: "#efe4cf", cream: "#e3d2b0", red: "#c9553d", brown: "#59332e", dark: "#141211",
   rock: "#8a7863", grass: "#7a8f52", grassDark: "#5f7a45", glass: "#7fb0a6", steel: "#9a9486",
   amber: "#e9a94c", orange: "#e08a5c", navy: "#2f3a52",
 } as const;
