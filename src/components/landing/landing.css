@@ -1,0 +1,58 @@
+/*
+ * Landing-only additions. Colours come from YOUR :root tokens in globals.css
+ * (--primary, --accent, --surface*, --border, --error, --success, --warning ...). Nothing here redefines the theme.
+ */
+@layer theme, base, components, utilities;
+
+@layer components {
+  .btn { display:inline-flex; align-items:center; justify-content:center; gap:.5rem; min-height:3rem; padding:0 1.5rem;
+    border-radius:var(--radius-lg); font-weight:600; font-size:.95rem; cursor:pointer; position:relative; overflow:hidden;
+    transition: transform .2s var(--ease-orixa, ease), box-shadow .25s, background .2s, border-color .2s; }
+  .btn:disabled { opacity:.5; cursor:not-allowed; transform:none; }
+  .btn-ion { background:var(--primary); color:var(--primary-foreground);
+    box-shadow:0 0 0 1px color-mix(in srgb,var(--primary) 60%,white 20%) inset, 0 10px 34px -10px color-mix(in srgb,var(--primary) 80%,transparent); }
+  .btn-ion::after { content:""; position:absolute; inset:0; background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.28) 50%,transparent 70%);
+    transform:translateX(-120%); transition:transform .7s var(--ease-orixa, ease); }
+  .btn-ion:hover:not(:disabled) { background:var(--primary-hover); transform:translateY(-2px);
+    box-shadow:0 0 0 1px color-mix(in srgb,var(--accent) 50%,transparent), 0 16px 44px -10px color-mix(in srgb,var(--primary) 90%,transparent); }
+  .btn-ion:hover:not(:disabled)::after { transform:translateX(120%); }
+  .btn-ghost { border:1px solid var(--border-strong); color:var(--foreground); background:color-mix(in srgb,var(--surface) 70%,transparent); backdrop-filter:blur(8px); }
+  .btn-ghost:hover:not(:disabled) { background:var(--surface-2); border-color:var(--primary); }
+  .glass { background:color-mix(in srgb,var(--background) 72%,transparent); backdrop-filter:blur(14px) saturate(1.4); }
+  .spot { position:relative; }
+  .spot::before { content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none; opacity:0; transition:opacity .3s;
+    background:radial-gradient(360px circle at var(--x,50%) var(--y,50%), color-mix(in srgb,var(--primary) 22%,transparent), transparent 70%); }
+  .spot:hover::before { opacity:1; }
+  .pad-tile { transition: transform .12s, box-shadow .2s, filter .2s, opacity .2s; }
+  .pad-tile:active:not(:disabled) { transform:scale(.94); }
+}
+
+@keyframes portal-in { from { clip-path:circle(0% at 50% 50%); opacity:.4 } to { clip-path:circle(150% at 50% 50%); opacity:1 } }
+@keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-7px)} 40%{transform:translateX(6px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(3px)} }
+@keyframes pop { 0%{transform:scale(.6);opacity:0} 60%{transform:scale(1.15);opacity:1} 100%{transform:scale(1)} }
+@keyframes blink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
+@keyframes beacon { 0%,100%{opacity:.4;transform:scale(1)} 50%{opacity:1;transform:scale(1.25)} }
+@keyframes spin3d { from{transform:rotateY(0)} to{transform:rotateY(360deg)} }
+@keyframes spark { from{transform:translate(0,0) scale(1);opacity:1} to{transform:translate(var(--dx),var(--dy)) scale(.2);opacity:0} }
+@keyframes break { 0%{transform:scale(1)} 30%{transform:scale(1.35) rotate(-8deg)} 100%{transform:scale(1)} }
+@keyframes glitch { 0%,100%{transform:translate(0)} 20%{transform:translate(-2px,1px)} 40%{transform:translate(2px,-1px)} 60%{transform:translate(-1px,-1px)} 80%{transform:translate(1px,2px)} }
+@keyframes ring-pulse { 0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--accent) 60%,transparent)} 100%{box-shadow:0 0 0 14px transparent} }
+
+.anim-portal { animation: portal-in .7s cubic-bezier(.2,.8,.2,1) both; }
+.anim-shake { animation: shake .45s ease-in-out; }
+.anim-pop { animation: pop .5s cubic-bezier(.2,1.4,.4,1) both; }
+.anim-blink { animation: blink 1.1s steps(1) infinite; }
+.anim-beacon { animation: beacon 3.2s ease-in-out infinite; }
+.anim-break { animation: break .5s ease-out; }
+.anim-glitch { animation: glitch .6s steps(2) infinite; }
+.anim-ring { animation: ring-pulse 2.4s ease-out infinite; }
+.coin { transform-style:preserve-3d; animation: spin3d 3.2s linear infinite; }
+.spark { position:absolute; width:6px; height:6px; border-radius:1px; background:var(--accent); animation: spark .9s ease-out forwards; }
+
+dialog.cabinet { margin:auto; padding:0; border:0; background:transparent; color:var(--foreground); max-width:none; overflow:visible; }
+dialog.cabinet::backdrop { background:color-mix(in srgb,var(--background) 86%,transparent); backdrop-filter:blur(8px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-portal,.anim-shake,.anim-pop,.anim-blink,.anim-beacon,.anim-break,.anim-glitch,.anim-ring,.coin,.spark { animation:none !important; }
+  .btn,.btn-ion::after { transition:none; }
+}
