@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { AnimatePresence, motion } from "framer-motion";
 
 import { publishPortfolio } from "@/actions/portfolio/publish-portfolio";
 import { unpublishPortfolio } from "@/actions/portfolio/unpublish-portfolio";
@@ -11,6 +10,7 @@ import { restorePortfolio } from "@/actions/portfolio/restore-portfolio";
 import { usePortfolioPublishing } from "@/features/portfolio/components/portfolio-publishing-context";
 
 import { Button } from "@/components/UI/Button";
+import { useToast } from "@/components/toast";
 
 type PortfolioStatus = "draft" | "published" | "archived";
 
@@ -34,9 +34,9 @@ export function PortfolioLifecycleActions({
   const actionInFlight = useRef(false);
   const [pendingAction, setPendingAction] = useState<ActionKey>(null);
   const [error, setError] = useState<string | null>(null);
-  const [justPublished, setJustPublished] = useState(false);
   const { setIsPublishing, setPublishedOverride } =
     usePortfolioPublishing();
+  const { toast } = useToast();
 
   // Local UI state — updates instantly; server refresh is background only
   const [status, setStatus] = useState(serverStatus);
@@ -78,8 +78,13 @@ export function PortfolioLifecycleActions({
         succeeded = true;
 
         if (key === "publish") {
-          setJustPublished(true);
-          window.setTimeout(() => setJustPublished(false), 2000);
+          toast({
+            type: "success",
+            title: "Your portfolio has been published!",
+            description:
+              "Cached versions may take a little time to update. If you still see your previous portfolio, please wait a little and refresh the page.",
+            duration: 0,
+          });
         }
       } catch (actionError) {
         setError(
@@ -189,18 +194,6 @@ export function PortfolioLifecycleActions({
           </Button>
         )}
 
-        <AnimatePresence>
-          {justPublished && (
-            <motion.span
-              initial={{ opacity: 0, y: 4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              className="bg-gradient-ion-soft border-primary/25 text-small inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-primary"
-            >
-              ✦ Live now
-            </motion.span>
-          )}
-        </AnimatePresence>
       </div>
 
       {error && (
