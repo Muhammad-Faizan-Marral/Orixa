@@ -14,7 +14,7 @@ import GameRoot from "@/components/landing/game/GameRoot";
 
 export default function HomePage() {
   return (
-    <div className="relative overflow-x-clip bg-background text-foreground">
+    <div className="relative overflow-x-clip bg-background text-foreground" style={{ ["--font-display" as string]: "var(--font-dm), sans-serif" }}>
       <Navbar />
       <main>
         <HeroSection />
