@@ -9,23 +9,23 @@
 const PILLARS = [
   {
     id: "ai",
-    eyebrow: "AI-Powered Onboarding",
-    title: "Start with what you already have.",
-    body: "Upload your resume and let OrixaAI structure your experience, skills, education, and profile instead of making you fill everything manually.",
+    eyebrow: "AI onboarding",
+    title: "Resume in. Portfolio out.",
+    body: "Other builders make you type every field. OrixaAI reads your CV and fills experience, skills, and education for you.",
     accent: "from-[#6c5cff] to-[#22d3ee]",
   },
   {
     id: "design",
-    eyebrow: "Premium Designs",
-    title: "Designed to stand apart.",
-    body: "Choose from carefully crafted layouts and visual variants made to feel like a real personal website — not another generic template.",
+    eyebrow: "Designs you won’t find elsewhere",
+    title: "Not the same 5 templates everyone uses.",
+    body: "Theme system + Design Lab variants built for real personal sites — not Canva-style clones flooding the market.",
     accent: "from-[#22d3ee] to-[#34d399]",
   },
   {
     id: "reach",
-    eyebrow: "Visitor Analytics + Contact",
-    title: "Know if people are watching — and let them reach you.",
-    body: "See how visitors discover your portfolio. Working contact forms send messages to your email so recruiters and clients can start a conversation.",
+    eyebrow: "Analytics + contact",
+    title: "See who visited. Let them reach you.",
+    body: "Views, countries, sources, project clicks — plus a working contact form that emails you. Most free portfolio tools skip this.",
     accent: "from-[#fbbf24] to-[#fb7185]",
   },
 ] as const;
@@ -90,12 +90,11 @@ export default function PillarsSection() {
   return (
     <section id="pillars" className="relative py-20 md:py-28">
       <div className="mx-auto max-w-6xl px-5">
-        <div className="mx-auto max-w-2xl text-center">
-          <p className="text-caption mb-3">Why OrixaAI</p>
+                <div className="mx-auto max-w-2xl text-center">
+          <p className="text-caption mb-3">What you get</p>
           <h2 className="text-h1 text-balance">
-            OrixaAI turns your information into a{" "}
-            <span className="text-gradient-ion">polished portfolio</span>{" "}
-            through a design system built around your content.
+            Built for people who are{" "}
+            <span className="text-gradient-ion">tired of generic portfolios.</span>
           </h2>
         </div>
 

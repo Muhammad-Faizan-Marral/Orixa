@@ -13,7 +13,7 @@ import { NetworkStatusBanner } from "@/components/network-status-banner";
 import { ToastProvider } from "@/components/toast";
 import { THEME_INIT_SCRIPT } from "@/lib/theme";
 import { LOCALE_INIT_SCRIPT } from "@/i18n/locale";
-
+import { DM_Sans } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
@@ -49,6 +49,11 @@ const instrument = Instrument_Serif({
   subsets: ["latin"],
   weight: ["400"],
   style: ["normal", "italic"],
+  display: "swap",
+});
+const dmSans = DM_Sans({
+  variable: "--font-dm",
+  subsets: ["latin"],
   display: "swap",
 });
 const display = Bodoni_Moda({
@@ -94,7 +99,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${inter.variable} ${bricolage.variable} ${jetbrainsMono.variable} ${display.variable} ${text.variable} ${instrument.variable} ${geist.variable} h-full antialiased`}
+      className={`${inter.variable} ${dmSans.variable} ${bricolage.variable} ${jetbrainsMono.variable} ${display.variable} ${text.variable} ${instrument.variable} ${geist.variable} h-full antialiased`}
     >
       <head>
         <script

@@ -210,11 +210,7 @@ export function PortfolioDesignLabClient({ portfolioId, portfolioTitle, profile,
     [isPremium],
   );
 
-  const sectionVariants = getSectionVariantsForTheme(
-    getTheme(dna),
-    activeSection,
-  );
-
+const sectionVariants = getSectionVariantsForTheme(dna, activeSection);
   // ── Controls panel content ──────────────────────────────────────────────────
 
   const ControlsContent = (
