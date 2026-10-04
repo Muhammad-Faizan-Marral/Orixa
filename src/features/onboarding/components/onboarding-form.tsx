@@ -101,7 +101,7 @@ export function OnboardingForm() {
 
     try {
       const clientRef = getClientReferralCode();
-      console.log("[onboarding] client referral code", clientRef);
+    
 
       const result = await createProfile(data, clientRef);
 
