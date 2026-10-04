@@ -2,16 +2,17 @@ import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { ThemeSync } from "@/components/theme-sync";
 import { LocaleSync } from "@/components/locale-sync";
 import { requireProfile } from "@/lib/auth/require-profile";
-import { settingsService } from "@/services/profile/settings.service";
 import { TimezoneSync } from "@/components/timezone-sync";
 import { NetworkStatusBanner } from "@/components/network-status-banner";
 import { ToastProvider } from "@/components/toast";
+import { getSettingsCached } from "@/lib/cache/dashboard-data";
 
 export default async function DashboardLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const profile = await requireProfile();
-  const settings = await settingsService.getSettings(profile.id);
+  // cached — no extra round-trip on every child page when warm
+  const settings = await getSettingsCached(profile.id);
 
   return (
     <>

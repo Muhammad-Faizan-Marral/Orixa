@@ -42,13 +42,17 @@ export class PortfolioViewService {
     });
   }
 
-  async getTotalViews(portfolioId:string,profileId:string){
-    const portfolio = await portfolioRepository.findByIdAndProfileId(portfolioId,profileId)
-    if (!portfolio) {return null}
-    const total = await portfolioViewRepository.getTotalViews(portfolioId)
-    return {total}
+  async getTotalViews(portfolioId: string, profileId: string) {
+    const portfolio = await portfolioRepository.findByIdAndProfileId(
+      portfolioId,
+      profileId,
+    );
+    if (!portfolio) {
+      return null;
+    }
+    const total = await portfolioViewRepository.getTotalViews(portfolioId);
+    return { total };
   }
-
 
   async getAnalytics(portfolioId: string, profileId: string) {
     const portfolio = await portfolioRepository.findByIdAndProfileId(
@@ -92,7 +96,6 @@ export class PortfolioViewService {
       portfolioEventRepository.countByType(portfolioId, "contact_click"),
       portfolioEventRepository.topLabels(portfolioId, "project_click", 5),
 
-   
       (async () => {
         try {
           const { count } = await supabaseAdmin
@@ -151,22 +154,14 @@ export class PortfolioViewService {
       },
     };
   }
+  // keep existing getLightStats for other callers, but make it thinner:
   async getLightStats(portfolioId: string, profileId: string) {
     const portfolio = await portfolioRepository.findByIdAndProfileId(
       portfolioId,
       profileId,
     );
     if (!portfolio) return null;
-
-    const [total, last7Days] = await Promise.all([
-      portfolioViewRepository.getTotalViews(portfolioId),
-      portfolioViewRepository.getViewsSince(
-        portfolioId,
-        new Date(Date.now() - 7 * MS_PER_DAY).toISOString(),
-      ),
-    ]);
-
-    return { total, last7Days };
+    return this.getLightStatsTrusted(portfolioId);
   }
 
   private hashIp(ip: string): string {
@@ -177,6 +172,34 @@ export class PortfolioViewService {
       .createHmac("sha256", this.hashSecret)
       .update(ip)
       .digest("hex");
+  }
+
+  /** Dashboard: one ownership-free bulk total (ids already owned by user) */
+  async getTotalsForPortfolioIds(
+    portfolioIds: string[],
+  ): Promise<{ total: number; byId: Record<string, number> }> {
+    if (portfolioIds.length === 0) {
+      return { total: 0, byId: {} };
+    }
+    const byId =
+      await portfolioViewRepository.getTotalsByPortfolioIds(portfolioIds);
+    const total = Object.values(byId).reduce((sum, n) => sum + n, 0);
+    return { total, byId };
+  }
+
+  /**
+   * Light stats WITHOUT extra ownership query.
+   * Caller must already verify portfolio belongs to user.
+   */
+  async getLightStatsTrusted(portfolioId: string) {
+    const [total, last7Days] = await Promise.all([
+      portfolioViewRepository.getTotalViews(portfolioId),
+      portfolioViewRepository.getViewsSince(
+        portfolioId,
+        new Date(Date.now() - 7 * MS_PER_DAY).toISOString(),
+      ),
+    ]);
+    return { total, last7Days };
   }
 }
 

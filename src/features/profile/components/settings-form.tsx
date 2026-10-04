@@ -115,21 +115,14 @@ export function SettingsForm({ initialSettings }: Props) {
     },
   ];
 
-  const {
-    register,
-    handleSubmit,
-    control,
-    reset,
-    formState: { isSubmitting, isDirty },
-  } = useForm<UpdateSettingsInput>({
+  const { register, handleSubmit, control, reset, formState: { isSubmitting, isDirty }} = useForm<UpdateSettingsInput>({
     resolver: zodResolver(updateSettingsSchema),
     defaultValues: {
       language: (initialSettings.language as "en" | "es") ?? "en",
       timezone: initialSettings.timezone ?? "UTC",
       publicProfile: Boolean(initialSettings.publicProfile),
       emailNotifications: Boolean(initialSettings.emailNotifications),
-      themeMode:
-        (initialSettings.themeMode as "light" | "dark" | "system") ?? "system",
+      themeMode: (initialSettings.themeMode as "light" | "dark" | "system") ?? "system",
     },
   });
   const onSubmit = async (data: UpdateSettingsInput) => {

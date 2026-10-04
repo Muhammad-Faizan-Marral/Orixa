@@ -52,14 +52,14 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
   const profile = await requireProfile();
   const { portfolioId } = await params;
 
-  const [result, versions, lightStats] = await Promise.all([
+const [result, versions] = await Promise.all([
     portfolioService.getPortfolioWithData(portfolioId, profile.id),
     portfolioService.getPortfolioVersions(portfolioId, profile.id),
-    portfolioViewService.getLightStats(portfolioId, profile.id), // new
   ]);
 
   if (!result) notFound();
-
+  const lightStats =
+    await portfolioViewService.getLightStatsTrusted(portfolioId);
   const { portfolio, data } = result;
 
   const status = portfolio.status as "draft" | "published" | "archived";

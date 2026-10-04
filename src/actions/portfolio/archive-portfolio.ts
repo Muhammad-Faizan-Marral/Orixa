@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 
 import { requireProfile } from "@/lib/auth/require-profile";
@@ -37,6 +37,7 @@ export async function archivePortfolio(
     revalidatePath("/dashboard/portfolios");
     revalidatePath(`/dashboard/portfolios/${portfolioId}`);
     revalidatePath(`/${profile.username}`);
+    revalidateTag(`portfolios-${profile.id}`, "max");
 
     return { success: true, portfolio };
   } catch (error) {

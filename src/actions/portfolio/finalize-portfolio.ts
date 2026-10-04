@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 import { requireProfile } from "@/lib/auth/require-profile";
 import { requireUser } from "@/lib/auth/require-user";
@@ -219,7 +219,7 @@ export async function finalizePortfolioAction(input: unknown) {
 
     revalidatePath(`/dashboard/portfolios/${data.portfolioId}`);
     revalidatePath(`/dashboard/portfolios/${data.portfolioId}/edit`);
-
+ revalidateTag(`portfolios-${profile.id}`, "max");
     return {
       success: true as const,
       data: result,

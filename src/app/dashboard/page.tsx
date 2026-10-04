@@ -1,7 +1,6 @@
 import Link from "next/link";
 
 import { requireProfile } from "@/lib/auth/require-profile";
-import { portfolioService } from "@/services/portfolio/portfolio.service";
 import { portfolioViewService } from "@/services/portfolio/portfolio-view.service";
 import { UpgradeCard } from "@/components/dashboard/upgrade-card";
 import { ReferralCard } from "@/components/dashboard/referral-card";
@@ -11,6 +10,7 @@ import { profileRepository } from "@/repositories/profile.repository";
 import { Button } from "@/components/UI/Button";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { PortfolioCard } from "@/components/dashboard/portfolio-card";
+import { getUserPortfoliosCached } from "@/lib/cache/dashboard-data";
 
 function computeProfileCompletion(profile: {
   fullName: string | null;
@@ -37,42 +37,51 @@ export default async function DashboardPage({
 }) {
   let profile = await requireProfile();
   const params = await searchParams;
+
+  // checkout activation only when needed
   if (params.checkout === "success" && params.checkout_id) {
     try {
       await billingService.activateSuccessfulCheckout(
         profile.userId,
         params.checkout_id,
       );
-      profile = (await profileRepository.findByUserId(profile.userId)) ?? profile;
+      profile =
+        (await profileRepository.findByUserId(profile.userId)) ?? profile;
     } catch (error) {
       console.error("[dashboard] checkout activation failed", error);
     }
   }
-    const referralCode =
-    profile.referralCode ||
-    (await billingService.ensureReferralCode(profile.userId, profile.username));
+
+  // Parallel: portfolios + referral (no sequential waterfalls)
+  const [portfolios, referralCode] = await Promise.all([
+    getUserPortfoliosCached(profile.id),
+    profile.referralCode
+      ? Promise.resolve(profile.referralCode)
+      : billingService.ensureReferralCode(profile.userId, profile.username),
+  ]);
 
   const premiumActive = isPremiumActive({
     isPremium: profile.isPremium ?? false,
     premiumUntil: profile.premiumUntil ?? null,
   });
-  const portfolios = await portfolioService.getUserPortfolios(profile.id);
+
   const portfolioLimit = billingService.getLimits({
     isPremium: profile.isPremium ?? false,
     premiumUntil: profile.premiumUntil ?? null,
   }).portfolioLimit;
 
-  const publishedCount = portfolios.filter((p) => p.status === "published").length;
-
+  const publishedCount = portfolios.filter((p) => p.status === "published")
+    .length;
   const completion = computeProfileCompletion(profile);
 
-  const totalViews = (
-    await Promise.all(
-      portfolios.map((p) =>
-        portfolioViewService.getTotalViews(p.id, profile.id),
-      ),
-    )
-  ).reduce((sum, analytics) => sum + (analytics?.total ?? 0), 0);
+  // CRITICAL: no portfolios → zero view queries, instant empty UI
+  let totalViews = 0;
+  if (portfolios.length > 0) {
+    const { total } = await portfolioViewService.getTotalsForPortfolioIds(
+      portfolios.map((p) => p.id),
+    );
+    totalViews = total;
+  }
 
   const recentPortfolios = [...portfolios]
     .sort(

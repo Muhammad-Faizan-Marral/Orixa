@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 import { requireProfile } from "@/lib/auth/require-profile";
 import { portfolioService } from "@/services/portfolio/portfolio.service";
@@ -38,7 +38,7 @@ export async function createPortfolio(
     );
 
     revalidatePath("/dashboard/portfolios");
-
+    revalidateTag(`portfolios-${profile.id}`, "max");
     return {
       success: true,
       portfolioId: portfolio.id,

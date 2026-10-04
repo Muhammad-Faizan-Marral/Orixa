@@ -1,7 +1,7 @@
 "use server";
 
 import { z } from "zod";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 import { requireProfile } from "@/lib/auth/require-profile";
 import { portfolioService } from "@/services/portfolio/portfolio.service";
@@ -43,7 +43,7 @@ export async function publishPortfolio(
     revalidatePath("/dashboard");
     revalidatePath("/dashboard/portfolios");
     revalidatePath(`/dashboard/portfolios/${portfolioId}`);
-
+    revalidateTag(`portfolios-${profile.id}`, "max");
     return {
       success: true,
       portfolio: result.portfolio,

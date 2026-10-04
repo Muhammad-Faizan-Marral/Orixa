@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 import { requireProfile } from "@/lib/auth/require-profile";
 import { requireUser } from "@/lib/auth/require-user";
@@ -14,10 +14,11 @@ export async function updateSettings(input:UpdateSettingsInput) {
   const profile = await requireProfile();
 
   try {
+    const profile = await requireProfile();
     const settings = await settingsService.updateSettings(profile.id, input);
 
     revalidatePath("/dashboard/settings");
-
+    revalidateTag(`settings-${profile.id}`, "max");
     return {
       success: true,
       message: "Settings updated.",

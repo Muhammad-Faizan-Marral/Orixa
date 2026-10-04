@@ -1,18 +1,21 @@
 import Link from "next/link";
 
 import { requireProfile } from "@/lib/auth/require-profile";
-import { portfolioService } from "@/services/portfolio/portfolio.service";
 import { billingService } from "@/services/billing/billing.service";
-
 import { Button } from "@/components/UI/Button";
 import { PortfolioCard } from "@/components/dashboard/portfolio-card";
+import { getUserPortfoliosCached } from "@/lib/cache/dashboard-data";
 
 export default async function PortfoliosPage() {
   const profile = await requireProfile();
-  const portfolios = await portfolioService.getUserPortfolios(profile.id);
-  const canCreate = portfolios.length < billingService.getLimits(profile).portfolioLimit;
+  // shared cache with dashboard — page hop pe often 0 extra DB
+  const portfolios = await getUserPortfoliosCached(profile.id);
+  const canCreate =
+    portfolios.length < billingService.getLimits(profile).portfolioLimit;
 
-  const sorted = [...portfolios].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+  const sorted = [...portfolios].sort(
+    (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+  );
 
   return (
     <div className="space-y-8">

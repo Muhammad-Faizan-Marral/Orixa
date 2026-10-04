@@ -1,4 +1,4 @@
-import { and, count, desc, eq, gte, sql } from "drizzle-orm";
+import { and, count, desc, eq, gte, sql,inArray } from "drizzle-orm";
 
 import { db } from "@/db";
 import { portfolios, portfolioViews } from "@/db/schema";
@@ -201,7 +201,7 @@ export class PortfolioViewRepository {
       .orderBy(sql`date_trunc('day', ${portfolioViews.visitedAt})::date`);
   }
 
-   async getTopDevices(portfolioId: string) {
+  async getTopDevices(portfolioId: string) {
     return db
       .select({
         device: portfolioViews.device,
@@ -239,6 +239,28 @@ export class PortfolioViewRepository {
       .groupBy(portfolioViews.browser)
       .orderBy(desc(count()))
       .limit(5);
+  }
+
+  async getTotalsByPortfolioIds(
+    portfolioIds: string[],
+  ): Promise<Record<string, number>> {
+    if (portfolioIds.length === 0) return {};
+
+    const rows = await db
+      .select({
+        portfolioId: portfolioViews.portfolioId,
+        count: count(),
+      })
+      .from(portfolioViews)
+      .where(inArray(portfolioViews.portfolioId, portfolioIds))
+      .groupBy(portfolioViews.portfolioId);
+
+    const map: Record<string, number> = {};
+    for (const id of portfolioIds) map[id] = 0;
+    for (const row of rows) {
+      map[row.portfolioId] = Number(row.count ?? 0);
+    }
+    return map;
   }
 }
 
