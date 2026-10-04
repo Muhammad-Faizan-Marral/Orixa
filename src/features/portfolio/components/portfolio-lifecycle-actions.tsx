@@ -33,9 +33,9 @@ export function PortfolioLifecycleActions({
   const [isPending, startTransition] = useTransition();
   const actionInFlight = useRef(false);
   const [pendingAction, setPendingAction] = useState<ActionKey>(null);
+  const [showPublishedModal, setShowPublishedModal] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { setIsPublishing, setPublishedOverride } =
-    usePortfolioPublishing();
+  const { setIsPublishing, setPublishedOverride } = usePortfolioPublishing();
   const { toast } = useToast();
 
   // Local UI state — updates instantly; server refresh is background only
@@ -61,7 +61,9 @@ export function PortfolioLifecycleActions({
     actionInFlight.current = true;
     setError(null);
     setPendingAction(key);
-    if (key === "publish") setIsPublishing(true);
+    if (key === "publish") {
+      setShowPublishedModal(true);
+    }
 
     startTransition(async () => {
       let succeeded = false;
@@ -112,7 +114,12 @@ export function PortfolioLifecycleActions({
             disabled={isPending || pendingAction !== null}
             loading={pendingAction === "publish"}
             onClick={() =>
-              runAction("publish", () => publishPortfolio(portfolioId), "published", true)
+              runAction(
+                "publish",
+                () => publishPortfolio(portfolioId),
+                "published",
+                true,
+              )
             }
           >
             {pendingAction === "publish" ? "Publishing…" : "Publish live"}
@@ -127,7 +134,12 @@ export function PortfolioLifecycleActions({
               disabled={isPending || pendingAction !== null}
               loading={pendingAction === "publish"}
               onClick={() =>
-                runAction("publish", () => publishPortfolio(portfolioId), "published", true)
+                runAction(
+                  "publish",
+                  () => publishPortfolio(portfolioId),
+                  "published",
+                  true,
+                )
               }
             >
               {pendingAction === "publish" ? "Publishing…" : "Publish updates"}
@@ -138,7 +150,12 @@ export function PortfolioLifecycleActions({
               disabled={isPending || pendingAction !== null}
               loading={pendingAction === "unpublish"}
               onClick={() =>
-                runAction("unpublish", () => unpublishPortfolio(portfolioId), "draft", true)
+                runAction(
+                  "unpublish",
+                  () => unpublishPortfolio(portfolioId),
+                  "draft",
+                  true,
+                )
               }
             >
               {pendingAction === "unpublish" ? "Unpublishing…" : "Unpublish"}
@@ -153,7 +170,12 @@ export function PortfolioLifecycleActions({
             disabled={isPending || pendingAction !== null}
             loading={pendingAction === "unpublish"}
             onClick={() =>
-              runAction("unpublish", () => unpublishPortfolio(portfolioId), "draft", true)
+              runAction(
+                "unpublish",
+                () => unpublishPortfolio(portfolioId),
+                "draft",
+                true,
+              )
             }
           >
             {pendingAction === "unpublish" ? "Unpublishing…" : "Unpublish"}
@@ -173,7 +195,12 @@ export function PortfolioLifecycleActions({
                 )
               )
                 return;
-              runAction("archive", () => archivePortfolio(portfolioId), "archived", false);
+              runAction(
+                "archive",
+                () => archivePortfolio(portfolioId),
+                "archived",
+                false,
+              );
             }}
           >
             {pendingAction === "archive" ? "Archiving…" : "Archive"}
@@ -187,19 +214,65 @@ export function PortfolioLifecycleActions({
             disabled={isPending || pendingAction !== null}
             loading={pendingAction === "restore"}
             onClick={() =>
-              runAction("restore", () => restorePortfolio(portfolioId), "draft", false)
+              runAction(
+                "restore",
+                () => restorePortfolio(portfolioId),
+                "draft",
+                false,
+              )
             }
           >
             {pendingAction === "restore" ? "Restoring…" : "Restore draft"}
           </Button>
         )}
-
       </div>
 
       {error && (
-        <p role="alert" className="text-small rounded-lg border border-error/20 bg-error/10 px-3 py-2 text-error">
+        <p
+          role="alert"
+          className="text-small rounded-lg border border-error/20 bg-error/10 px-3 py-2 text-error"
+        >
           {error}
         </p>
+      )}
+      {/* Published Success Modal */}
+      {showPublishedModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={() => setShowPublishedModal(false)}
+          />
+          <div className="relative z-10 w-full max-w-md rounded-2xl border border-border bg-surface p-6 shadow-2xl">
+            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-success/15 text-success">
+              <svg
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+            </div>
+            <h3 className="text-h3 mb-2">Your portfolio has been published!</h3>
+            <p className="text-body mb-6 text-muted-foreground">
+              Cached versions may take a little time to update. If you still see
+              your previous portfolio, please wait a little and refresh the
+              page.
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowPublishedModal(false)}
+              className="w-full rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition hover:bg-primary-hover"
+            >
+              Got it
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

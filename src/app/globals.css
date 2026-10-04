@@ -423,3 +423,50 @@ body {
   border-radius: 999px;
   border: 2px solid var(--color-background);
 }
+/* ===== Rotating colorful border for portfolio nav buttons ===== */
+.nav-rotating-btn {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid transparent;
+  isolation: isolate;
+}
+
+.nav-rotating-btn::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  z-index: -1;
+  background: conic-gradient(
+    from 0deg,
+    #6c5cff,
+    #22d3ee,
+    #34d399,
+    #fbbf24,
+    #fb7185,
+    #6c5cff
+  );
+  border-radius: 9999px;
+  animation: nav-rotate 3s linear infinite;
+  opacity: 0.85;
+}
+
+.nav-rotating-btn::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  z-index: -1;
+  background: var(--surface);
+  border-radius: 9999px;
+}
+
+.nav-rotating-btn:hover::before {
+  opacity: 1;
+  animation-duration: 1.6s;
+}
+
+@keyframes nav-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}

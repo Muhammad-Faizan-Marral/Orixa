@@ -15,27 +15,44 @@ import type {
   ThemeSectionId,
   ThemeId,
 } from "./types";
+import { ThemeBootGate, ThemeLoader } from "./shared/theme-loaders";
 
-const themePageLoaders: Record<ThemeId, () => Promise<{ default: ThemePageComponent }>> = {
-  "minimal-airy": () => import("./minimal-airy").then((module) => ({ default: module.default.ThemePage! })),
-  "tech-dense": () => import("./tech-dense").then((module) => ({ default: module.default.ThemePage! })),
-  editorial: () => import("./editorial").then((module) => ({ default: module.default.ThemePage! })),
-  "soft-luxury": () => import("./soft-luxury").then((module) => ({ default: module.default.ThemePage! })),
-  "neo-glass": () => import("./neo-glass").then((module) => ({ default: module.default.ThemePage! })),
-  brutalist: () => import("./brutalist").then((module) => ({ default: module.default.ThemePage! })),
-  cinematic: () => import("./cinematic").then((module) => ({ default: module.default.ThemePage! })),
+const themePageLoaders: Record<
+  ThemeId,
+  () => Promise<{ default: ThemePageComponent }>
+> = {
+  "minimal-airy": () =>
+    import("./minimal-airy").then((m) => ({ default: m.default.ThemePage! })),
+  "tech-dense": () =>
+    import("./tech-dense").then((m) => ({ default: m.default.ThemePage! })),
+  editorial: () =>
+    import("./editorial").then((m) => ({ default: m.default.ThemePage! })),
+  "soft-luxury": () =>
+    import("./soft-luxury").then((m) => ({ default: m.default.ThemePage! })),
+  "neo-glass": () =>
+    import("./neo-glass").then((m) => ({ default: m.default.ThemePage! })),
+  brutalist: () =>
+    import("./brutalist").then((m) => ({ default: m.default.ThemePage! })),
+  cinematic: () =>
+    import("./cinematic").then((m) => ({ default: m.default.ThemePage! })),
 };
 
+/** dynamic() loading fallback — theme-aware while JS chunk loads */
+function makeLoading(themeId: ThemeId) {
+  return function ThemeChunkLoading() {
+    return <ThemeLoader themeId={themeId} />;
+  };
+}
+
 const themePages = Object.fromEntries(
-  Object.entries(themePageLoaders).map(([id, loader]) => [
+  (Object.keys(themePageLoaders) as ThemeId[]).map((id) => [
     id,
-    dynamic<ThemePageProps>(loader, { ssr: true, loading: PortfolioSkeleton }),
+    dynamic<ThemePageProps>(themePageLoaders[id], {
+      ssr: true,
+      loading: makeLoading(id),
+    }),
   ]),
 ) as Record<ThemeId, ComponentType<ThemePageProps>>;
-
-function PortfolioSkeleton() {
-  return <div className="min-h-screen" aria-busy="true" />;
-}
 
 export function ThemeEngine({
   config,
@@ -52,6 +69,7 @@ export function ThemeEngine({
   const selection = Object.fromEntries(
     Object.entries(normalized).map(([key, value]) => [key, value.variant]),
   ) as Record<ThemeSectionId, string>;
+
   const style = {
     "--theme-accent": theme.tokens.accentColor,
     "--theme-background": theme.tokens.backgroundColor,
@@ -63,10 +81,14 @@ export function ThemeEngine({
     color: theme.tokens.foregroundColor,
     fontFamily: theme.tokens.fontSans,
   } as CSSProperties;
+
   const ThemePage = themePages[theme.id];
+
   return (
     <div className="min-h-screen" style={style}>
-      <ThemePage config={config} profile={profile} selection={selection} />
+      <ThemeBootGate themeId={theme.id}>
+        <ThemePage config={config} profile={profile} selection={selection} />
+      </ThemeBootGate>
     </div>
   );
 }

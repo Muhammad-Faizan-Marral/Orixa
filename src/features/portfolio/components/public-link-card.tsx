@@ -43,9 +43,10 @@ export function PublicLinkCard({
     }
   }
 
-  async function handleCopy() {
-    await copyText(shareText, "message");
-  }
+ async function handleCopy() {
+  // Only copy the clean URL (no share message)
+  await copyText(absolute, "url");
+}
 
   async function handleShare() {
     if (!canInteract) return;

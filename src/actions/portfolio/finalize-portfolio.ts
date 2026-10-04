@@ -45,17 +45,76 @@ function asDesignPreferences(value: unknown): DesignPreferences | null {
   }
   return value as DesignPreferences;
 }
+/** Remove empty / incomplete array items so Zod never fails on blank CV rows */
+function cleanPortfolioArrays(input: Record<string, unknown>) {
+  const skills = Array.isArray(input.skills)
+    ? (input.skills as { name?: string }[]).filter(
+        (s) => (s.name ?? "").trim().length > 0,
+      )
+    : [];
 
+  const projects = Array.isArray(input.projects)
+    ? (input.projects as { title?: string }[]).filter(
+        (p) => (p.title ?? "").trim().length > 0,
+      )
+    : [];
+
+  const experience = Array.isArray(input.experience)
+    ? (input.experience as { company?: string; role?: string }[]).filter(
+        (e) => (e.company ?? "").trim() || (e.role ?? "").trim(),
+      )
+    : [];
+
+  const education = Array.isArray(input.education)
+    ? (input.education as { institution?: string }[]).filter(
+        (e) => (e.institution ?? "").trim().length > 0,
+      )
+    : [];
+
+  const certificates = Array.isArray(input.certificates)
+    ? (input.certificates as { name?: string }[]).filter(
+        (c) => (c.name ?? "").trim().length > 0,
+      )
+    : [];
+
+  return {
+    ...input,
+    skills,
+    projects,
+    experience,
+    education,
+    certificates,
+  };
+}
 export async function finalizePortfolioAction(input: unknown) {
   try {
     await requireUser();
     const profile = await requireProfile();
 
-    const parsed = updatePortfolioDataSchema.safeParse(input);
+    const cleaned = cleanPortfolioArrays(
+      typeof input === "object" && input !== null
+        ? (input as Record<string, unknown>)
+        : {},
+    );
+
+    const parsed = updatePortfolioDataSchema.safeParse(cleaned);
     if (!parsed.success) {
+      // Build human-readable list of problems
+      const issues = parsed.error.issues.map((issue) => {
+        const path = issue.path.join(".") || "root";
+        return `• ${path}: ${issue.message}`;
+      });
+
+      const message =
+        issues.length > 0
+          ? `Invalid portfolio data:\n${issues.slice(0, 8).join("\n")}${
+              issues.length > 8 ? `\n…and ${issues.length - 8} more` : ""
+            }`
+          : "Invalid portfolio data. Check required fields.";
+
       return {
         success: false as const,
-        message: "Invalid portfolio data. Check required fields.",
+        message,
         fieldErrors: parsed.error.flatten().fieldErrors,
       };
     }
@@ -91,10 +150,12 @@ export async function finalizePortfolioAction(input: unknown) {
     const savedThemeId =
       existingData?.designPreferences &&
       typeof existingData.designPreferences === "object"
-        ? ((existingData.designPreferences as Record<string, unknown>).themeId ??
+        ? ((existingData.designPreferences as Record<string, unknown>)
+            .themeId ??
           (existingData.designPreferences as Record<string, unknown>).designDna)
         : undefined;
-    const alreadyDesigned = savedSelection !== null || typeof savedThemeId === "string";
+    const alreadyDesigned =
+      savedSelection !== null || typeof savedThemeId === "string";
 
     let componentSelection: ComponentSelection = data.componentSelection;
     let designPreferences: DesignPreferences = data.designPreferences;
@@ -109,7 +170,9 @@ export async function finalizePortfolioAction(input: unknown) {
       designPreferences = savedPrefs ?? data.designPreferences;
     } else {
       const theme = pickRandomFreeTheme();
-      componentSelection = defaultSelectionForTheme(theme) as ComponentSelection;
+      componentSelection = defaultSelectionForTheme(
+        theme,
+      ) as ComponentSelection;
       designPreferences = {
         ...data.designPreferences,
         themeId: theme.id,

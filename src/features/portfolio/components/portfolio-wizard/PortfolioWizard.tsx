@@ -26,7 +26,11 @@ import type {
   Message,
   ValidationState,
 } from "./types";
-import { validateStep } from "./validation";
+import {
+  validateStep,
+  validateAllSteps,
+  normalizeWizardUrls,
+} from "./validation";
 import {
   assertValidResumeFile,
   isPortfolioEmpty,
@@ -3356,16 +3360,37 @@ export function PortfolioWizard({
   }, []);
 
   const handleSubmit = useCallback(async () => {
-    if (!validateCurrentStep()) {
+    // 1) Validate ALL content steps (not only current)
+    const { errors, failedSteps } = validateAllSteps(buildValidationState());
+    setFieldErrors(errors);
+
+    if (failedSteps.length > 0) {
+      const stepLabels: Record<string, string> = {
+        basics: "Basics",
+        skills: "Skills",
+        experience: "Experience",
+        projects: "Projects",
+        education: "Education",
+        certificates: "Certificates",
+        seo: "SEO",
+      };
+      const stepList = failedSteps.map((id) => stepLabels[id] || id).join(", ");
+
+      const fieldList = Object.values(errors).slice(0, 5).join(" | ");
+
       setMessage({
         type: "error",
-        text: "Please fix the highlighted fields before saving.",
+        text: `Please fix these steps: ${stepList}. ${fieldList}${
+          Object.keys(errors).length > 5 ? " …" : ""
+        }`,
       });
       return;
     }
+
     setMessage(null);
     setIsSubmitting(true);
     let navigationStarted = false;
+
     try {
       let finalResumeUrl = (data?.resumeUrl ?? resumeUrl ?? "").trim();
       if (autoGenerateResume) {
@@ -3373,10 +3398,25 @@ export function PortfolioWizard({
       } else if (attachUploadedResume) {
         finalResumeUrl = (uploadedResumeUrl || resumeUrl || "").trim();
       }
+
       const keywords = seoKeywords
         .split(",")
         .map((k: string) => k.trim())
         .filter(Boolean);
+
+      // Filter empty rows before sending (extra safety)
+      const cleanSkills = skills.filter((s) => s.name.trim().length > 0);
+      const cleanProjects = projects.filter((p) => p.title.trim().length > 0);
+      const cleanExperience = experience.filter(
+        (e) => e.company.trim() || e.role.trim(),
+      );
+      const cleanEducation = education.filter(
+        (e) => e.institution.trim().length > 0,
+      );
+      const cleanCertificates = certificates.filter(
+        (c) => c.name.trim().length > 0,
+      );
+
       const payload = {
         portfolioId: portfolio.id,
         name: name.trim(),
@@ -3387,11 +3427,11 @@ export function PortfolioWizard({
         githubUrl: ensureHttpsUrl(githubUrl),
         headline: headline.trim(),
         about: about.trim(),
-        skills,
-        experience,
-        projects,
-        education,
-        certificates,
+        skills: cleanSkills,
+        experience: cleanExperience,
+        projects: cleanProjects,
+        education: cleanEducation,
+        certificates: cleanCertificates,
         resumeUrl: finalResumeUrl,
         theme: data?.theme ?? "minimal",
         animations: data?.animations ?? true,
@@ -3404,13 +3444,18 @@ export function PortfolioWizard({
           noIndex: seoNoIndex,
         },
       };
+
       const result = await finalizePortfolioAction(payload);
-      if (!result.success)
+
+      if (!result.success) {
         throw new Error(result.message ?? "Failed to save portfolio.");
+      }
+
       const resumePromise = autoGenerateResume
         ? generateAndAttachResume(portfolio.id, data?.resumeUrl ?? resumeUrl)
         : null;
       const versionPromise = createWorkingPortfolioVersion(portfolio.id);
+
       if (resumePromise) {
         setIsGeneratingResume(true);
         const generateResult = await resumePromise;
@@ -3428,12 +3473,14 @@ export function PortfolioWizard({
           setHasUploadedResume(false);
         }
       }
+
       const versionResult = await versionPromise;
       if (!versionResult.success)
         throw new Error(
           versionResult.message ??
             "Portfolio saved, but version creation failed.",
         );
+
       setMessage({ type: "success", text: "Portfolio saved successfully." });
       navigationStarted = true;
       router.push(`/dashboard/portfolios/${portfolio.id}`);
@@ -3452,12 +3499,23 @@ export function PortfolioWizard({
       setIsGeneratingResume(false);
     }
   }, [
-    validateCurrentStep,
+    validateAllSteps,
+    buildValidationState,
+    setFieldErrors,
+    setMessage,
+    setIsSubmitting,
+    setIsGeneratingResume,
     autoGenerateResume,
     attachUploadedResume,
     resumeUrl,
+    uploadedResumeUrl,
     data,
     seoKeywords,
+    skills,
+    projects,
+    experience,
+    education,
+    certificates,
     portfolio.id,
     name,
     promptLocked,
@@ -3468,11 +3526,6 @@ export function PortfolioWizard({
     githubUrl,
     headline,
     about,
-    skills,
-    experience,
-    projects,
-    education,
-    certificates,
     seoTitle,
     seoDescription,
     seoNoIndex,

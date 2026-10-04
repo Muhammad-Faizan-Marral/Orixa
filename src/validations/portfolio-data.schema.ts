@@ -36,18 +36,14 @@ const phoneOptional = z
 
 export const portfolioSkillSchema = z.object({
   id: z.string().min(1),
-  // Any string allowed (scr/dc, C++, UI/UX, Node.js, etc.)
-  name: z
-    .string()
-    .trim()
-    .min(1, "Skill name required")
-    .max(60, "Skill max 60 chars"),
+  // Empty name allowed — filtered before save
+  name: z.string().trim().max(60, "Skill max 60 chars").default(""),
   level: optionalString,
 });
 
 export const portfolioProjectSchema = z.object({
   id: z.string().min(1),
-  title: z.string().trim().min(2, "Project title min 2 chars").max(120),
+  title: z.string().trim().max(120, "Project title max 120 chars").default(""),
   description: z.string().trim().max(5000).optional().or(z.literal("")),
   url: urlOptional,
   technologies: z.array(z.string().trim().min(1).max(60)).max(30).default([]),
@@ -56,8 +52,8 @@ export const portfolioProjectSchema = z.object({
 
 export const portfolioExperienceSchema = z.object({
   id: z.string().min(1),
-  company: z.string().trim().min(1, "Company required").max(120),
-  role: z.string().trim().min(1, "Role required").max(120),
+  company: z.string().trim().max(120).default(""),
+  role: z.string().trim().max(120).default(""),
   location: optionalString,
   startDate: optionalString,
   endDate: optionalString,
@@ -65,10 +61,9 @@ export const portfolioExperienceSchema = z.object({
   description: z.string().trim().max(5000).optional().or(z.literal("")),
 });
 
-
 export const portfolioEducationSchema = z.object({
   id: z.string().min(1),
-  institution: z.string().trim().min(1, "Institution required").max(150),
+  institution: z.string().trim().max(150).default(""),
   degree: optionalString,
   field: optionalString,
   startDate: optionalString,
@@ -78,7 +73,7 @@ export const portfolioEducationSchema = z.object({
 
 export const portfolioCertificateSchema = z.object({
   id: z.string().min(1),
-  name: z.string().trim().min(1, "Certificate name required").max(150),
+  name: z.string().trim().max(150).default(""),
   issuer: optionalString,
   issueDate: optionalString,
   credentialUrl: urlOptional,
