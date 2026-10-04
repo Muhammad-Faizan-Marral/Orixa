@@ -2,6 +2,7 @@ import "@/components/landing/landing.css";
 
 import Navbar from "@/components/landing/Navbar";
 import HeroSection from "@/components/landing/HeroSection";
+import PillarsSection from "@/components/landing/PillarsSection";
 import WorkflowSection from "@/components/landing/WorkflowSection";
 import DifferenceSection from "@/components/landing/DifferenceSection";
 import FeaturesSection from "@/components/landing/FeaturesSection";
@@ -17,6 +18,7 @@ export default function HomePage() {
       <Navbar />
       <main>
         <HeroSection />
+        <PillarsSection />
         <div id="how">
           <WorkflowSection />
         </div>

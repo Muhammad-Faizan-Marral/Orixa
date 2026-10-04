@@ -5,12 +5,36 @@ import Relic from "./game/Relic";
 import SpotlightCard from "./SpotlightCard";
 
 const FEATURES = [
-  { title: "Resume parsing", desc: "Upload and let OrixaAI structure your content.", span: "lg:col-span-3" },
-  { title: "Multiple themes", desc: "Free + Premium designs you can preview first.", span: "lg:col-span-3" },
-  { title: "Section control", desc: "Hero, projects, skills, experience, your way.", span: "lg:col-span-2" },
-  { title: "One-click publish", desc: "Live URL ready to share with anyone.", span: "lg:col-span-2" },
-  { title: "Edit anytime", desc: "Update projects and republish in seconds.", span: "lg:col-span-2" },
-  { title: "View tracking", desc: "See how many people visit your portfolio.", span: "lg:col-span-3" },
+  {
+    title: "AI-Powered Onboarding",
+    desc: "Upload your resume — OrixaAI structures experience, skills, education, and profile for you.",
+    span: "lg:col-span-3",
+  },
+  {
+    title: "ATS Resume Builder",
+    desc: "No resume? Generate a clean, ATS-friendly resume from your profile in the same flow.",
+    span: "lg:col-span-3",
+  },
+  {
+    title: "Premium Designs",
+    desc: "Layouts built to feel like a real personal site — not another generic template.",
+    span: "lg:col-span-2",
+  },
+  {
+    title: "Visitor Analytics",
+    desc: "Views, countries, traffic sources, devices, and project clicks — know your real reach.",
+    span: "lg:col-span-2",
+  },
+  {
+    title: "Direct Contact",
+    desc: "Working contact forms on your portfolio so recruiters and clients email you directly.",
+    span: "lg:col-span-2",
+  },
+  {
+    title: "Share Your Work",
+    desc: "One clean URL for your resume, LinkedIn, GitHub, applications, and social profiles.",
+    span: "lg:col-span-3",
+  },
 ];
 
 type Corner = "tl" | "tr" | "bl" | "br";
