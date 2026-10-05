@@ -11,6 +11,7 @@ import FAQSection from "@/components/landing/FAQSection";
 import FinalCTA from "@/components/landing/FinalCTA";
 import Footer from "@/components/landing/Footer";
 import GameRoot from "@/components/landing/game/GameRoot";
+import DesignLabSection from "@/components/landing/Designlabsection";
 
 export default function HomePage() {
   return (
@@ -25,6 +26,7 @@ export default function HomePage() {
         <DifferenceSection />
         <div id="features">
           <FeaturesSection />
+          <DesignLabSection />
         </div>
         <PricingSection />
         <FAQSection />
