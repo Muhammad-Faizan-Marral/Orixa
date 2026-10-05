@@ -1206,6 +1206,123 @@ const WIZARD_STYLES = `
   .pw-seo-preview__url { font-size: 12px; color: #4ade80; margin-bottom: 2px; }
   .pw-seo-preview__title { font-size: 18px; color: #60a5fa; margin-bottom: 4px; }
   .pw-seo-preview__desc { font-size: 13px; color: #94a3b8; line-height: 1.5; }
+
+  /* ── Parse jokes ── */
+  .pw-spinner--accent {
+    border-color: var(--pw-accent-ring);
+    border-top-color: var(--pw-accent);
+  }
+  .pw-jokes {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 22px;
+    border-radius: var(--pw-radius-lg);
+    border: 1px solid var(--pw-border);
+    background: linear-gradient(160deg, var(--pw-surface), var(--pw-surface-2));
+    box-shadow: var(--pw-shadow-lg);
+  }
+  .pw-jokes__head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .pw-jokes__emoji {
+    width: 40px; height: 40px;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    border-radius: 12px;
+    background: var(--pw-accent-muted);
+    border: 1px solid rgba(99,102,241,0.2);
+  }
+  .pw-jokes__head-text { flex: 1; min-width: 0; }
+  .pw-jokes__title {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--pw-text);
+  }
+  .pw-jokes__sub {
+    margin: 2px 0 0;
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--pw-text-secondary);
+  }
+  .pw-jokes__list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .pw-jokes__card {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    text-align: left;
+    border-radius: var(--pw-radius);
+    border: 1px solid var(--pw-border);
+    background: var(--pw-bg);
+    animation: pw-joke-in 0.5s ease both;
+    transition: border-color var(--pw-transition), transform var(--pw-transition);
+  }
+  .pw-jokes__card:hover {
+    border-color: rgba(99,102,241,0.35);
+    transform: translateY(-1px);
+  }
+  .pw-jokes__num {
+    width: 22px; height: 22px;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--pw-accent);
+    background: var(--pw-accent-muted);
+    border: 1px solid rgba(99,102,241,0.2);
+  }
+  .pw-jokes__setup {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.45;
+    color: var(--pw-text);
+  }
+  .pw-jokes__punch {
+    margin: 4px 0 0;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--pw-accent-hover);
+  }
+  .pw-jokes__bar {
+    position: relative;
+    width: 100%;
+    height: 3px;
+    border-radius: 99px;
+    background: var(--pw-border);
+    overflow: hidden;
+  }
+  .pw-jokes__bar span {
+    position: absolute;
+    inset: 0;
+    width: 40%;
+    background: linear-gradient(90deg, transparent, var(--pw-accent), transparent);
+    animation: pw-jokes-slide 1.4s ease-in-out infinite;
+  }
+  @keyframes pw-joke-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes pw-jokes-slide {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(250%); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pw-jokes__card,
+    .pw-jokes__bar span { animation: none; }
+  }
 `;
 
 // ---------------------------------------------------------------------------
@@ -1435,6 +1552,63 @@ function MessageBanner({ message }: { message: Message }) {
 
 function createId() {
   return Math.random().toString(36).slice(2, 10);
+}
+// ---------------------------------------------------------------------------
+// Resume parsing — funny jokes card (shown only while isParsingResume === true)
+// ---------------------------------------------------------------------------
+
+const PARSE_JOKES = [
+  {
+    setup: "I have a joke about unemployment…",
+    punch: "But it doesn’t work. 💀",
+  },
+  {
+    setup: "What’s the difference between me and a calendar?",
+    punch: "A calendar has dates. 😭",
+  },
+  {
+    setup: "What do you call a bear without any teeth?",
+    punch: "A gummy bear.",
+  },
+];
+
+function ParseJokes() {
+  return (
+    <div className="pw-jokes" role="status" aria-live="polite">
+      <div className="pw-jokes__head">
+        <span className="pw-jokes__emoji" aria-hidden="true">
+          😂
+        </span>
+        <div className="pw-jokes__head-text">
+          <h2 className="pw-jokes__title">Funny jokes</h2>
+          <p className="pw-jokes__sub">
+            Reading your resume… enjoy these while you wait.
+          </p>
+        </div>
+        <span className="pw-spinner pw-spinner--accent" aria-hidden="true" />
+      </div>
+
+      <div className="pw-jokes__list">
+        {PARSE_JOKES.map((joke, i) => (
+          <div
+            key={i}
+            className="pw-jokes__card"
+            style={{ animationDelay: `${i * 0.15}s` }}
+          >
+            <span className="pw-jokes__num">{i + 1}</span>
+            <div>
+              <p className="pw-jokes__setup">{joke.setup}</p>
+              <p className="pw-jokes__punch">{joke.punch}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="pw-jokes__bar" aria-hidden="true">
+        <span />
+      </div>
+    </div>
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -3755,7 +3929,7 @@ export function PortfolioWizard({
           </p>
 
           {message && <MessageBanner message={message} />}
-
+{isParsingResume ? <ParseJokes /> : (
           <label
             className="pw-import__zone"
             style={{
@@ -3806,7 +3980,7 @@ export function PortfolioWizard({
               }}
             />
           </label>
-
+)}
           <div className="pw-import__actions">
             <button
               type="button"

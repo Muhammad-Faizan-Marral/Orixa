@@ -18,7 +18,7 @@ import { NetworkStatusBanner } from "@/components/network-status-banner";
 import { ThemeProvider } from "@/components/theme-provider";
 import { TimezoneProvider } from "@/components/timezone-provider";
 import { ToastProvider } from "@/components/toast";
-
+import { Analytics } from "@vercel/analytics/next";
 import { LOCALE_INIT_SCRIPT } from "@/i18n/locale";
 import { THEME_INIT_SCRIPT } from "@/lib/theme";
 
@@ -310,9 +310,8 @@ export default function RootLayout({
 
               {/* Application content */}
               {children}
-
+              <Analytics />
               {/* Global toast system */}
-              
             </TimezoneProvider>
           </LocaleProvider>
         </ThemeProvider>

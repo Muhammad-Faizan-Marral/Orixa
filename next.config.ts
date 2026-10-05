@@ -1,4 +1,3 @@
-
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
@@ -34,6 +33,9 @@ const nextConfig: NextConfig = {
             key: "Cache-Control",
             value: "public, s-maxage=3600, stale-while-revalidate=86400",
           },
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
         ],
       },
     ];
