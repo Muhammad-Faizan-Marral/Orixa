@@ -157,7 +157,7 @@ export function ContactDefault({ config }: Props) {
 
   const portfolioId = config?.portfolioId;
   const name = config?.name?.trim() || "";
-  const accent = clean(config?.designPreferences?.accentColor) ?? DEFAULT_ACCENT;
+  const accent = DEFAULT_ACCENT;
 
   const links = useMemo(() => buildLinks(config), [config]);
 

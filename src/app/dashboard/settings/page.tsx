@@ -17,7 +17,7 @@ export default async function SettingsPage() {
   const settings = await settingsService.getSettings(profile.id);
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+    <div className="grid gap-6 lg:grid-cols-[1fr_320px]" style={{ ["--font-display" as string]: "var(--font-dm), sans-serif" }}>
       <div className="animate-fade-in-up space-y-6">
         <header>
           <p className="text-caption text-accent">Account</p>

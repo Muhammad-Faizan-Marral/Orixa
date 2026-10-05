@@ -108,8 +108,7 @@ export default function AboutEditorial({
       rest,
       location,
       stats,
-      accent:
-        firstString(config.designPreferences?.accentColor) ?? DEFAULT_ACCENT,
+      accent:DEFAULT_ACCENT,
       resumeUrl: cleanUrl(config.resumeUrl),
     };
   }, [config, profile]);

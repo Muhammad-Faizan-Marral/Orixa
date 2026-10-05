@@ -13,7 +13,7 @@ export default async function ProfilePage() {
   const socialLinks = await socialLinkService.getSocialLinks(profile.id);
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+    <div className="grid gap-6 lg:grid-cols-[1fr_320px]" style={{ ["--font-display" as string]: "var(--font-dm), sans-serif" }}>
       <div className="animate-fade-in-up space-y-6">
         <header>
           <p className="text-caption text-accent">Profile studio</p>

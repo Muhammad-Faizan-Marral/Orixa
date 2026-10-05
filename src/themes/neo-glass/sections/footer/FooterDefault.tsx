@@ -101,8 +101,7 @@ export function FooterDefault({ config, profile }: ThemeSectionProps) {
   const displayName =
     config?.name?.trim() || profile?.username?.trim() || "Portfolio";
 
-  const accent =
-    clean(config?.designPreferences?.accentColor) ?? DEFAULT_ACCENT;
+  const accent =DEFAULT_ACCENT;
   const currentYear = new Date().getFullYear();
 
   const nav = useMemo(() => buildNav(config), [config]);

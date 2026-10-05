@@ -83,7 +83,7 @@ export function ExperienceDefault({ config }: ThemeSectionProps) {
   const reduce = useReducedMotion();
   const [expanded, setExpanded] = useState(false);
 
-  const accent = clean(config.designPreferences?.accentColor) ?? DEFAULT_ACCENT;
+  const accent = DEFAULT_ACCENT;
 
   const valid = useMemo(
     () =>

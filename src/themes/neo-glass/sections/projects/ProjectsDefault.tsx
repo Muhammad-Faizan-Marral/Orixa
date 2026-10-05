@@ -226,7 +226,7 @@ export function ProjectsDefault({ config }: ThemeSectionProps) {
   }
 
   const portfolioId = (config as unknown as Record<string, unknown> | undefined)?.portfolioId;
-  const accent = clean(config.designPreferences?.accentColor) ?? DEFAULT_ACCENT;
+  const accent =  DEFAULT_ACCENT;
 
   const onOpen = (title: string) => {
     if (typeof portfolioId === "string" && portfolioId) {

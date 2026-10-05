@@ -88,7 +88,7 @@ export function NavbarDefault({ config, profile }: ThemeSectionProps) {
     profile?.username?.trim() ||
     "Portfolio";
 
-  const accent = clean(config.designPreferences?.accentColor) ?? DEFAULT_ACCENT;
+  const accent = DEFAULT_ACCENT;
 
   const links = useMemo(() => getNavigation(config), [config]);
   const resumeUrl = cleanUrl(config.resumeUrl);

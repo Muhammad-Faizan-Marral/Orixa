@@ -208,7 +208,7 @@ export default function HeroDesigner({ config, profile }: ThemeSectionProps) {
       longTitle: title.length > 18,
       quote: about ?? (currentRole ? headline : null),
       avatarUrl: clean(config.avatarUrl) ?? clean(profile.avatarUrl),
-      accent: clean(config.designPreferences?.accentColor) ?? DEFAULT_ACCENT,
+      accent: DEFAULT_ACCENT,
       leftStat,
       rightStat,
       portfolioHref:

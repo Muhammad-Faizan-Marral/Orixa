@@ -113,8 +113,7 @@ export function CertificatesDefault({ config }: ThemeSectionProps) {
   const reduceMotion = !!useReducedMotion();
   const [activeIndex, setActiveIndex] = useState(0);
 
-  const accent =
-    clean(config.designPreferences?.accentColor) ?? DEFAULT_ACCENT;
+  const accent =DEFAULT_ACCENT;
 
   const rawCertificates = (
     config as unknown as Record<string, unknown> | undefined

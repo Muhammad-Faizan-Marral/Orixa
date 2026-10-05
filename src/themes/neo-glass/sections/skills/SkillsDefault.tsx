@@ -143,8 +143,7 @@ export function SkillsDefault({ config }: ThemeSectionProps) {
       );
   }, [config.skills]);
 
-  const accent =
-    config.designPreferences?.accentColor?.trim() || DEFAULT_ACCENT;
+  const accent =DEFAULT_ACCENT;
 
   if (!skills.length) {
     return null;
