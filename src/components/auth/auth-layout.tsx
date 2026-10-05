@@ -16,7 +16,7 @@ export function AuthLayout({
   subtitle?: string;
 }) {
   return (
-    <div className="grid min-h-screen lg:grid-cols-2">
+    <div className="grid min-h-screen lg:grid-cols-2"style={{ ["--font-display" as string]: "var(--font-dm), sans-serif" }}>
       <div className="relative hidden flex-col justify-between overflow-hidden bg-surface p-10 lg:flex">
         <div
           className="bg-aurora pointer-events-none absolute inset-0"

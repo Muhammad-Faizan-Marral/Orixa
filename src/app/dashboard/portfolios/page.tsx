@@ -18,7 +18,7 @@ export default async function PortfoliosPage() {
   );
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 " style={{ ["--font-display" as string]: "var(--font-dm), sans-serif" }}>
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-caption text-accent">Dashboard</p>

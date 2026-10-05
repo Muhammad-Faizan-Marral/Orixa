@@ -15,9 +15,21 @@ interface Props {
 }
 
 /** Plain <img>: brand files have unknown dimensions, so we size by height and keep the aspect ratio. */
-export default function Logo({ variant, height = 32, className = "", alt = "OrixaAI" }: Props) {
+export default function Logo({
+  variant,
+  height = 32,
+  className = "",
+  alt = "OrixaAI",
+}: Props) {
   return (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={LOGOS[variant]} alt={alt} height={height} style={{ height, width: "auto" }} className={`select-none ${className}`} draggable={false} />
+    <img
+      src={LOGOS[variant]}
+      alt={alt}
+      height={height}
+      style={{ height, width: "auto" }}
+      className={`select-none ${className} `}
+      draggable={false}
+    />
   );
 }

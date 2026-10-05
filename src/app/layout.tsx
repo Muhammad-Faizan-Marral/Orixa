@@ -1,21 +1,37 @@
 import type { Metadata, Viewport } from "next";
-import { ReferralCapture } from "@/components/referral-capture";
+import {
+  Bricolage_Grotesque,
+  Bodoni_Moda,
+  DM_Sans,
+  Geist,
+  Instrument_Serif,
+  Inter,
+  JetBrains_Mono,
+  Schibsted_Grotesk,
+} from "next/font/google";
+
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import { Inter, Bricolage_Grotesque, JetBrains_Mono } from "next/font/google";
-import { Bodoni_Moda, Schibsted_Grotesk } from "next/font/google";
-import { Instrument_Serif,Geist } from "next/font/google";
 
-
-import { ThemeProvider } from "@/components/theme-provider";
+import { ReferralCapture } from "@/components/referral-capture";
 import { LocaleProvider } from "@/components/locale-provider";
-import { TimezoneProvider } from "@/components/timezone-provider";
 import { NetworkStatusBanner } from "@/components/network-status-banner";
+import { ThemeProvider } from "@/components/theme-provider";
+import { TimezoneProvider } from "@/components/timezone-provider";
 import { ToastProvider } from "@/components/toast";
-import { THEME_INIT_SCRIPT } from "@/lib/theme";
+
 import { LOCALE_INIT_SCRIPT } from "@/i18n/locale";
-import { DM_Sans } from "next/font/google";
+import { THEME_INIT_SCRIPT } from "@/lib/theme";
+
 import "./globals.css";
 
+/* ============================================================================
+   FONT SYSTEM
+============================================================================ */
+
+/**
+ * Primary UI / body font.
+ * Good readability across dashboard, forms and product UI.
+ */
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
@@ -23,6 +39,9 @@ const inter = Inter({
   adjustFontFallback: true,
 });
 
+/**
+ * Premium display font used for stronger headings / landing sections.
+ */
 const bricolage = Bricolage_Grotesque({
   variable: "--font-bricolage",
   subsets: ["latin"],
@@ -30,6 +49,9 @@ const bricolage = Bricolage_Grotesque({
   adjustFontFallback: true,
 });
 
+/**
+ * Monospace font for technical / metadata / portfolio details.
+ */
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains",
   subsets: ["latin"],
@@ -44,6 +66,10 @@ const jetbrainsMono = JetBrains_Mono({
     "monospace",
   ],
 });
+
+/**
+ * Editorial serif for premium / cinematic typography.
+ */
 const instrument = Instrument_Serif({
   variable: "--font-instrument",
   subsets: ["latin"],
@@ -51,57 +77,204 @@ const instrument = Instrument_Serif({
   style: ["normal", "italic"],
   display: "swap",
 });
+
+/**
+ * Clean product/UI font.
+ */
 const dmSans = DM_Sans({
   variable: "--font-dm",
   subsets: ["latin"],
   display: "swap",
 });
+
+/**
+ * High-contrast display serif.
+ * Useful for premium landing-page moments.
+ */
 const display = Bodoni_Moda({
   variable: "--font-display",
   subsets: ["latin"],
   style: ["normal", "italic"],
   display: "swap",
 });
+
+/**
+ * Geist for modern product/dashboard surfaces.
+ */
 const geist = Geist({
   variable: "--font-geist",
   subsets: ["latin"],
   display: "swap",
 });
+
+/**
+ * Secondary modern text/display system.
+ */
 const text = Schibsted_Grotesk({
   variable: "--font-text",
   subsets: ["latin"],
   display: "swap",
 });
 
-//Our Desired google Fonts implement here and use
+/* ============================================================================
+   SITE METADATA
+============================================================================ */
+
 export const metadata: Metadata = {
+  metadataBase: new URL("https://www.orixaai.me"),
+
+  applicationName: "OrixaAI",
+
   title: {
-    default: "Orixa AI — Portfolios that build and think with you",
-    template: "%s · Orixa AI",
+    default: "OrixaAI — Portfolios that build and think with you",
+    template: "%s · OrixaAI",
   },
+
   description:
-    "Orixa AI is an AI-powered portfolio builder for developers, designers and students.",
+    "OrixaAI is an AI-powered portfolio builder for developers, designers, students and freelancers. Build a distinctive portfolio, publish it instantly and let your work speak for itself.",
+
+  keywords: [
+    "OrixaAI",
+    "AI portfolio builder",
+    "portfolio builder",
+    "developer portfolio",
+    "designer portfolio",
+    "student portfolio",
+    "freelancer portfolio",
+    "AI powered portfolio",
+    "personal portfolio",
+    "online portfolio",
+  ],
+
+  authors: [
+    {
+      name: "OrixaAI",
+      url: "https://www.orixaai.me",
+    },
+  ],
+
+  creator: "OrixaAI",
+  publisher: "OrixaAI",
+
+  category: "technology",
+
+  referrer: "origin-when-cross-origin",
+
+  icons: {
+    icon: [
+      {
+        url: "/justLogoWihoutText.png",
+        type: "image/png",
+      },
+      {
+        url: "/justLogo-removebg-preview.png",
+        type: "image/png",
+      },
+    ],
+
+    apple: [
+      {
+        url: "/justLogoWihoutText.png",
+        type: "image/png",
+      },
+    ],
+
+    shortcut: ["/justLogoWihoutText.png"],
+  },
+
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://www.orixaai.me",
+    siteName: "OrixaAI",
+
+    title: "OrixaAI — Portfolios that build and think with you",
+
+    description:
+      "Build a premium portfolio with OrixaAI. Bring your projects, experience and resume together into a portfolio designed to help your career move forward.",
+
+    images: [
+      {
+        url: "/logowithBGandText.png",
+        alt: "OrixaAI",
+      },
+    ],
+  },
+
+  twitter: {
+    card: "summary_large_image",
+
+    title: "OrixaAI — Portfolios that build and think with you",
+
+    description:
+      "Build a premium, AI-powered portfolio with OrixaAI and turn your work into a career-ready presence.",
+
+    images: ["/logowithBGandText.png"],
+  },
+
+  /**
+   * Keep the root layout crawl-friendly.
+   *
+   * Private dashboard/auth pages should define their own robots metadata
+   * so they can explicitly use noindex where appropriate.
+   */
 };
 
+/* ============================================================================
+   VIEWPORT
+============================================================================ */
+
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: dark)", color: "#08090c" },
-    { media: "(prefers-color-scheme: light)", color: "#fbfbfc" },
-  ],
   width: "device-width",
   initialScale: 1,
+
+  themeColor: [
+    {
+      media: "(prefers-color-scheme: dark)",
+      color: "#08090c",
+    },
+    {
+      media: "(prefers-color-scheme: light)",
+      color: "#fbfbfc",
+    },
+  ],
+
+  colorScheme: "light dark",
 };
+
+/* ============================================================================
+   ROOT LAYOUT
+============================================================================ */
 
 export default function RootLayout({
   children,
-}: Readonly<{ children: React.ReactNode }>) {
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${inter.variable} ${dmSans.variable} ${bricolage.variable} ${jetbrainsMono.variable} ${display.variable} ${text.variable} ${instrument.variable} ${geist.variable} h-full antialiased`}
+      className={`
+        ${inter.variable}
+        ${dmSans.variable}
+        ${bricolage.variable}
+        ${jetbrainsMono.variable}
+        ${display.variable}
+        ${text.variable}
+        ${instrument.variable}
+        ${geist.variable}
+        h-full
+        antialiased
+      `}
     >
       <head>
+        {/*
+          Prevent theme / locale flash before React hydrates.
+
+          Both initialization scripts are intentionally kept together
+          because they must execute as early as possible.
+        */}
         <script
           suppressHydrationWarning
           dangerouslySetInnerHTML={{
@@ -109,13 +282,37 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="min-h-full flex flex-col bg-background text-foreground font-sans">
+
+      <body
+        className="
+          min-h-full
+          flex
+          flex-col
+          bg-background
+          text-foreground
+          font-sans
+          antialiased
+          selection:bg-primary/20
+          selection:text-foreground
+        "
+      >
+        {/* Vercel performance monitoring */}
         <SpeedInsights />
+
         <ThemeProvider>
           <LocaleProvider>
             <TimezoneProvider>
+              {/* Referral attribution / referral capture */}
               <ReferralCapture />
+
+              {/* Network/offline state feedback */}
+              <NetworkStatusBanner />
+
+              {/* Application content */}
               {children}
+
+              {/* Global toast system */}
+              
             </TimezoneProvider>
           </LocaleProvider>
         </ThemeProvider>

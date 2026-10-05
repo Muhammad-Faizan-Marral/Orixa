@@ -33,7 +33,7 @@ export default function Navbar() {
       />
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
         <Link href="/" aria-label="OrixaAI home">
-          <Logo variant="wordmark" height={30} />
+          <Logo variant="wordmark" height={100} />
         </Link>
 
         <nav
