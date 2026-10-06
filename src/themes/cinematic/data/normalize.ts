@@ -60,7 +60,7 @@ export function normalizePerson(config: Config, profile: Profile, latestRole?: s
     username: profile.username,
     name,
     initials: initialsOf(name),
-    avatarUrl: safeUrl(config.avatarUrl, { allowRelative: true }) ?? safeUrl(profile.avatarUrl, { allowRelative: true }),
+    avatarUrl: safeUrl(config.avatarUrl, { allowRelative: true }),
     headline: userHeadline ?? latestRole,
     headlineSource: userHeadline ? "user" : latestRole ? "role" : "none",
     location: clean(config.location),

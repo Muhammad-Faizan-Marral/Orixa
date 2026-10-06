@@ -82,14 +82,13 @@ function getInitials(value: string): string {
   return `${words[0][0]}${words[words.length - 1][0]}`.toUpperCase();
 }
 
-function getHeroData(config: unknown, profile: unknown) {
+function getHeroData(config: unknown) {
   const configRecord = asRecord(config);
-  const profileRecord = asRecord(profile);
   const nestedContent = asRecord(configRecord?.content);
   const portfolio = asRecord(configRecord?.portfolio);
   const hero = asRecord(configRecord?.hero);
 
-  const sources = [hero, portfolio, nestedContent, configRecord, profileRecord];
+  const sources = [hero, portfolio, nestedContent, configRecord];
 
   // const name = firstString(sources, ["fullName", "name", "displayName"]);
   const username = firstString(sources, ["username", "handle"]);
@@ -120,7 +119,7 @@ function getHeroData(config: unknown, profile: unknown) {
 
   const avatarUrl =
     firstString(
-      [hero, profileRecord, portfolio, nestedContent, configRecord],
+      [hero, portfolio, nestedContent, configRecord],
       ["avatarUrl", "imageUrl", "image", "photoUrl", "profileImage"],
     ) ??
     nestedString(configRecord, [
@@ -505,9 +504,9 @@ function Portrait({
    HERO
    ========================================================================== */
 
-export default function HeroDefault({ config, profile }: ThemeSectionProps) {
+export default function HeroDefault({ config }: ThemeSectionProps) {
   const reducedMotion = Boolean(useReducedMotion());
-  const data = useMemo(() => getHeroData(config, profile), [config, profile]);
+  const data = useMemo(() => getHeroData(config), [config]);
 
   // Spotlight follows the pointer across the whole section
   const px = useSpring(useMotionValue(50), { stiffness: 60, damping: 20 });

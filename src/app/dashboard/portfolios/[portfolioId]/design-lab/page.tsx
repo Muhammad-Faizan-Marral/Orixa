@@ -38,7 +38,7 @@ export default async function PortfolioDesignLabPage({ params }: Props) {
     phone: (d.phone as string) || undefined,
     linkedinUrl: (d.linkedinUrl as string) || undefined,
     githubUrl: (d.githubUrl as string) || undefined,
-    avatarUrl: (d.avatarUrl as string) || profile.avatarUrl || undefined,
+    avatarUrl: (d.avatarUrl as string) || undefined,
     resumeUrl: (d.resumeUrl as string) || undefined,
     skills: (d.skills as PortfolioRenderConfig["skills"]) || [],
     projects: (d.projects as PortfolioRenderConfig["projects"]) || [],

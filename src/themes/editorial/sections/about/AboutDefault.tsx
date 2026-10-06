@@ -235,7 +235,6 @@ export default function AboutDefault({
         rawConfig.avatarUrl,
         rawConfig.profileImage,
         rawConfig.photoUrl,
-        rawProfile.avatarUrl,
       ),
     );
 

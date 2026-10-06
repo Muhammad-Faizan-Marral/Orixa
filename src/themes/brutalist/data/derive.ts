@@ -114,7 +114,7 @@ export function buildHero(
     initials: initialsOf(name),
     headline,
     roleWords: splitRoleWords(headline),
-    avatarUrl: clean(cfg.avatarUrl) ?? clean(profile.avatarUrl),
+    avatarUrl: clean(cfg.avatarUrl),
     location: clean(cfg.location),
     primaryCta,
   };
