@@ -132,7 +132,9 @@ export const metadata: Metadata = {
 
   description:
     "OrixaAI is an AI-powered portfolio builder for developers, designers, students and freelancers. Build a distinctive portfolio, publish it instantly and let your work speak for itself.",
-
+  verification: {
+    google: "rRpCWIehy1C11-YIpYXkiB5Uc1VNuTyTuZ9NKTFS4Ns",
+  },
   keywords: [
     "OrixaAI",
     "AI portfolio builder",
