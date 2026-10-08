@@ -10,12 +10,13 @@ import { Input } from "@/components/UI/Input";
 import { Button } from "@/components/UI/Button";
 import { Separator } from "@/components/UI/Separator";
 import { signup, type SignupState } from "@/actions/auth/signup";
-import {  useEffect } from "react";
+import { useEffect, useState } from "react";
 const initialState: SignupState = {};
 
 export default function SignupPage() {
-  
   const [state, formAction, pending] = useActionState(signup, initialState);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+
   useEffect(() => {
     try {
       const ref = new URLSearchParams(window.location.search).get("ref");
@@ -26,7 +27,8 @@ export default function SignupPage() {
       // ignore
     }
   }, []);
-   if (state.success) {
+
+  if (state.success) {
     return (
       <AuthLayout
         title="Confirm your email"
@@ -86,6 +88,34 @@ export default function SignupPage() {
           required
         />
 
+        <div className="space-y-2">
+          <label className="flex items-start gap-2 text-sm text-foreground">
+            <input
+              type="checkbox"
+              name="agreedToTerms"
+              required
+              checked={agreedToTerms}
+              onChange={(event) => setAgreedToTerms(event.target.checked)}
+              className="mt-1 h-4 w-4 shrink-0 accent-primary"
+            />
+            <span>
+              I agree to the{" "}
+              <Link href="/terms" target="_blank" className="text-primary hover:underline">
+                Terms of Service
+              </Link>{" "}
+              and{" "}
+              <Link href="/privacy" target="_blank" className="text-primary hover:underline">
+                Privacy Policy
+              </Link>
+              .
+            </span>
+          </label>
+          <p className="pl-6 text-xs leading-5 text-muted-foreground">
+            We use your account and portfolio data (including any resume you
+            upload) to build, host, and show analytics for your portfolio.
+          </p>
+        </div>
+
         {state.error && <FormAlert>{state.error}</FormAlert>}
 
         <Button
@@ -104,7 +134,10 @@ export default function SignupPage() {
         <Separator className="flex-1" />
       </div>
 
-      <OAuthButtons />
+      <p className="mb-3 text-center text-xs text-muted-foreground">
+        Agree above before continuing with Google or GitHub.
+      </p>
+      <OAuthButtons disabled={!agreedToTerms} />
 
       <p className="text-small mt-8 text-center">
         Already have an account?{" "}

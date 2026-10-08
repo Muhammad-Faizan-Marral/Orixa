@@ -13,6 +13,10 @@ export async function signup(
   _previousState: SignupState,
   formData: FormData,
 ): Promise<SignupState> {
+  if (formData.get("agreedToTerms") !== "on") {
+    return { error: "You must agree to the Terms of Service and Privacy Policy." };
+  }
+
   const raw = {
     name: formData.get("name"),
     email: formData.get("email"),

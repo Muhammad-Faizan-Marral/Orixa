@@ -23,7 +23,7 @@ function GithubIcon() {
   );
 }
 
-export function OAuthButtons() {
+export function OAuthButtons({ disabled = false }: { disabled?: boolean }) {
   const [loading, setLoading] = useState<"google" | "github" | null>(null);
 
   async function handleOAuth(provider: "google" | "github") {
@@ -56,7 +56,7 @@ export function OAuthButtons() {
         type="button"
         variant="secondary"
         onClick={() => handleOAuth("google")}
-        disabled={loading !== null}
+        disabled={disabled || loading !== null}
         loading={loading === "google"}
       >
         <GoogleIcon />
@@ -67,7 +67,7 @@ export function OAuthButtons() {
         type="button"
         variant="secondary"
         onClick={() => handleOAuth("github")}
-        disabled={loading !== null}
+        disabled={disabled || loading !== null}
         loading={loading === "github"}
       >
         <GithubIcon />

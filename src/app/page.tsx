@@ -12,6 +12,7 @@ import FinalCTA from "@/components/landing/FinalCTA";
 import Footer from "@/components/landing/Footer";
 import GameRoot from "@/components/landing/game/GameRoot";
 import DesignLabSection from "@/components/landing/Designlabsection";
+import { CookieNotice } from "@/components/legal/legal-notices";
 
 export default function HomePage() {
   return (
@@ -34,6 +35,7 @@ export default function HomePage() {
       </main>
       <Footer />
       <GameRoot />
+      <CookieNotice />
     </div>
   );
 }

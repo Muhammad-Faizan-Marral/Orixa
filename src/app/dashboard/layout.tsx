@@ -6,6 +6,7 @@ import { TimezoneSync } from "@/components/timezone-sync";
 import { NetworkStatusBanner } from "@/components/network-status-banner";
 import { ToastProvider } from "@/components/toast";
 import { getSettingsCached } from "@/lib/cache/dashboard-data";
+import { DashboardLegalNotice } from "@/components/legal/legal-notices";
 
 export default async function DashboardLayout({
   children,
@@ -16,6 +17,7 @@ export default async function DashboardLayout({
 
   return (
     <>
+      <DashboardLegalNotice />
       <ThemeSync themeMode={settings.themeMode} />
       <LocaleSync language={settings.language} />
       <TimezoneSync timezone={settings.timezone} />
