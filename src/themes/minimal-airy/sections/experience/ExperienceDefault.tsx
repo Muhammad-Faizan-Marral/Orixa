@@ -115,7 +115,7 @@ export function ExperienceDefault({ config }: ThemeSectionProps) {
   return (
     <section
       id="experience"
-      className="relative w-full overflow-hidden"
+      className="relative w-full overflow-hidden px-12"
       aria-label="Professional experience"
     >
       {/* =========================================================

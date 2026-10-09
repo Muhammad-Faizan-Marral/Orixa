@@ -223,7 +223,7 @@ export function ContactDefault({ config }: Props) {
     <section
       id="contact"
       aria-label="Contact"
-      className="relative w-full overflow-hidden"
+      className="relative w-full overflow-hidden px-12"
       style={{
         fontFamily: "var(--pr-font)",
       }}

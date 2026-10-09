@@ -42,7 +42,7 @@ export function CertificatesDefault({ config }: ThemeSectionProps) {
   return (
     <section
       id="certificates"
-      className="relative w-full "
+      className="relative w-full px-12"
       style={{
         fontFamily: "var(--pr-font)",
       }}

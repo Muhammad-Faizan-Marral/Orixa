@@ -50,7 +50,7 @@ export function EducationDefault({ config }: ThemeSectionProps) {
   return (
     <section
       id="education"
-      className="relative w-full"
+      className="relative w-full px-12"
       style={{
         fontFamily: "var(--pr-font)",
       }}

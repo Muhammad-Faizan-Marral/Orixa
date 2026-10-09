@@ -63,7 +63,7 @@ export default function HeroSection() {
               className="anim-blink bg-accent inline-block h-3 w-2"
               aria-hidden="true"
             />
-            No templates to fight. No layouts to figure out.
+            A secret is hiding somewhere on this page… 👀
           </p>
         </div>
 
