@@ -154,6 +154,10 @@ export const metadata: Metadata = {
       url: "https://www.orixaai.me",
     },
   ],
+  robots: {
+    index: true,
+    follow: true,
+  },
 
   creator: "OrixaAI",
   publisher: "OrixaAI",
