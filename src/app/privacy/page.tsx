@@ -185,8 +185,8 @@ export default function PrivacyPage() {
             You can review and update some profile and portfolio information
             through your account. You may also request access to, correction
             of, or deletion of your personal information by contacting{" "}
-            <a className="text-primary hover:underline" href="mailto:support@orixaai.me">
-              support@orixaai.me
+            <a className="text-primary hover:underline" href="mailto:contact@orixaai.me">
+              contact@orixaai.me
             </a>
             . We will consider and respond to requests as required by the laws
             that apply. You can also control cookies and local storage in your
@@ -224,8 +224,8 @@ export default function PrivacyPage() {
             security, or operational reasons. We will revise the date above
             when we do and take reasonable steps to notify you of material
             changes. Questions or privacy requests can be sent to{" "}
-            <a className="text-primary hover:underline" href="mailto:support@orixaai.me">
-              support@orixaai.me
+            <a className="text-primary hover:underline" href="mailto:contact@orixaai.me">
+              contact@orixaai.me
             </a>
             .
           </p>

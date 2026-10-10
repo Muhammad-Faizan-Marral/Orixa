@@ -16,6 +16,7 @@ export default function Footer() {
             <Link href="#features" className={link}>Features</Link>
             <Link href="#pricing" className={link}>Pricing</Link>
             <Link href="/blog" className={link}>Blog</Link>
+            <Link href="#samplework" className={link}>SampleWork</Link>
             <Link href="/auth/login" className={link}>Log in</Link>
             <Link href="/terms" className={link}>Terms</Link>
             <Link href="/privacy" className={link}>Privacy</Link>

@@ -27,7 +27,7 @@ export default function HomePage() {
         <DifferenceSection />
         <div id="features">
           <FeaturesSection />
-          <DesignLabSection />
+          <div id="samplework"><DesignLabSection /></div>
         </div>
         <PricingSection />
         <FAQSection />

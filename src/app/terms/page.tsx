@@ -189,9 +189,9 @@ export default function TermsPage() {
             Questions about these terms? Contact{" "}
             <a
               className="text-primary hover:underline"
-              href="mailto:support@orixaai.me"
+              href="mailto:contact@orixaai.me"
             >
-              support@orixaai.me
+              contact@orixaai.me
             </a>
             .
           </p>
