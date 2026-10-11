@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { ContactShadows, Float, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 
@@ -20,6 +20,16 @@ type PointerState = {
   x: number;
   y: number;
 };
+
+/* ============================================================================
+   RESPONSIVE
+============================================================================ */
+
+/**
+ * Below this width (px) the hero switches to its phone layout.
+ * 640 matches Tailwind's `sm` breakpoint used in the classNames below.
+ */
+const NARROW_BREAKPOINT = 640;
 
 /* ============================================================================
    STATS
@@ -296,6 +306,9 @@ function AnimeModel({
 
   const { scene } = useGLTF("/models/Anime3d.glb");
 
+  /* RESPONSIVE: true when the canvas is phone-sized. */
+  const isNarrow = useThree((state) => state.size.width < NARROW_BREAKPOINT);
+
   const accentMaterialsRef = useRef<THREE.Material[]>([]);
   const fallbackMaterialsRef = useRef<THREE.Material[]>([]);
 
@@ -457,11 +470,41 @@ function AnimeModel({
 
   return (
     <Float speed={0.75} rotationIntensity={0.025} floatIntensity={0.06}>
-      <group ref={groupRef} position={[0.18, -1.08, 0]} scale={1.92}>
+      {/* RESPONSIVE: centered on phones, original offset elsewhere. */}
+      <group
+        ref={groupRef}
+        position={[isNarrow ? 0 : 0.18, -1.08, 0]}
+        scale={1.92}
+      >
         <primitive object={scene} />
       </group>
     </Float>
   );
+}
+
+/* ============================================================================
+   CAMERA (RESPONSIVE FRAMING)
+============================================================================ */
+
+/**
+ * Portrait screens see far less horizontal space, so the camera gets a
+ * wider field of view and sits slightly farther back to avoid cropping the
+ * model. Desktop values are identical to the original camera.
+ */
+function CameraRig() {
+  const camera = useThree((state) => state.camera);
+  const width = useThree((state) => state.size.width);
+
+  useEffect(() => {
+    const narrow = width < NARROW_BREAKPOINT;
+    const perspective = camera as THREE.PerspectiveCamera;
+
+    perspective.fov = narrow ? 36 : 31;
+    perspective.position.set(0, narrow ? 0.18 : 0.22, narrow ? 3.5 : 3.15);
+    perspective.updateProjectionMatrix();
+  }, [camera, width]);
+
+  return null;
 }
 
 /* ============================================================================
@@ -475,6 +518,8 @@ function HeroScene({
 }) {
   return (
     <>
+      <CameraRig />
+
       {/* Primary studio light */}
       <directionalLight
         position={[1.5, 7, 5]}
@@ -556,6 +601,32 @@ export function HeroDefault({ config, profile }: ThemeSectionProps) {
   const [isReady, setIsReady] = useState(false);
 
   /* --------------------------------------------------------------------------
+     RESPONSIVE: VIEWPORT + NAME LAYOUT
+  -------------------------------------------------------------------------- */
+
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const query = window.matchMedia(`(max-width: ${NARROW_BREAKPOINT - 1}px)`);
+
+    const update = () => setIsMobile(query.matches);
+
+    update();
+
+    query.addEventListener("change", update);
+
+    return () => query.removeEventListener("change", update);
+  }, []);
+
+  /**
+   * On phones a multi-word name is stacked on separate lines so it can be
+   * rendered much larger than one squeezed line would allow.
+   */
+  const nameWords = displayName.trim().split(/\s+/).filter(Boolean);
+  const stackName = isMobile && nameWords.length > 1;
+  const lineCount = stackName ? nameWords.length : 1;
+
+  /* --------------------------------------------------------------------------
      NAME FITTING
   -------------------------------------------------------------------------- */
 
@@ -575,12 +646,22 @@ export function HeroDefault({ config, profile }: ThemeSectionProps) {
 
     const ratio = availableWidth / actualWidth;
 
-    const calculatedSize = Math.max(30, Math.floor(400 * ratio));
+    const sizeByWidth = Math.floor(400 * ratio);
+
+    /**
+     * RESPONSIVE: keep the name block under ~60% of the hero height so
+     * stacked names on tall, narrow screens never swallow the layout.
+     */
+    const sizeByHeight = Math.floor(
+      (wrapper.offsetHeight * 0.6) / (0.87 * lineCount),
+    );
+
+    const calculatedSize = Math.max(30, Math.min(sizeByWidth, sizeByHeight));
 
     nameElement.style.fontSize = `${calculatedSize}px`;
 
     setIsReady(true);
-  }, []);
+  }, [lineCount]);
 
   useEffect(() => {
     let cancelled = false;
@@ -728,9 +809,17 @@ export function HeroDefault({ config, profile }: ThemeSectionProps) {
             opacity: isReady ? 0.94 : 0.88,
             fontSize: "clamp(3rem, 16vw, 16rem)",
             transition: "opacity 300ms ease",
+            /* RESPONSIVE: center the stacked lines on phones. */
+            textAlign: stackName ? "center" : undefined,
           }}
         >
-          {displayName}
+          {stackName
+            ? nameWords.map((word, index) => (
+                <span key={`${word}-${index}`} style={{ display: "block" }}>
+                  {word}
+                </span>
+              ))
+            : displayName}
         </h1>
       </div>
 
@@ -754,6 +843,8 @@ export function HeroDefault({ config, profile }: ThemeSectionProps) {
           }}
           style={{
             background: "transparent",
+            /* RESPONSIVE: let the page scroll vertically when touching the model. */
+            touchAction: "pan-y",
           }}
         >
           <HeroScene pointer={pointerRef} />
@@ -848,14 +939,10 @@ export function HeroDefault({ config, profile }: ThemeSectionProps) {
 
         {/* --------------------------------------------------------------------
             BOTTOM
+            RESPONSIVE: stacks vertically on phones, original row from `sm` up.
         -------------------------------------------------------------------- */}
 
-        <div
-          className="flex items-end justify-between gap-6"
-          style={{
-            flexWrap: "wrap",
-          }}
-        >
+        <div className="flex flex-col gap-5 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between sm:gap-6">
           {/* Headline */}
 
           {headline && (
@@ -892,47 +979,86 @@ export function HeroDefault({ config, profile }: ThemeSectionProps) {
             </div>
           )}
 
-          {/* Stats */}
+          {/* Stats (+ mobile contact pill) */}
 
-          {stats.length > 0 && (
-            <div
-              className="flex items-end"
-              style={{
-                gap: "clamp(1.5rem, 4vw, 3.5rem)",
-                flexShrink: 0,
-              }}
-            >
-              {stats.map((stat) => (
-                <div key={stat.label}>
-                  <div
-                    style={{
-                      fontFamily:
-                        "var(--theme-font-display, var(--pr-font-display, sans-serif))",
-                      fontWeight: 800,
-                      fontSize: "clamp(1.8rem, 3.2vw, 3.2rem)",
-                      lineHeight: 1,
-                      letterSpacing: "-0.045em",
-                      color: "#ffffff",
-                    }}
-                  >
-                    {stat.value}
-                  </div>
+          {/* RESPONSIVE: `sm:contents` makes this wrapper disappear on larger
+              screens, so the desktop layout is exactly the original one. */}
+          {(stats.length > 0 || contactHref) && (
+            <div className="flex items-end justify-between gap-4 sm:contents">
+              {stats.length > 0 && (
+                <div
+                  className="flex items-end"
+                  style={{
+                    gap: "clamp(1.5rem, 4vw, 3.5rem)",
+                    flexShrink: 0,
+                  }}
+                >
+                  {stats.map((stat) => (
+                    <div key={stat.label}>
+                      <div
+                        style={{
+                          fontFamily:
+                            "var(--theme-font-display, var(--pr-font-display, sans-serif))",
+                          fontWeight: 800,
+                          fontSize: "clamp(1.8rem, 3.2vw, 3.2rem)",
+                          lineHeight: 1,
+                          letterSpacing: "-0.045em",
+                          color: "#ffffff",
+                        }}
+                      >
+                        {stat.value}
+                      </div>
 
-                  <div
-                    style={{
-                      marginTop: 5,
-                      fontFamily: "var(--theme-font-sans, Inter, sans-serif)",
-                      fontSize: 9,
-                      fontWeight: 600,
-                      letterSpacing: "0.26em",
-                      textTransform: "uppercase",
-                      color: "rgba(255,255,255,0.48)",
-                    }}
-                  >
-                    {stat.label}
-                  </div>
+                      <div
+                        style={{
+                          marginTop: 5,
+                          fontFamily:
+                            "var(--theme-font-sans, Inter, sans-serif)",
+                          fontSize: 9,
+                          fontWeight: 600,
+                          letterSpacing: "0.26em",
+                          textTransform: "uppercase",
+                          color: "rgba(255,255,255,0.48)",
+                        }}
+                      >
+                        {stat.label}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
+
+              {/* ==============================================================
+                  MOBILE CONTACT
+                  RESPONSIVE: now sits in the flow (not absolute) so it can
+                  never overlap the stats on small screens.
+              ============================================================== */}
+
+              {contactHref && (
+                <a
+                  href={contactHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="pointer-events-auto z-[15] ml-auto flex shrink-0 items-center gap-2 rounded-full sm:hidden"
+                  style={{
+                    padding: "8px 13px",
+                    border: "1px solid rgba(255,255,255,0.24)",
+                    background: "rgba(255,255,255,0.10)",
+                    backdropFilter: "blur(12px)",
+                    WebkitBackdropFilter: "blur(12px)",
+                    fontFamily: "var(--theme-font-sans, Inter, sans-serif)",
+                    fontSize: 9,
+                    fontWeight: 700,
+                    letterSpacing: "0.12em",
+                    textTransform: "uppercase",
+                    color: "rgba(255,255,255,0.9)",
+                    textDecoration: "none",
+                  }}
+                >
+                  Let&apos;s Talk
+                  <span aria-hidden="true">↗</span>
+                </a>
+              )}
             </div>
           )}
         </div>
@@ -1000,36 +1126,6 @@ export function HeroDefault({ config, profile }: ThemeSectionProps) {
           >
             ↗
           </span>
-        </a>
-      )}
-
-      {/* ======================================================================
-          MOBILE CONTACT
-      ====================================================================== */}
-
-      {contactHref && (
-        <a
-          href={contactHref}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="pointer-events-auto absolute bottom-5 right-5 z-[15] flex items-center gap-2 rounded-full sm:hidden"
-          style={{
-            padding: "8px 13px",
-            border: "1px solid rgba(255,255,255,0.24)",
-            background: "rgba(255,255,255,0.10)",
-            backdropFilter: "blur(12px)",
-            WebkitBackdropFilter: "blur(12px)",
-            fontFamily: "var(--theme-font-sans, Inter, sans-serif)",
-            fontSize: 9,
-            fontWeight: 700,
-            letterSpacing: "0.12em",
-            textTransform: "uppercase",
-            color: "rgba(255,255,255,0.9)",
-            textDecoration: "none",
-          }}
-        >
-          Let&apos;s Talk
-          <span aria-hidden="true">↗</span>
         </a>
       )}
 
