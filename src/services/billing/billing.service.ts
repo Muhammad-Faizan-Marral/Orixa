@@ -51,6 +51,8 @@ export class BillingService {
         params.successUrl ??
         `${appUrl}/dashboard?checkout=success&checkout_id={CHECKOUT_ID}`,
       customerEmail: params.email,
+      // Links Polar customer → your auth user (webhook externalId ke liye zaroori)
+      externalCustomerId: params.userId,
       metadata: {
         userId: params.userId,
         productKey: params.productKey,
@@ -80,7 +82,8 @@ export class BillingService {
 
   async activateSuccessfulCheckout(userId: string, checkoutId: string) {
     const checkout = await polar.checkouts.get({ id: checkoutId });
-    const checkoutUserId = checkout.externalCustomerId ?? checkout.metadata.userId;
+    const checkoutUserId =
+      checkout.externalCustomerId ?? checkout.metadata.userId;
 
     if (
       checkoutUserId !== userId ||
@@ -98,7 +101,10 @@ export class BillingService {
     }
 
     const productKey = metadataString(checkout.metadata, "productKey");
-    if (!premiumUntil && (productKey === "monthly" || productKey === "yearly")) {
+    if (
+      !premiumUntil &&
+      (productKey === "monthly" || productKey === "yearly")
+    ) {
       premiumUntil = addBillingPeriod(productKey);
     }
 
@@ -114,12 +120,12 @@ export class BillingService {
     });
   }
 
-  async deactivatePremium(userId: string) {
+   async deactivatePremium(userId: string) {
     await profileRepository.update(userId, {
       isPremium: false,
       premiumUntil: null,
       polarSubscriptionId: null,
-      successfulReferrals: 0,
+      // successfulReferrals mat touch karo — referral history preserve
     });
   }
 

@@ -34,18 +34,7 @@ export const LAB_CONFIG_BASE: PortfolioRenderConfig = {
     { id: "10", name: "Framer Motion", level: "Advanced" },
     { id: "11", name: "GraphQL", level: "Intermediate" },
     { id: "12", name: "Playwright", level: "Intermediate" },
-     { id: "13", name: "TypeScript", level: "Expert" },
-    { id: "21", name: "React", level: "Expert" },
-    { id: "31", name: "Next.js", level: "Advanced" },
-    { id: "14", name: "Node.js", level: "Advanced" },
-    { id: "15", name: "PostgreSQL", level: "Advanced" },
-    { id: "16", name: "Figma", level: "Advanced" },
-    { id: "17", name: "System Design", level: "Intermediate" },
-    { id: "18", name: "Python", level: "Intermediate" },
-    { id: "19", name: "Tailwind CSS", level: "Expert" },
-    { id: "20", name: "Framer Motion", level: "Advanced" },
-    { id: "21", name: "GraphQL", level: "Intermediate" },
-    { id: "22", name: "Playwright", level: "Intermediate" },
+   
   ],
   projects: [
     {

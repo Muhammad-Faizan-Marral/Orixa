@@ -19,21 +19,19 @@ export const requireProfile = cache(async () => {
       "Unable to load your profile. Check DATABASE_URL / Supabase connection and try again.",
     );
   }
+
   if (!profile) {
     redirect("/onboarding");
   }
 
-  if (
-    profile.isPremium &&
-    profile.premiumUntil &&
-    !isPremiumActive(profile)
-  ) {
-    return profileRepository.update(profile.userId, {
+  // Soft-expiry cleanup: date guzar gayi ho to free bana do (referral count mat mitao)
+  if (profile.isPremium && profile.premiumUntil && !isPremiumActive(profile)) {
+    const updated = await profileRepository.update(profile.userId, {
       isPremium: false,
       premiumUntil: null,
       polarSubscriptionId: null,
-      successfulReferrals: 0,
     });
+    return updated ?? profile;
   }
 
   return profile;

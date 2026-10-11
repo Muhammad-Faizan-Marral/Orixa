@@ -10,7 +10,9 @@ function metadataUserId(metadata: unknown) {
 function metadataProductKey(metadata: unknown) {
   if (!metadata || typeof metadata !== "object") return null;
   const productKey = (metadata as Record<string, unknown>).productKey;
-  return productKey === "monthly" || productKey === "yearly" ? productKey : null;
+  return productKey === "monthly" || productKey === "yearly"
+    ? productKey
+    : null;
 }
 
 function addBillingPeriod(productKey: "monthly" | "yearly") {
@@ -18,6 +20,13 @@ function addBillingPeriod(productKey: "monthly" | "yearly") {
   if (productKey === "monthly") until.setMonth(until.getMonth() + 1);
   else until.setFullYear(until.getFullYear() + 1);
   return until.toISOString();
+}
+
+function resolveUserId(data: {
+  customer?: { externalId?: string | null } | null;
+  metadata?: unknown;
+}) {
+  return data.customer?.externalId || metadataUserId(data.metadata) || null;
 }
 
 export const POST = Webhooks({
@@ -29,9 +38,7 @@ export const POST = Webhooks({
 
   onOrderPaid: async (payload) => {
     const order = payload.data;
-    const userId =
-      order.customer?.externalId ||
-      metadataUserId(order.metadata);
+    const userId = resolveUserId(order);
 
     if (!userId) {
       console.warn("[Polar] order.paid missing externalId / userId");
@@ -39,10 +46,11 @@ export const POST = Webhooks({
     }
 
     const premiumUntil = order.subscription?.currentPeriodEnd
-      ? order.subscription.currentPeriodEnd.toISOString()
+      ? new Date(order.subscription.currentPeriodEnd).toISOString()
       : metadataProductKey(order.metadata)
         ? addBillingPeriod(metadataProductKey(order.metadata)!)
         : null;
+
     if (!premiumUntil) {
       console.error("[Polar] order.paid missing subscription expiry");
       return;
@@ -51,7 +59,7 @@ export const POST = Webhooks({
     await billingService.activatePremium({
       userId,
       polarCustomerId: order.customer?.id ?? null,
-      polarSubscriptionId: order.subscriptionId,
+      polarSubscriptionId: order.subscriptionId ?? null,
       premiumUntil,
     });
 
@@ -60,10 +68,7 @@ export const POST = Webhooks({
 
   onSubscriptionCreated: async (payload) => {
     const sub = payload.data;
-    const userId =
-      sub.customer?.externalId ||
-      metadataUserId(sub.metadata);
-
+    const userId = resolveUserId(sub);
     if (!userId) return;
 
     await billingService.activatePremium({
@@ -80,10 +85,7 @@ export const POST = Webhooks({
 
   onSubscriptionActive: async (payload) => {
     const sub = payload.data;
-    const userId =
-      sub.customer?.externalId ||
-      metadataUserId(sub.metadata);
-
+    const userId = resolveUserId(sub);
     if (!userId) return;
 
     await billingService.activatePremium({
@@ -94,27 +96,49 @@ export const POST = Webhooks({
         ? new Date(sub.currentPeriodEnd).toISOString()
         : null,
     });
+
+    console.log(`[Polar] subscription.active → ${userId}`);
   },
 
+  /**
+   * Cancel = user ne cancel request ki, lekin period end tak access milta hai.
+   * Yahan deactivate MAT karo. Sirf log + optional premiumUntil sync.
+   */
   onSubscriptionCanceled: async (payload) => {
     const sub = payload.data;
-    const userId =
-      sub.customer?.externalId ||
-      metadataUserId(sub.metadata);
-
+    const userId = resolveUserId(sub);
     if (!userId) return;
 
-    await billingService.deactivatePremium(userId);
+    // Agar Polar currentPeriodEnd bhej raha hai to us tak premium rehne do
+    if (sub.currentPeriodEnd) {
+      const until = new Date(sub.currentPeriodEnd);
+      if (until > new Date()) {
+        await billingService.activatePremium({
+          userId,
+          polarCustomerId: sub.customer?.id ?? null,
+          polarSubscriptionId: sub.id,
+          premiumUntil: until.toISOString(),
+        });
+        console.log(
+          `[Polar] subscription.canceled → premium kept until ${until.toISOString()} for ${userId}`,
+        );
+        return;
+      }
+    }
 
-    console.log(`[Polar] subscription.canceled → ${userId}`);
+    // Period already over → deactivate
+    await billingService.deactivatePremium(userId);
+    console.log(
+      `[Polar] subscription.canceled (period ended) → premium removed for ${userId}`,
+    );
   },
 
+  /**
+   * Revoked = access actually band. Yahan deactivate karo.
+   */
   onSubscriptionRevoked: async (payload) => {
     const sub = payload.data;
-    const userId =
-      sub.customer?.externalId ||
-      metadataUserId(sub.metadata);
-
+    const userId = resolveUserId(sub);
     if (!userId) return;
 
     await billingService.deactivatePremium(userId);

@@ -16,6 +16,9 @@ import type {
   ThemeId,
 } from "./types";
 import { ThemeBootGate, ThemeLoader } from "./shared/theme-loaders";
+import { isPremiumTheme, FREE_THEMES } from "@/constants/billing";
+
+const FALLBACK_FREE_THEME: ThemeId = FREE_THEMES[0]; // "minimal-airy"
 
 const themePageLoaders: Record<
   ThemeId,
@@ -37,7 +40,6 @@ const themePageLoaders: Record<
     import("./cinematic").then((m) => ({ default: m.default.ThemePage! })),
 };
 
-/** dynamic() loading fallback — theme-aware while JS chunk loads */
 function makeLoading(themeId: ThemeId) {
   return function ThemeChunkLoading() {
     return <ThemeLoader themeId={themeId} />;
@@ -61,7 +63,15 @@ export function ThemeEngine({
   config: PortfolioRenderConfig;
   profile: PublicProfileMeta & { isPremium?: boolean };
 }) {
-  const theme = getTheme(getThemeIdFromPreferences(config.designPreferences));
+  const requestedId = getThemeIdFromPreferences(config.designPreferences);
+
+  // Free user + premium DNA saved → public page pe free theme dikhao
+  const resolvedId: ThemeId =
+    !profile.isPremium && isPremiumTheme(requestedId)
+      ? FALLBACK_FREE_THEME
+      : requestedId;
+
+  const theme = getTheme(resolvedId);
   const normalized = normalizeSelectionForTheme(
     theme,
     config.componentSelection,
