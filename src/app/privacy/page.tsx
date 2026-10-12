@@ -4,6 +4,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description: "How OrixaAI collects, uses, and protects information.",
+  alternates: { canonical: "/privacy" },
 };
 
 const sectionClass = "space-y-3";

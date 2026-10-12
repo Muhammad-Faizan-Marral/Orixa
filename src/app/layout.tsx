@@ -126,28 +126,15 @@ export const metadata: Metadata = {
   applicationName: "OrixaAI",
 
   title: {
-    default: "OrixaAI — Portfolios that build and think with you",
+    default: "AI Portfolio Builder & Resume-to-Portfolio | OrixaAI",
     template: "%s · OrixaAI",
   },
 
   description:
-    "OrixaAI is an AI-powered portfolio builder for developers, designers, students and freelancers. Build a distinctive portfolio, publish it instantly and let your work speak for itself.",
+    "Create a premium AI portfolio from your resume or details. Publish your work, explore designs, track visits, and receive direct messages with OrixaAI.",
   verification: {
     google: "rRpCWIehy1C11-YIpYXkiB5Uc1VNuTyTuZ9NKTFS4Ns",
   },
-  keywords: [
-    "OrixaAI",
-    "AI portfolio builder",
-    "portfolio builder",
-    "developer portfolio",
-    "designer portfolio",
-    "student portfolio",
-    "freelancer portfolio",
-    "AI powered portfolio",
-    "personal portfolio",
-    "online portfolio",
-  ],
-
   authors: [
     {
       name: "OrixaAI",
@@ -194,10 +181,10 @@ export const metadata: Metadata = {
     url: "https://www.orixaai.me",
     siteName: "OrixaAI",
 
-    title: "OrixaAI — Portfolios that build and think with you",
+    title: "AI Portfolio Builder & Resume-to-Portfolio | OrixaAI",
 
     description:
-      "Build a premium portfolio with OrixaAI. Bring your projects, experience and resume together into a portfolio designed to help your career move forward.",
+      "Create a premium AI portfolio from your resume or details. Publish your work, explore designs, track visits, and receive direct messages with OrixaAI.",
 
     images: [
       {
@@ -210,10 +197,10 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
 
-    title: "OrixaAI — Portfolios that build and think with you",
+    title: "AI Portfolio Builder & Resume-to-Portfolio | OrixaAI",
 
     description:
-      "Build a premium, AI-powered portfolio with OrixaAI and turn your work into a career-ready presence.",
+      "Create a polished portfolio with AI, explore premium designs, track portfolio visits, and let visitors contact you directly.",
 
     images: ["/logowithBGandText.png"],
   },

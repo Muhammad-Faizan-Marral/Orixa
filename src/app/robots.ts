@@ -1,12 +1,16 @@
 import type { MetadataRoute } from "next";
 
+const SITE_URL = "https://www.orixaai.me";
+
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/dashboard/", "/api/", "/auth/", "/onboarding/"],
+      // API endpoints are not useful search results. Private app pages use
+      // noindex metadata and remain protected by authentication separately.
+      disallow: ["/api/"],
     },
-    sitemap: "https://www.orixaai.me/sitemap.xml",
+    sitemap: `${SITE_URL}/sitemap.xml`,
   };
 }

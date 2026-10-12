@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { ThemeSync } from "@/components/theme-sync";
 import { LocaleSync } from "@/components/locale-sync";
@@ -7,6 +8,11 @@ import { NetworkStatusBanner } from "@/components/network-status-banner";
 import { ToastProvider } from "@/components/toast";
 import { getSettingsCached } from "@/lib/cache/dashboard-data";
 import { DashboardLegalNotice } from "@/components/legal/legal-notices";
+
+export const metadata: Metadata = {
+  title: "Dashboard",
+  robots: { index: false, follow: false },
+};
 
 export default async function DashboardLayout({
   children,

@@ -4,6 +4,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Terms of Service",
   description: "Terms that apply when you use OrixaAI.",
+  alternates: { canonical: "/terms" },
 };
 
 const sectionClass = "space-y-3";

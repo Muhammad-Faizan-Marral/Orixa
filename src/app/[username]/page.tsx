@@ -18,14 +18,35 @@ export async function generateMetadata({
   const { username } = await params;
   const { profile, isPublic } = await isProfilePublicByUsername(username);
 
-  if (!profile || !isPublic) return { title: "Profile not found" };
+  if (!profile || !isPublic) {
+    return {
+      title: "Profile not found",
+      robots: { index: false, follow: false },
+    };
+  }
 
   const name = profile.fullName || profile.username;
+  const description = (
+    profile.headline || profile.bio || `${name}'s portfolio on OrixaAI.`
+  ).slice(0, 160);
+  const url = `https://www.orixaai.me/${profile.username}`;
 
   return {
-    title: `${name} · Orixa AI`,
-    description:
-      profile.headline || profile.bio || `${name}'s portfolio on Orixa AI.`,
+    title: `${name} · Portfolio`,
+    description,
+    alternates: { canonical: `/${profile.username}` },
+    openGraph: {
+      type: "profile",
+      url,
+      title: `${name} · Portfolio`,
+      description,
+      siteName: "OrixaAI",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${name} · Portfolio`,
+      description,
+    },
   };
 }
 

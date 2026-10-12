@@ -28,7 +28,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const pub = await getCachedPublishedPortfolio(username, portfolioSlug);
 
   if (!pub) {
-    return { title: "Portfolio not found" };
+    return {
+      title: "Portfolio not found",
+      robots: { index: false, follow: false },
+    };
   }
 
   const seo = (pub.config.seo ?? {}) as {
@@ -44,21 +47,43 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     (pub.config.name as string) ||
     `${pub.profile.username} · Portfolio`;
 
-  const description =
+  const about =
+    typeof pub.config.about === "string" ? pub.config.about.trim() : "";
+  const headline =
+    typeof pub.config.headline === "string" ? pub.config.headline.trim() : "";
+  const name =
+    typeof pub.config.name === "string" && pub.config.name.trim()
+      ? pub.config.name.trim()
+      : pub.profile.fullName || pub.profile.username;
+  const description = (
     seo.description ||
-    (typeof pub.config.about === "string"
-      ? pub.config.about.slice(0, 160)
-      : undefined);
+    about ||
+    headline ||
+    `${name}'s portfolio showcasing professional work, skills, and experience.`
+  ).slice(0, 160);
+
+  // The historical /orixaAi URL renders the same portfolio as /{username}/{slug}.
+  // Canonicalize this variant to the primary public URL to avoid duplicate indexing.
+  const canonicalPath = `/${username}/${portfolioSlug}`;
+  const canonicalUrl = `https://www.orixaai.me${canonicalPath}`;
 
   return {
     title,
     description,
     keywords: seo.keywords,
+    alternates: { canonical: canonicalPath },
     robots: seo.noIndex ? { index: false, follow: false } : undefined,
     openGraph: {
       title,
       description,
       type: "website",
+      url: canonicalUrl,
+      siteName: "OrixaAI",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
     },
   };
 }

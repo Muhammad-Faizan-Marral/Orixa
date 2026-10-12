@@ -1,11 +1,27 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { UpgradeButton } from "@/components/billing/upgrade-button";
 import { BILLING } from "@/constants/billing";
 
-export const metadata = {
-  title: "Pricing · OrixaAi",
+export const metadata: Metadata = {
+  title: "Pricing",
   description:
-    "Simple pricing for students and developers. Start free, upgrade when you need more.",
+    "Compare OrixaAI's free and premium AI portfolio builder plans. Start free, then upgrade for premium designs, more portfolios, and a portfolio without the watermark.",
+  alternates: { canonical: "/pricing" },
+  openGraph: {
+    type: "website",
+    url: "https://www.orixaai.me/pricing",
+    title: "OrixaAI Pricing — Free and Premium Portfolio Builder Plans",
+    description:
+      "Compare OrixaAI's free and premium plans for building, customizing, and publishing your portfolio.",
+    siteName: "OrixaAI",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "OrixaAI Pricing — Free and Premium Portfolio Builder Plans",
+    description:
+      "Compare free and premium plans for building and publishing your portfolio with OrixaAI.",
+  },
 };
 
 const FREE_FEATURES = [

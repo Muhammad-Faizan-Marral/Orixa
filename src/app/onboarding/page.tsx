@@ -1,8 +1,14 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { OnboardingForm } from "@/features/onboarding/components/onboarding-form";
 import { requireUser } from "@/lib/auth/require-user";
 import { profileService } from "@/services/profile/profile.service";
+
+export const metadata: Metadata = {
+  title: "Set up your profile",
+  robots: { index: false, follow: false },
+};
 
 export default async function OnboardingPage() {
   const user = await requireUser();
