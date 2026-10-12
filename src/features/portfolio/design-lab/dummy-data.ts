@@ -15,9 +15,9 @@ export const LAB_CONFIG_BASE: PortfolioRenderConfig = {
   headline: "Product Engineer · AI interfaces & design systems",
   about:
     "I build product experiences at the intersection of design and engineering. Previously shipped growth systems at early-stage startups, and now focus on AI-assisted creative tools. I care about clarity, motion that earns its place, and portfolios that feel intentional — not templated.",
-  phone: "+1 415 555 0198",
-  linkedinUrl: "https://linkedin.com/in/avachen",
-  githubUrl: "https://github.com/avachen",
+  phone: "+92 3498289100",
+  linkedinUrl: "https://linkedin.com/in/muhammad-faizan-05093b2a4",
+  githubUrl: "https://github.com/Muhammad-Faizan-Marral",
   avatarUrl: "https://i.ibb.co/tTZGyfTW/profile-removebg-preview.png",
   resumeUrl: null,
   animations: true,
