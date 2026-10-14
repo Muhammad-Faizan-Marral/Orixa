@@ -87,13 +87,15 @@ function buildLinks(config: PortfolioRenderConfig | undefined): ContactLink[] {
     });
 
   const linkedin = cleanUrl(config?.linkedinUrl);
-  if (linkedin) links.push({ kind: "linkedin", label: "LinkedIn", href: linkedin });
+  if (linkedin)
+    links.push({ kind: "linkedin", label: "LinkedIn", href: linkedin });
 
   const github = cleanUrl(config?.githubUrl);
   if (github) links.push({ kind: "github", label: "GitHub", href: github });
 
   const resume = cleanUrl(config?.resumeUrl);
-  if (resume) links.push({ kind: "resume", label: "Download resume", href: resume });
+  if (resume)
+    links.push({ kind: "resume", label: "Download resume", href: resume });
 
   const location = clean(config?.location);
   if (location) links.push({ kind: "location", label: location, href: null });
@@ -219,8 +221,10 @@ export function ContactDefault({ config }: Props) {
           transition: { duration: 0.8, delay, ease: EASE },
         };
 
-  const nameErr = displayMessage && !isSuccess ? fieldError(errors, "name") : null;
-  const emailErr = displayMessage && !isSuccess ? fieldError(errors, "email") : null;
+  const nameErr =
+    displayMessage && !isSuccess ? fieldError(errors, "visitorName") : null;
+  const emailErr =
+    displayMessage && !isSuccess ? fieldError(errors, "visitorEmail") : null;
   const messageErr =
     displayMessage && !isSuccess ? fieldError(errors, "message") : null;
 
@@ -273,7 +277,11 @@ export function ContactDefault({ config }: Props) {
                     <a
                       href={link.href}
                       target={link.kind === "phone" ? undefined : "_blank"}
-                      rel={link.kind === "phone" ? undefined : "noopener noreferrer"}
+                      rel={
+                        link.kind === "phone"
+                          ? undefined
+                          : "noopener noreferrer"
+                      }
                       onClick={() => track(link.kind)}
                       className={linkCls}
                       style={{ backgroundColor: "rgba(255,255,255,.08)" }}
@@ -284,9 +292,7 @@ export function ContactDefault({ config }: Props) {
                       {link.label}
                     </a>
                   ) : (
-                    <span
-                      className="inline-flex items-center gap-3 px-5 py-3 text-[15px] text-white/80"
-                    >
+                    <span className="inline-flex items-center gap-3 px-5 py-3 text-[15px] text-white/80">
                       <span style={{ color: accent }}>
                         <Icon kind={link.kind} />
                       </span>
@@ -312,21 +318,50 @@ export function ContactDefault({ config }: Props) {
               <input type="hidden" name="portfolioId" value={portfolioId} />
             )}
 
+            {/* Honeypot */}
+            <div
+              aria-hidden="true"
+              style={{
+                position: "absolute",
+                left: "-10000px",
+                width: "1px",
+                height: "1px",
+                overflow: "hidden",
+              }}
+            >
+              <label htmlFor="contact-fax">Fax</label>
+              <input
+                id="contact-fax"
+                name="fax_number"
+                type="text"
+                tabIndex={-1}
+                autoComplete="off"
+              />
+            </div>
+
             <div className="grid gap-5 sm:grid-cols-2">
               <div>
-                <label htmlFor="contact-name" className="mb-2 block text-sm font-medium">
+                <label
+                  htmlFor="contact-name"
+                  className="mb-2 block text-sm font-medium"
+                >
                   Your name
                 </label>
-                <div className="rounded-full" style={inputStyle(Boolean(nameErr))}>
+                <div
+                  className="rounded-full"
+                  style={inputStyle(Boolean(nameErr))}
+                >
                   <input
                     id="contact-name"
-                    name="name"
+                    name="visitorName"
                     type="text"
                     autoComplete="name"
                     required
                     placeholder="Jane Doe"
                     value={values.name}
-                    onChange={(e) => setValues((v) => ({ ...v, name: e.target.value }))}
+                    onChange={(e) =>
+                      setValues((v) => ({ ...v, name: e.target.value }))
+                    }
                     aria-invalid={Boolean(nameErr)}
                     aria-describedby={nameErr ? "contact-name-err" : undefined}
                     className={`${fieldCls} rounded-full`}
@@ -334,34 +369,54 @@ export function ContactDefault({ config }: Props) {
                   />
                 </div>
                 {nameErr && (
-                  <p id="contact-name-err" role="alert" className="mt-1.5 text-sm" style={{ color: accent }}>
+                  <p
+                    id="contact-name-err"
+                    role="alert"
+                    className="mt-1.5 text-sm"
+                    style={{ color: accent }}
+                  >
                     {nameErr}
                   </p>
                 )}
               </div>
 
               <div>
-                <label htmlFor="contact-email" className="mb-2 block text-sm font-medium">
+                <label
+                  htmlFor="contact-email"
+                  className="mb-2 block text-sm font-medium"
+                >
                   Email address
                 </label>
-                <div className="rounded-full" style={inputStyle(Boolean(emailErr))}>
+                <div
+                  className="rounded-full"
+                  style={inputStyle(Boolean(emailErr))}
+                >
                   <input
                     id="contact-email"
-                    name="email"
+                    name="visitorEmail"
                     type="email"
                     autoComplete="email"
                     required
                     placeholder="you@example.com"
                     value={values.email}
-                    onChange={(e) => setValues((v) => ({ ...v, email: e.target.value }))}
+                    onChange={(e) =>
+                      setValues((v) => ({ ...v, email: e.target.value }))
+                    }
                     aria-invalid={Boolean(emailErr)}
-                    aria-describedby={emailErr ? "contact-email-err" : undefined}
+                    aria-describedby={
+                      emailErr ? "contact-email-err" : undefined
+                    }
                     className={`${fieldCls} rounded-full`}
                     style={{ ["--tw-ring-color" as string]: accent }}
                   />
                 </div>
                 {emailErr && (
-                  <p id="contact-email-err" role="alert" className="mt-1.5 text-sm" style={{ color: accent }}>
+                  <p
+                    id="contact-email-err"
+                    role="alert"
+                    className="mt-1.5 text-sm"
+                    style={{ color: accent }}
+                  >
                     {emailErr}
                   </p>
                 )}
@@ -369,10 +424,16 @@ export function ContactDefault({ config }: Props) {
             </div>
 
             <div className="mt-5">
-              <label htmlFor="contact-message" className="mb-2 block text-sm font-medium">
+              <label
+                htmlFor="contact-message"
+                className="mb-2 block text-sm font-medium"
+              >
                 Message
               </label>
-              <div className="rounded-3xl" style={inputStyle(Boolean(messageErr))}>
+              <div
+                className="rounded-3xl"
+                style={inputStyle(Boolean(messageErr))}
+              >
                 <textarea
                   id="contact-message"
                   name="message"
@@ -380,15 +441,24 @@ export function ContactDefault({ config }: Props) {
                   required
                   placeholder="Tell me about your project, timeline and budget."
                   value={values.message}
-                  onChange={(e) => setValues((v) => ({ ...v, message: e.target.value }))}
+                  onChange={(e) =>
+                    setValues((v) => ({ ...v, message: e.target.value }))
+                  }
                   aria-invalid={Boolean(messageErr)}
-                  aria-describedby={messageErr ? "contact-message-err" : undefined}
+                  aria-describedby={
+                    messageErr ? "contact-message-err" : undefined
+                  }
                   className={`${fieldCls} resize-none rounded-3xl`}
                   style={{ ["--tw-ring-color" as string]: accent }}
                 />
               </div>
               {messageErr && (
-                <p id="contact-message-err" role="alert" className="mt-1.5 text-sm" style={{ color: accent }}>
+                <p
+                  id="contact-message-err"
+                  role="alert"
+                  className="mt-1.5 text-sm"
+                  style={{ color: accent }}
+                >
                   {messageErr}
                 </p>
               )}
@@ -428,7 +498,9 @@ export function ContactDefault({ config }: Props) {
                       exit={reduceMotion ? undefined : { opacity: 0 }}
                       transition={{ duration: 0.25 }}
                       className="text-sm font-medium"
-                      style={{ color: displayMessage.isSuccess ? SUCCESS : accent }}
+                      style={{
+                        color: displayMessage.isSuccess ? SUCCESS : accent,
+                      }}
                     >
                       {displayMessage.text}
                     </motion.p>

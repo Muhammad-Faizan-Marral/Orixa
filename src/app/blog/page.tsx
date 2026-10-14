@@ -6,7 +6,7 @@ import { BlogFooter, BlogHeader } from "@/components/blog/BlogHeader";
 import { BLOG_ARTICLES } from "@/content/blog";
 
 export const metadata: Metadata = {
-  title: "Blog",
+  title: "Portfolio Guides for Developers and Creators",
   description:
     "Practical guidance on developer portfolios, presenting your work, and using AI to organize a portfolio.",
   alternates: {
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     url: "https://www.orixaai.me/blog",
-    title: "OrixaAI Blog — Better portfolios, clearer work",
+    title: "Portfolio Guides for Developers and Creators | OrixaAI",
     description:
       "Practical guidance on developer portfolios, presenting your work, and using AI to organize a portfolio.",
   },

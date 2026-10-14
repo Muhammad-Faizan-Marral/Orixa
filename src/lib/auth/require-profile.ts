@@ -24,7 +24,7 @@ export const requireProfile = cache(async () => {
     redirect("/onboarding");
   }
 
-  // Soft-expiry cleanup: date guzar gayi ho to free bana do (referral count mat mitao)
+
   if (profile.isPremium && profile.premiumUntil && !isPremiumActive(profile)) {
     const updated = await profileRepository.update(profile.userId, {
       isPremium: false,

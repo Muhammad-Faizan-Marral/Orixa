@@ -468,8 +468,11 @@ export function ContactDefault({ config }: Props) {
           transition: { duration: 0.8, delay, ease: EASE },
         };
 
-  const nameErr = displayMessage && !isSuccess ? fieldError(errors, "name") : null;
-  const emailErr = displayMessage && !isSuccess ? fieldError(errors, "email") : null;
+  const nameErr =
+    displayMessage && !isSuccess ? fieldError(errors, "visitorName") : null;
+  const emailErr =
+    displayMessage && !isSuccess ? fieldError(errors, "visitorEmail") : null;
+
   const messageErr =
     displayMessage && !isSuccess ? fieldError(errors, "message") : null;
 
@@ -596,10 +599,7 @@ export function ContactDefault({ config }: Props) {
                   aria-label="Contact details"
                 >
                   {links.map((link) => (
-                    <li
-                      key={link.key}
-                      className="flex items-baseline gap-2"
-                    >
+                    <li key={link.key} className="flex items-baseline gap-2">
                       <span
                         className={LABEL_CLASS}
                         style={{ fontFamily: TEXT_FONT, color: DUST }}
@@ -706,11 +706,32 @@ export function ContactDefault({ config }: Props) {
                   />
                 )}
 
+                {/* Honeypot */}
+                <div
+                  aria-hidden="true"
+                  style={{
+                    position: "absolute",
+                    left: "-10000px",
+                    width: "1px",
+                    height: "1px",
+                    overflow: "hidden",
+                  }}
+                >
+                  <label htmlFor={`${uid}-fax`}>Fax</label>
+                  <input
+                    id={`${uid}-fax`}
+                    name="fax_number"
+                    type="text"
+                    tabIndex={-1}
+                    autoComplete="off"
+                  />
+                </div>
+
                 <div className="grid gap-5 sm:grid-cols-2">
                   <Field id={`${uid}-name`} label="Your name" error={nameErr}>
                     <input
                       id={`${uid}-name`}
-                      name="name"
+                      name="visitorName"
                       type="text"
                       required
                       maxLength={120}
@@ -728,10 +749,14 @@ export function ContactDefault({ config }: Props) {
                       style={inputStyle(!!nameErr)}
                     />
                   </Field>
-                  <Field id={`${uid}-email`} label="Your email" error={emailErr}>
+                  <Field
+                    id={`${uid}-email`}
+                    label="Your email"
+                    error={emailErr}
+                  >
                     <input
                       id={`${uid}-email`}
-                      name="email"
+                      name="visitorEmail"
                       type="email"
                       required
                       maxLength={200}
@@ -799,7 +824,9 @@ export function ContactDefault({ config }: Props) {
                           key={displayMessage.text}
                           initial={reduceMotion ? false : { opacity: 0, y: 8 }}
                           animate={{ opacity: 1, y: 0 }}
-                          exit={reduceMotion ? undefined : { opacity: 0, y: -6 }}
+                          exit={
+                            reduceMotion ? undefined : { opacity: 0, y: -6 }
+                          }
                           transition={{ duration: 0.5, ease: EASE }}
                           className="m-0 flex items-start gap-2 text-[15px] italic leading-[1.4]"
                           style={{

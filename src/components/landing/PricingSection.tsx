@@ -19,15 +19,17 @@ const FREE = [
   "Create & publish portfolios",
   "Free design themes",
   "Resume upload & parsing",
-  "Basic analytics (views)",
+  "Full analytics ",
   "Public portfolio URL",
 ];
 const PRO = [
-  "Everything in Free",
+  "Unlimited create portfolios",
   "Remove watermark",
   "All Premium designs",
-  "Advanced Design Lab access",
-  "Priority support",
+  "Create & publish portfolios",
+  "Resume upload & parsing",
+  "Full analytics",
+  "Public portfolio URL",
 ];
 
 function Checks({ items }: { items: string[] }) {

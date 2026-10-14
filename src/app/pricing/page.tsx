@@ -33,12 +33,17 @@ const FREE_FEATURES = [
 ];
 
 const PREMIUM_FEATURES = [
-  "Up to 20 portfolios",
   "All premium Design DNAs",
   "Apply premium designs",
   "Remove watermark",
   "Premium template pack",
-  "Referral → free Premium path",
+  "Unlimited create portfolios",
+  "Remove watermark",
+  "All Premium designs",
+  "Create & publish portfolios",
+  "Resume upload & parsing",
+  "Full analytics",
+  "Public portfolio URL",,
 ];
 
 export default function PricingPage() {
