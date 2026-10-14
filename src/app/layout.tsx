@@ -139,7 +139,13 @@ export const metadata: Metadata = {
   description:
     "Create a premium AI portfolio from your resume or details. Publish your work, explore designs, track visits, and receive direct messages with OrixaAI.",
   verification: {
+    // Existing Google Search Console verification token. Keep this value as-is.
     google: "rRpCWIehy1C11-YIpYXkiB5Uc1VNuTyTuZ9NKTFS4Ns",
+    // Optional Bing Webmaster Tools HTML-meta verification. Set this only if
+    // you choose manual meta-tag verification instead of importing from GSC.
+    ...(process.env.BING_SITE_VERIFICATION?.trim()
+      ? { other: { "msvalidate.01": process.env.BING_SITE_VERIFICATION.trim() } }
+      : {}),
   },
   authors: [
     {
