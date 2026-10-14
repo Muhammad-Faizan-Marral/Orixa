@@ -56,6 +56,7 @@ const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains",
   subsets: ["latin"],
   display: "swap",
+  preload: false,
   adjustFontFallback: true,
   fallback: [
     "ui-monospace",
@@ -76,6 +77,7 @@ const instrument = Instrument_Serif({
   weight: ["400"],
   style: ["normal", "italic"],
   display: "swap",
+  preload: false,
 });
 
 /**
@@ -85,6 +87,7 @@ const dmSans = DM_Sans({
   variable: "--font-dm",
   subsets: ["latin"],
   display: "swap",
+  preload: false,
 });
 
 /**
@@ -96,6 +99,7 @@ const display = Bodoni_Moda({
   subsets: ["latin"],
   style: ["normal", "italic"],
   display: "swap",
+  preload: false,
 });
 
 /**
@@ -105,6 +109,7 @@ const geist = Geist({
   variable: "--font-geist",
   subsets: ["latin"],
   display: "swap",
+  preload: false,
 });
 
 /**
@@ -114,6 +119,7 @@ const text = Schibsted_Grotesk({
   variable: "--font-text",
   subsets: ["latin"],
   display: "swap",
+  preload: false,
 });
 
 /* ============================================================================

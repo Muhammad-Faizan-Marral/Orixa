@@ -85,6 +85,9 @@ export default async function PublicProfilePage({
             <img
               src={profile.avatarUrl}
               alt={profile.fullName ?? profile.username}
+              width={96}
+              height={96}
+              decoding="async"
               className="border-gradient-ion mx-auto h-24 w-24 rounded-full object-cover"
             />
           ) : (

@@ -11,7 +11,7 @@ import PricingSection from "@/components/landing/PricingSection";
 import FAQSection from "@/components/landing/FAQSection";
 import FinalCTA from "@/components/landing/FinalCTA";
 import Footer from "@/components/landing/Footer";
-import GameRoot from "@/components/landing/game/GameRoot";
+import DeferredGameRoot from "@/components/landing/DeferredGameRoot";
 import DesignLabSection from "@/components/landing/Designlabsection";
 import { CookieNotice } from "@/components/legal/legal-notices";
 import { BILLING } from "@/constants/billing";
@@ -129,7 +129,7 @@ export default function HomePage() {
           <FinalCTA />
         </main>
         <Footer />
-        <GameRoot />
+        <DeferredGameRoot />
         <CookieNotice />
       </div>
     </>

@@ -126,7 +126,7 @@ function Artifact({ animate }: { animate: boolean }) {
 
 export default function PortfolioArtifact({ active, animate }: { active: boolean; animate: boolean }) {
   return (
-    <Canvas frameloop={active && animate ? "always" : "demand"} dpr={[1, 1.5]} camera={{ position: [0, 0, 8.5], fov: 35 }}
+    <Canvas frameloop={active && animate ? "always" : "demand"} dpr={[1, 1.25]} camera={{ position: [0, 0, 8.5], fov: 35 }}
       gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }} aria-hidden="true">
       <ambientLight intensity={0.8} />
       <hemisphereLight args={["#8f86ff", "#0b0d14", 0.9]} />
