@@ -69,6 +69,38 @@ function NavIcon({ name }: { name: string }) {
           />
         </svg>
       );
+          case "gift":
+      return (
+        <svg
+          className={common}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.7"
+        >
+          <path
+            d="M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M4 8h16v4H4z"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path d="M12 22V8" strokeLinecap="round" />
+          <path
+            d="M12 8H8.5a2.5 2.5 0 1 1 0-5C11 3 12 8 12 8z"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M12 8h3.5a2.5 2.5 0 1 0 0-5C13 3 12 8 12 8z"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      );
     case "settings":
       return (
         <svg
@@ -102,6 +134,7 @@ export function Sidebar({ profile }: { profile: Profile }) {
 const NAV_ITEMS = [
   { href: "/dashboard", label: t.nav.overview, icon: "home", exact: true },
   { href: "/dashboard/portfolios", label: t.nav.portfolios, icon: "layers" },
+  { href: "/dashboard/refer-and-earn", label: t.nav.referAndEarn, icon: "gift" },
   { href: "/dashboard/profile", label: t.nav.profile, icon: "user" },
   { href: "/dashboard/settings", label: t.nav.settings, icon: "settings" },
 ];

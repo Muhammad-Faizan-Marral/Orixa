@@ -20,16 +20,17 @@ const en = {
     preview: "Preview",
   },
 
-  nav: {
-    overview: "Overview",
-    portfolios: "Portfolios",
-    profile: "Profile",
-    settings: "Settings",
-    newPortfolio: "+ New portfolio",
-    createPortfolio: "+ Create portfolio",
-    closeSidebar: "Close sidebar",
-    logout: "Log out",
-  },
+nav: {
+  overview: "Overview",
+  portfolios: "Portfolios",
+  profile: "Profile",
+  settings: "Settings",
+  referAndEarn: "Refer & Earn",  
+  newPortfolio: "+ New portfolio",
+  createPortfolio: "+ Create portfolio",
+  closeSidebar: "Close sidebar",
+  logout: "Log out",
+},
 
   dashboard: {
     welcomeBack: "Welcome back",

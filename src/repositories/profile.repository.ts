@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 
 import { db } from "@/db";
 import { profiles } from "@/db/schema";
@@ -55,8 +55,6 @@ export class ProfileRepository {
     return profile;
   }
 
-
-
   async exists(userId: string) {
     const profile = await this.findByUserId(userId);
     return profile !== null;
@@ -78,6 +76,20 @@ export class ProfileRepository {
       .returning();
 
     return profile;
+  }
+
+  async findReferredBy(referrerProfileId: string) {
+    return db
+      .select({
+        id: profiles.id,
+        username: profiles.username,
+        isPremium: profiles.isPremium,
+        premiumUntil: profiles.premiumUntil,
+        createdAt: profiles.createdAt,
+      })
+      .from(profiles)
+      .where(eq(profiles.referredBy, referrerProfileId))
+      .orderBy(desc(profiles.createdAt));
   }
 }
 
