@@ -9,6 +9,47 @@ export const metadata = {
   robots: { index: false, follow: false },
 };
 
+/**
+ * Infer monthly vs yearly from premiumUntil.
+ * - ~30 days  → monthly ($9)
+ * - ~365 days → yearly ($69)
+ * Discounted $60 skipped for now (treated as yearly $69 if long period).
+ */
+function inferPlanAndAmount(premiumUntil: string | null): {
+  plan: "monthly" | "yearly";
+  paidAmountUsd: number;
+} {
+  if (!premiumUntil) {
+    return {
+      plan: "monthly",
+      paidAmountUsd: BILLING.PRICE_MONTHLY,
+    };
+  }
+
+  const untilMs = new Date(premiumUntil).getTime();
+  if (Number.isNaN(untilMs)) {
+    return {
+      plan: "monthly",
+      paidAmountUsd: BILLING.PRICE_MONTHLY,
+    };
+  }
+
+  const daysLeft = (untilMs - Date.now()) / (1000 * 60 * 60 * 24);
+
+  // > 90 days ⇒ treat as yearly ($69). Else monthly ($9).
+  if (daysLeft > 90) {
+    return {
+      plan: "yearly",
+      paidAmountUsd: BILLING.PRICE_YEARLY, // 69
+    };
+  }
+
+  return {
+    plan: "monthly",
+    paidAmountUsd: BILLING.PRICE_MONTHLY, // 9
+  };
+}
+
 export default async function ReferAndEarnPage() {
   const profile = await requireProfile();
 
@@ -22,29 +63,25 @@ export default async function ReferAndEarnPage() {
   const referredUsers = await profileRepository.findReferredBy(profile.id);
   const totalSignups = referredUsers.length;
 
-  // Only users who actually PAID via Polar (not free referral unlock)
+  // Only Polar-paid Premium (not free referral unlock)
   const paidPremiumUsers = referredUsers.filter(
     (u) =>
       u.isPremium &&
       (Boolean(u.polarSubscriptionId) || Boolean(u.polarCustomerId)),
   );
 
-  // Map to the shape expected by ReferAndEarnClient
-  // We don't have a payments ledger yet, so:
-  // - paymentId: stable synthetic id from profile
-  // - plan: "premium" until we store monthly/yearly
-  // - paidAmountUsd: use yearly as upper estimate is wrong for commission;
-  //   use monthly as conservative default, or yearly if you prefer.
-  //   Admin still verifies final amount on payout.
-  const premiumBuyers = paidPremiumUsers.map((u) => ({
-    paymentId: u.polarSubscriptionId ?? u.polarCustomerId ?? u.id,
-    username: u.username,
-    plan: "premium" as const,
-    paymentStatus: "paid" as const,
-    // Conservative estimate until real order amount is stored
-    paidAmountUsd: BILLING.PRICE_MONTHLY,
-    isFirstPremiumPayment: true,
-  }));
+  const premiumBuyers = paidPremiumUsers.map((u) => {
+    const { plan, paidAmountUsd } = inferPlanAndAmount(u.premiumUntil ?? null);
+
+    return {
+      paymentId: u.polarSubscriptionId ?? u.polarCustomerId ?? u.id,
+      username: u.username,
+      plan,
+      paymentStatus: "paid" as const,
+      paidAmountUsd,
+      isFirstPremiumPayment: true,
+    };
+  });
 
   return (
     <ReferAndEarnClient
