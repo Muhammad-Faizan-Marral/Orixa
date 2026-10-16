@@ -20,29 +20,37 @@ export default async function ReferAndEarnPage() {
     ));
 
   const referredUsers = await profileRepository.findReferredBy(profile.id);
-
   const totalSignups = referredUsers.length;
 
-  // ONLY users who actually PAID for Premium (Polar), not referral-unlocked free Premium
+  // Only users who actually PAID via Polar (not free referral unlock)
   const paidPremiumUsers = referredUsers.filter(
     (u) =>
       u.isPremium &&
-      (("polarSubscriptionId" in u && Boolean(u.polarSubscriptionId)) ||
-        ("polarCustomerId" in u && Boolean(u.polarCustomerId))),
+      (Boolean(u.polarSubscriptionId) || Boolean(u.polarCustomerId)),
   );
 
-  const premiumCount = paidPremiumUsers.length;
-
+  // Map to the shape expected by ReferAndEarnClient
+  // We don't have a payments ledger yet, so:
+  // - paymentId: stable synthetic id from profile
+  // - plan: "premium" until we store monthly/yearly
+  // - paidAmountUsd: use yearly as upper estimate is wrong for commission;
+  //   use monthly as conservative default, or yearly if you prefer.
+  //   Admin still verifies final amount on payout.
   const premiumBuyers = paidPremiumUsers.map((u) => ({
+    paymentId: u.polarSubscriptionId ?? u.polarCustomerId ?? u.id,
     username: u.username,
     plan: "premium" as const,
+    paymentStatus: "paid" as const,
+    // Conservative estimate until real order amount is stored
+    paidAmountUsd: BILLING.PRICE_MONTHLY,
+    isFirstPremiumPayment: true,
   }));
 
   return (
     <ReferAndEarnClient
       referralCode={referralCode ?? ""}
       totalSignups={totalSignups}
-      premiumCount={premiumCount}
+      premiumCount={premiumBuyers.length}
       premiumBuyers={premiumBuyers}
       priceMonthly={BILLING.PRICE_MONTHLY}
       priceYearly={BILLING.PRICE_YEARLY}

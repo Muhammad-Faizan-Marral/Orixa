@@ -79,20 +79,20 @@ export class ProfileRepository {
   }
 
   async findReferredBy(referrerProfileId: string) {
-  return db
-    .select({
-      id: profiles.id,
-      username: profiles.username,
-      isPremium: profiles.isPremium,
-      premiumUntil: profiles.premiumUntil,
-      polarCustomerId: profiles.polarCustomerId,
-      polarSubscriptionId: profiles.polarSubscriptionId,
-      createdAt: profiles.createdAt,
-    })
-    .from(profiles)
-    .where(eq(profiles.referredBy, referrerProfileId))
-    .orderBy(desc(profiles.createdAt));
-}
+    return db
+      .select({
+        id: profiles.id,
+        username: profiles.username,
+        isPremium: profiles.isPremium,
+        premiumUntil: profiles.premiumUntil,
+        polarCustomerId: profiles.polarCustomerId,
+        polarSubscriptionId: profiles.polarSubscriptionId,
+        createdAt: profiles.createdAt,
+      })
+      .from(profiles)
+      .where(eq(profiles.referredBy, referrerProfileId))
+      .orderBy(desc(profiles.createdAt));
+  }
 }
 
 export const profileRepository = new ProfileRepository();
