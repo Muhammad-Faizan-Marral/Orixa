@@ -1,18 +1,22 @@
 
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { buildReferralUrl } from "@/lib/referral";
 
 type PremiumBuyer = {
+  paymentId: string;
   username: string;
-  plan: "premium" | "monthly" | "yearly";
+  plan: "monthly" | "yearly" | "premium";
+  paymentStatus: "paid" | "pending" | "refunded" | "free";
+  paidAmountUsd: number;
+  isFirstPremiumPayment: boolean;
 };
 
 type Props = {
   referralCode: string;
   totalSignups: number;
-  premiumCount: number;
+  premiumCount: number; // Legacy prop; the eligible records below drive the UI.
   premiumBuyers: PremiumBuyer[];
   priceMonthly: number;
   priceYearly: number;
@@ -20,444 +24,442 @@ type Props = {
   minWithdraw: number;
 };
 
-function formatUSD(amount: number) {
-  return new Intl.NumberFormat("en-US", {
+const money = (amount: number) =>
+  new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
     maximumFractionDigits: 2,
   }).format(amount);
-}
+
+const steps = [
+  {
+    number: "01",
+    eyebrow: "SHARE",
+    title: "Send your personal link.",
+    description:
+      "Share Orixa with a friend, colleague, or your community. Your link tracks their referral.",
+  },
+  {
+    number: "02",
+    eyebrow: "EARN",
+    title: "They pay for Premium.",
+    description:
+      "Only a successful first paid Premium purchase qualifies. Free referral unlocks and renewals do not count.",
+  },
+  {
+    number: "03",
+    eyebrow: "GET PAID",
+    title: "Your reward is calculated.",
+    description:
+      "Your commission is based on the eligible payment. Request a payout after reaching the minimum threshold.",
+  },
+];
 
 export function ReferAndEarnClient({
   referralCode,
   totalSignups,
-  premiumCount,
   premiumBuyers,
-  priceMonthly,
-  priceYearly,
   commissionRate,
   minWithdraw,
 }: Props) {
-  const [copyState, setCopyState] = useState<
-    "idle" | "copied" | "error"
-  >("idle");
+  const [copied, setCopied] = useState(false);
+  const [copyError, setCopyError] = useState(false);
+  const [activeStep, setActiveStep] = useState(0);
+  const [paused, setPaused] = useState(false);
 
-  const url = buildReferralUrl(referralCode);
+  const referralUrl = buildReferralUrl(referralCode);
+  const rate = Math.min(1, Math.max(0, commissionRate));
+  const percentage = Math.round(rate * 100);
 
-  const commissionPercent = Math.round(commissionRate * 100);
-  const isFullCommission = Math.abs(commissionRate - 1) < 0.000001;
+  // Defense-in-depth for display only. The server must also enforce
+  // eligibility before passing records to this component.
+  const eligiblePurchases = useMemo(
+    () =>
+      premiumBuyers.filter(
+        (buyer) =>
+          buyer.paymentStatus === "paid" &&
+          buyer.isFirstPremiumPayment === true &&
+          Number.isFinite(buyer.paidAmountUsd) &&
+          buyer.paidAmountUsd > 0,
+      ),
+    [premiumBuyers],
+  );
 
-  // An estimate only: the exact plan and eligible payment
-  // must be verified by the server before payout.
-  const estimateMin =
-    premiumCount * Math.min(priceMonthly, priceYearly) * commissionRate;
+  const paidCount = eligiblePurchases.length;
 
-  const estimateMax =
-    premiumCount * Math.max(priceMonthly, priceYearly) * commissionRate;
+  const estimatedCommission = useMemo(
+    () =>
+      eligiblePurchases.reduce(
+        (total, buyer) => total + buyer.paidAmountUsd * rate,
+        0,
+      ),
+    [eligiblePurchases, rate],
+  );
 
-  const estimatedRewards =
-    premiumCount === 0
-      ? formatUSD(0)
-      : `${formatUSD(estimateMin)} – ${formatUSD(estimateMax)}`;
+  // Gentle auto-advance, paused while the user is interacting.
+  useEffect(() => {
+    if (paused) return;
+
+    const timer = window.setInterval(() => {
+      setActiveStep((current) => (current + 1) % steps.length);
+    }, 7000);
+
+    return () => window.clearInterval(timer);
+  }, [paused]);
 
   async function copyLink() {
+    setCopyError(false);
+
     try {
       try {
-        await navigator.clipboard.writeText(url);
+        await navigator.clipboard.writeText(referralUrl);
       } catch {
         const input = document.createElement("textarea");
-        input.value = url;
-        input.readOnly = true;
+        input.value = referralUrl;
         input.style.position = "fixed";
         input.style.left = "-9999px";
-
         document.body.appendChild(input);
         input.select();
 
         const success = document.execCommand("copy");
         input.remove();
 
-        if (!success) {
-          throw new Error("Copy failed");
-        }
+        if (!success) throw new Error("Copy failed");
       }
 
-      setCopyState("copied");
-      window.setTimeout(() => setCopyState("idle"), 2200);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2200);
     } catch {
-      setCopyState("error");
+      setCopyError(true);
     }
   }
 
-  function getBuyerReward(plan: PremiumBuyer["plan"]) {
-    if (plan === "monthly") {
-      return formatUSD(priceMonthly * commissionRate);
-    }
-
-    if (plan === "yearly") {
-      return formatUSD(priceYearly * commissionRate);
-    }
-
-    return null;
+  function moveStep(direction: -1 | 1) {
+    setActiveStep(
+      (current) => (current + direction + steps.length) % steps.length,
+    );
   }
 
   return (
-    <main className="mx-auto w-full max-w-5xl space-y-7 px-4 py-8 sm:px-6 lg:py-12">
-      {/* Page introduction */}
-      <header className="space-y-3">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-          ORIXA AI / REFERRAL PROGRAM
+    <main className="mx-auto w-full max-w-5xl space-y-7 px-4 py-8 sm:px-6 sm:py-10">
+      <style jsx>{`
+        @keyframes referralSlide {
+          from {
+            opacity: 0;
+            transform: translateY(8px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .referral-slide {
+          animation: referralSlide 420ms ease-out both;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .referral-slide {
+            animation: none;
+          }
+        }
+      `}</style>
+
+      {/* Compact introduction */}
+      <header>
+        <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+          ORIXA AI / REFERRALS
         </p>
 
-        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-          Share Orixa. Earn from your referrals.
-        </h1>
-
-        <p className="max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
-          Recommend Orixa AI to your network. When someone you refer
-          completes their first eligible Premium payment, you earn{" "}
-          {commissionPercent}% of that payment.
-        </p>
-      </header>
-
-      {/* Commission details */}
-      <section className="rounded-2xl border border-border bg-surface-1 p-5 sm:p-7">
-        <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
-          <div className="max-w-xl">
-            <p className="text-sm font-medium text-muted-foreground">
-              Your referral reward
-            </p>
-
-            <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-5xl font-semibold tracking-tight tabular-nums">
-                {commissionPercent}%
-              </span>
-              <span className="text-sm text-muted-foreground">
-                {isFullCommission
-                  ? "of the first Premium payment"
-                  : "commission on the first Premium payment"}
-              </span>
-            </div>
-
-            <p className="mt-3 text-sm leading-6 text-muted-foreground">
-              Rewards are tied to eligible paid subscriptions, not simply
-              to clicks or new account registrations.
+        <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+              Share Orixa. Earn rewards.
+            </h1>
+            <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
+              Earn {percentage}% of an eligible first paid Premium payment
+              from someone you refer.
             </p>
           </div>
 
-          <div className="w-full shrink-0 rounded-xl border border-border bg-surface-2 p-4 sm:max-w-xs">
-            <p className="text-xs font-medium text-muted-foreground">
-              Current plan examples
-            </p>
-
-            <div className="mt-3 flex items-center justify-between gap-4">
-              <div>
-                <p className="text-sm font-medium">Monthly</p>
-                <p className="text-xs text-muted-foreground">
-                  {formatUSD(priceMonthly)} payment
-                </p>
-              </div>
-
-              <p className="text-lg font-semibold tabular-nums">
-                {formatUSD(priceMonthly * commissionRate)}
-              </p>
-            </div>
-
-            <div className="my-3 border-t border-border" />
-
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="text-sm font-medium">Yearly</p>
-                <p className="text-xs text-muted-foreground">
-                  {formatUSD(priceYearly)} payment
-                </p>
-              </div>
-
-              <p className="text-lg font-semibold tabular-nums">
-                {formatUSD(priceYearly * commissionRate)}
-              </p>
-            </div>
-
-            <p className="mt-3 text-xs leading-5 text-muted-foreground">
-              Example rewards based on your configured commission rate.
-              Actual rewards depend on the eligible payment received.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Personal referral link */}
-      <section className="rounded-2xl border border-border bg-surface-1 p-5 sm:p-6">
-        <div>
-          <h2 className="text-base font-semibold">Your referral link</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Share this link with friends, colleagues, and your community.
+          <p className="text-sm text-muted-foreground">
+            Minimum payout{" "}
+            <span className="font-semibold text-foreground">
+              {money(minWithdraw)}
+            </span>
           </p>
         </div>
+      </header>
 
-        <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-          <div
-            title={url}
-            className="flex min-w-0 flex-1 items-center rounded-lg border border-border bg-surface-2 px-3 py-3"
-          >
-            <span className="truncate text-sm">{url}</span>
+      {/* Main referral link */}
+      <section className="rounded-2xl border border-border bg-surface-1 p-5 sm:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="font-semibold">Your referral link</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              One link. Easy to share.
+            </p>
+          </div>
+
+          <span className="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground">
+            Code: {referralCode}
+          </span>
+        </div>
+
+        <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+          <div className="min-w-0 flex-1 rounded-lg border border-border bg-surface-2 px-3 py-3">
+            <p className="truncate text-sm" title={referralUrl}>
+              {referralUrl}
+            </p>
           </div>
 
           <button
             type="button"
             onClick={copyLink}
-            className="inline-flex items-center justify-center rounded-lg bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="rounded-lg bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            {copyState === "copied" ? "Copied" : "Copy referral link"}
+            {copied ? "Copied ✓" : "Copy link"}
           </button>
         </div>
 
-        {copyState === "copied" && (
-          <p role="status" className="mt-2 text-sm text-muted-foreground">
-            Referral link copied successfully.
+        {copied && (
+          <p role="status" className="mt-2 text-xs text-muted-foreground">
+            Link copied. Ready to share.
           </p>
         )}
 
-        {copyState === "error" && (
-          <p role="status" className="mt-2 text-sm text-muted-foreground">
-            Could not copy automatically. Please select and copy the link.
+        {copyError && (
+          <p role="status" className="mt-2 text-xs text-muted-foreground">
+            Copy failed. Please select the link and copy it manually.
           </p>
         )}
-
-        <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-border pt-4">
-          <span className="text-xs text-muted-foreground">
-            Your referral code
-          </span>
-          <code className="rounded-md border border-border bg-surface-2 px-2 py-1 text-xs font-medium">
-            {referralCode}
-          </code>
-        </div>
       </section>
 
-      {/* Referral dashboard */}
-      <section className="space-y-3">
-        <div>
-          <h2 className="text-lg font-semibold">Your referral activity</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Track signups, Premium purchases, and your estimated rewards.
+      {/* Three-step animated walkthrough */}
+      <section
+        className="overflow-hidden rounded-2xl border border-border bg-surface-1"
+        onMouseEnter={() => setPaused(true)}
+        onMouseLeave={() => setPaused(false)}
+        onFocusCapture={() => setPaused(true)}
+        onBlurCapture={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget as Node)) {
+            setPaused(false);
+          }
+        }}
+        aria-label="How referral rewards work"
+      >
+        <div className="flex items-center justify-between border-b border-border px-5 py-4 sm:px-6">
+          <p className="text-sm font-medium">How it works</p>
+          <p className="text-xs tabular-nums text-muted-foreground">
+            {String(activeStep + 1).padStart(2, "0")} / 03
           </p>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <div className="rounded-xl border border-border bg-surface-1 p-5">
-            <p className="text-sm text-muted-foreground">
-              Referred signups
-            </p>
-            <p className="mt-3 text-3xl font-semibold tabular-nums">
-              {totalSignups}
-            </p>
-            <p className="mt-2 text-xs text-muted-foreground">
-              Accounts attributed to your referral
-            </p>
+        <div
+          key={activeStep}
+          className="referral-slide grid min-h-[210px] items-center gap-6 p-5 sm:grid-cols-[100px_1fr] sm:p-7"
+        >
+          <div className="flex size-[76px] items-center justify-center rounded-2xl border border-border bg-surface-2">
+            <span className="text-2xl font-light tabular-nums">
+              {steps[activeStep].number}
+            </span>
           </div>
 
-          <div className="rounded-xl border border-border bg-surface-1 p-5">
-            <p className="text-sm text-muted-foreground">
-              Premium purchases
+          <div>
+            <p className="text-xs font-medium tracking-[0.16em] text-muted-foreground">
+              {steps[activeStep].eyebrow}
             </p>
-            <p className="mt-3 text-3xl font-semibold tabular-nums">
-              {premiumCount}
-            </p>
-            <p className="mt-2 text-xs text-muted-foreground">
-              Recorded purchases linked to your code
+            <h3 className="mt-2 text-xl font-semibold tracking-tight sm:text-2xl">
+              {steps[activeStep].title}
+            </h3>
+            <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
+              {steps[activeStep].description}
             </p>
           </div>
+        </div>
 
-          <div className="rounded-xl border border-border bg-surface-1 p-5">
-            <p className="text-sm text-muted-foreground">
-              Estimated referral rewards
-            </p>
-            <p className="mt-3 break-words text-2xl font-semibold tabular-nums">
-              {estimatedRewards}
-            </p>
-            <p className="mt-2 text-xs leading-5 text-muted-foreground">
-              An estimate, not an approved payout balance. Your final
-              reward depends on each plan and verified eligible payment.
-            </p>
+        <div className="flex items-center justify-between border-t border-border px-5 py-3 sm:px-6">
+          <div className="flex items-center gap-2">
+            {steps.map((step, index) => (
+              <button
+                key={step.number}
+                type="button"
+                onClick={() => setActiveStep(index)}
+                aria-label={`Show step ${index + 1}: ${step.eyebrow}`}
+                aria-current={activeStep === index ? "step" : undefined}
+                className={`h-1.5 rounded-full transition-all ${
+                  activeStep === index
+                    ? "w-8 bg-foreground"
+                    : "w-3 bg-border hover:bg-muted-foreground"
+                }`}
+              />
+            ))}
+          </div>
+
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => moveStep(-1)}
+              aria-label="Previous step"
+              className="flex size-9 items-center justify-center rounded-full border border-border text-sm transition-colors hover:bg-surface-2"
+            >
+              ←
+            </button>
+            <button
+              type="button"
+              onClick={() => moveStep(1)}
+              aria-label="Next step"
+              className="flex size-9 items-center justify-center rounded-full border border-border text-sm transition-colors hover:bg-surface-2"
+            >
+              →
+            </button>
           </div>
         </div>
       </section>
 
-      {/* Premium purchase transparency */}
+      {/* Three compact metrics */}
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="rounded-xl border border-border p-4 sm:p-5">
+          <p className="text-sm text-muted-foreground">Referred signups</p>
+          <p className="mt-3 text-3xl font-semibold tabular-nums">
+            {totalSignups}
+          </p>
+        </div>
+
+        <div className="rounded-xl border border-border p-4 sm:p-5">
+          <p className="text-sm text-muted-foreground">
+            Paid Premium purchases
+          </p>
+          <p className="mt-3 text-3xl font-semibold tabular-nums">
+            {paidCount}
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Free referral unlocks excluded
+          </p>
+        </div>
+
+        <div className="rounded-xl border border-border p-4 sm:p-5">
+          <p className="text-sm text-muted-foreground">
+            Estimated commission
+          </p>
+          <p className="mt-3 text-3xl font-semibold tabular-nums">
+            {money(estimatedCommission)}
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Pending payment verification
+          </p>
+        </div>
+      </section>
+
+      {/* Transparent paid-purchase ledger */}
       <section className="rounded-2xl border border-border bg-surface-1 p-5 sm:p-6">
-        <div>
-          <h2 className="text-base font-semibold">
-            Premium purchases through your link
-          </h2>
-          <p className="mt-1 text-sm leading-6 text-muted-foreground">
-            Review the accounts attributed to your referral code.
-            Final rewards are confirmed against eligible payments.
-          </p>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="font-semibold">
+              Paid Premium buyers via your link
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Only eligible, successful paid purchases appear here.
+            </p>
+          </div>
+
+          <span className="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground">
+            {paidCount} eligible
+          </span>
         </div>
 
-        {premiumBuyers.length === 0 ? (
-          <div className="mt-5 rounded-xl border border-dashed border-border p-6 text-center">
+        {eligiblePurchases.length === 0 ? (
+          <div className="mt-5 rounded-xl border border-dashed border-border px-4 py-8 text-center">
             <p className="text-sm font-medium">
-              No Premium purchases recorded yet
+              No qualifying paid purchases yet
             </p>
-            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">
-              Your referral activity will appear here when Premium
-              purchases are attributed to your code.
+            <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
+              Share your link. Free referral unlocks do not earn commission.
             </p>
           </div>
         ) : (
-          <div className="mt-4 overflow-x-auto">
-            <table className="w-full min-w-[360px] text-left text-sm">
-              <thead>
-                <tr className="border-b border-border text-xs text-muted-foreground">
-                  <th className="py-3 pr-4 font-medium">Account</th>
-                  <th className="py-3 pr-4 font-medium">Plan</th>
-                  <th className="py-3 text-right font-medium">
-                    Est. reward
-                  </th>
-                </tr>
-              </thead>
+          <div className="mt-4 divide-y divide-border">
+            {eligiblePurchases.map((buyer) => (
+              <div
+                key={buyer.paymentId}
+                className="flex flex-wrap items-center justify-between gap-3 py-3"
+              >
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium">
+                    @{buyer.username}
+                  </p>
+                  <p className="mt-1 text-xs capitalize text-muted-foreground">
+                    {buyer.plan === "premium" ? "Premium" : buyer.plan} ·{" "}
+                    {money(buyer.paidAmountUsd)} paid
+                  </p>
+                </div>
 
-              <tbody>
-                {premiumBuyers.map((buyer) => (
-                  <tr
-                    key={`${buyer.username}-${buyer.plan}`}
-                    className="border-b border-border last:border-0"
-                  >
-                    <td className="py-3 pr-4 font-medium">
-                      @{buyer.username}
-                    </td>
-
-                    <td className="py-3 pr-4 capitalize text-muted-foreground">
-                      {buyer.plan === "premium" ? "Premium" : buyer.plan}
-                    </td>
-
-                    <td className="py-3 text-right font-medium tabular-nums">
-                      {getBuyerReward(buyer.plan) ?? "To be verified"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                <div className="text-right">
+                  <p className="text-sm font-semibold tabular-nums">
+                    {money(buyer.paidAmountUsd * rate)}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Est. commission
+                  </p>
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
-        <p className="mt-4 text-xs leading-5 text-muted-foreground">
-          Listed amounts are estimates. They do not confirm payment
-          settlement or payout approval.
+        <p className="mt-3 text-xs leading-5 text-muted-foreground">
+          Estimated rewards are not an approved payout balance. Final
+          amounts depend on the verified eligible payment and the program
+          rules.
         </p>
       </section>
 
-      {/* Payout instructions */}
-      <section className="rounded-2xl border border-border bg-surface-1 p-5 sm:p-6">
-        <h2 className="text-base font-semibold">How payouts work</h2>
+      {/* Less visible detail; users can open when needed */}
+      <details className="group rounded-xl border border-border px-5">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 py-4 text-sm font-medium">
+          Payout rules and eligibility
+          <span className="text-muted-foreground transition-transform group-open:rotate-180">
+            ↓
+          </span>
+        </summary>
 
-        <p className="mt-1 text-sm leading-6 text-muted-foreground">
-          We manually review payout requests against qualifying Premium
-          payments to help ensure rewards are calculated correctly.
-        </p>
+        <div className="space-y-3 border-t border-border pb-5 pt-4 text-sm leading-6 text-muted-foreground">
+          <p>
+            <span className="font-medium text-foreground">
+              Commission:
+            </span>{" "}
+            {percentage}% of the first qualifying paid Premium payment only.
+            Renewals and free referral unlocks do not qualify.
+          </p>
 
-        <ol className="mt-5 space-y-4">
-          <li className="flex gap-3">
-            <span className="flex size-7 shrink-0 items-center justify-center rounded-full border border-border text-xs font-semibold">
-              1
-            </span>
-            <div>
-              <p className="text-sm font-medium">Reach the minimum payout</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Your requested payout must meet the minimum of{" "}
-                <strong className="font-semibold text-foreground">
-                  {formatUSD(minWithdraw)}
-                </strong>{" "}
-                in approved rewards.
-              </p>
-            </div>
-          </li>
+          <p>
+            <span className="font-medium text-foreground">
+              Minimum payout:
+            </span>{" "}
+            {money(minWithdraw)} in approved rewards.
+          </p>
 
-          <li className="flex gap-3">
-            <span className="flex size-7 shrink-0 items-center justify-center rounded-full border border-border text-xs font-semibold">
-              2
-            </span>
-            <div>
-              <p className="text-sm font-medium">Request your payout</p>
-              <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                Email{" "}
-                <a
-                  href="mailto:contact@orixaai.me"
-                  className="font-medium text-foreground underline underline-offset-4"
-                >
-                  contact@orixaai.me
-                </a>{" "}
-                from the email address registered to your Orixa account.
-              </p>
-            </div>
-          </li>
+          <p>
+            <span className="font-medium text-foreground">
+              Request payment:
+            </span>{" "}
+            Email{" "}
+            <a
+              href="mailto:contact@orixaai.me"
+              className="text-foreground underline underline-offset-4"
+            >
+              contact@orixaai.me
+            </a>{" "}
+            from your Orixa account email and include your referral code.
+          </p>
 
-          <li className="flex gap-3">
-            <span className="flex size-7 shrink-0 items-center justify-center rounded-full border border-border text-xs font-semibold">
-              3
-            </span>
-            <div>
-              <p className="text-sm font-medium">Include your referral code</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Include{" "}
-                <code className="rounded border border-border px-1.5 py-0.5">
-                  {referralCode}
-                </code>{" "}
-                and the amount you are requesting.
-              </p>
-            </div>
-          </li>
-
-          <li className="flex gap-3">
-            <span className="flex size-7 shrink-0 items-center justify-center rounded-full border border-border text-xs font-semibold">
-              4
-            </span>
-            <div>
-              <p className="text-sm font-medium">Verification and payment</p>
-              <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                We verify eligible transactions and confirm the payout
-                details with you before payment is sent.
-              </p>
-            </div>
-          </li>
-        </ol>
-      </section>
-
-      {/* Clear terms */}
-      <section className="rounded-xl border border-border p-5">
-        <h2 className="text-sm font-semibold">Important reward terms</h2>
-
-        <ul className="mt-3 space-y-2 text-sm leading-6 text-muted-foreground">
-          <li>
-            • Commission applies to the first successful Premium payment
-            only. Future subscription renewals are not included.
-          </li>
-          <li>
-            • Creating an account or clicking a referral link alone does
-            not earn a commission.
-          </li>
-          <li>
-            • Failed, refunded, or reversed payments do not qualify as
-            completed eligible purchases.
-          </li>
-          <li>
-            • Estimated rewards can differ from the final approved amount
-            until the underlying payment has been verified.
-          </li>
-        </ul>
-
-        <p className="mt-4 border-t border-border pt-4 text-xs leading-5 text-muted-foreground">
-          Questions about a referral or payout? Contact{" "}
-          <a
-            href="mailto:contact@orixaai.me"
-            className="underline underline-offset-4"
-          >
-            contact@orixaai.me
-          </a>
-          .
-        </p>
-      </section>
+          <p>
+            Purchases are verified before payout. Failed or refunded
+            transactions are not eligible. Contact support if a qualifying
+            purchase appears to be missing.
+          </p>
+        </div>
+      </details>
     </main>
   );
 }

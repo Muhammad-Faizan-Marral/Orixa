@@ -12,23 +12,29 @@ export const metadata = {
 export default async function ReferAndEarnPage() {
   const profile = await requireProfile();
 
-  // Ensure referral code exists
   const referralCode =
     profile.referralCode ??
-    (await billingService.ensureReferralCode(profile.userId, profile.username));
+    (await billingService.ensureReferralCode(
+      profile.userId,
+      profile.username,
+    ));
 
-  // All users who signed up with this user's referral
   const referredUsers = await profileRepository.findReferredBy(profile.id);
 
   const totalSignups = referredUsers.length;
 
-  const premiumUsers = referredUsers.filter((u) => u.isPremium);
-  const premiumCount = premiumUsers.length;
+  // ONLY users who actually PAID for Premium (Polar), not referral-unlocked free Premium
+  const paidPremiumUsers = referredUsers.filter(
+    (u) =>
+      u.isPremium &&
+      (("polarSubscriptionId" in u && Boolean(u.polarSubscriptionId)) ||
+        ("polarCustomerId" in u && Boolean(u.polarCustomerId))),
+  );
 
-  // Frontend will calculate commission. We pass prices so UI can do 20%.
-  const premiumBuyers = premiumUsers.map((u) => ({
+  const premiumCount = paidPremiumUsers.length;
+
+  const premiumBuyers = paidPremiumUsers.map((u) => ({
     username: u.username,
-    // We don't store monthly/yearly yet — show as "Premium"
     plan: "premium" as const,
   }));
 
