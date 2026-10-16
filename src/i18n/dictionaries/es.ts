@@ -27,6 +27,7 @@ const es: Dictionary = {
     portfolios: "Portafolios",
     profile: "Perfil",
     settings: "Ajustes",
+    referAndEarn: "Refer & Earn",  
     newPortfolio: "+ Nuevo portafolio",
     createPortfolio: "+ Crear portafolio",
     closeSidebar: "Cerrar menú",
