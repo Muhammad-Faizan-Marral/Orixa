@@ -1,11 +1,12 @@
 import type { ThemeDefinition } from "../types";
 import { ThemePage } from "./ThemePage";
 import { tokens } from "./tokens";
+
 export default {
-  id: "tech-dense",
-  name: "Tech Dense",
-  description: "Structured technical portfolio.",
-  premium: false,
+  id: "neo-glass",
+  name: "Neo Glass",
+  description: "Layered contrast and translucent rhythm.",
+  premium: true,
   tokens,
   defaults: {
     navbar: "default",

@@ -1,11 +1,12 @@
 import type { ThemeDefinition } from "../types";
 import { ThemePage } from "./ThemePage";
 import { tokens } from "./tokens";
+
 export default {
-  id: "tech-dense",
-  name: "Tech Dense",
-  description: "Structured technical portfolio.",
-  premium: false,
+  id: "soft-luxury",
+  name: "Soft Luxury",
+  description: "Restrained warmth and polished surfaces.",
+  premium: true,
   tokens,
   defaults: {
     navbar: "default",

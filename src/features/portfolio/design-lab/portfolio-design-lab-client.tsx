@@ -419,7 +419,7 @@ const sectionVariants = getSectionVariantsForTheme(dna, activeSection);
 
       {/* ── FULL portfolio preview (no overflow clip, no nested box) ──────── */}
       <div className="min-h-screen pt-12">
-        <DesignEngine config={liveConfig} profile={profile} />
+        <DesignEngine config={liveConfig} profile={{ ...profile, isPremium: true }} />
       </div>
 
       {/* ── Desktop fixed right panel ─────────────────────────────────────── */}
