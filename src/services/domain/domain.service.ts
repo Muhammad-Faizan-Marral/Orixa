@@ -5,10 +5,16 @@ import {
   vercelGetDomain,
   vercelRemoveDomain,
   vercelVerifyDomain,
+  vercelGetDomainConfig,
+  buildDnsRecords,
+  type DnsRecord,
+  type VercelDomainResult,
 } from "@/lib/vercel-domains";
 import { portfolioDomainRepository } from "@/repositories/portfolio-domain.repository";
 import { portfolioRepository } from "@/repositories/portfolio.repository";
 import { profileRepository } from "@/repositories/profile.repository";
+
+type Evaluation = { status: "pending" | "verified"; message: string | null };
 
 export class DomainService {
   async getForPortfolio(portfolioId: string, profileId: string) {
@@ -18,6 +24,62 @@ export class DomainService {
     );
     if (!portfolio) throw new Error("Portfolio not found.");
     return portfolioDomainRepository.findByPortfolioId(portfolioId);
+  }
+
+  /** Live DNS records from Vercel. Call only for a domain the caller owns. */
+  async getDnsRecords(domain: string): Promise<DnsRecord[]> {
+    try {
+      const vercel = await vercelGetDomain(domain);
+      if (!vercel) return [];
+      const config = await vercelGetDomainConfig(domain);
+      return buildDnsRecords(domain, vercel, config);
+    } catch (e) {
+      console.error("[domain] getDnsRecords failed", e);
+      return [];
+    }
+  }
+
+  /** "Live" only when ownership is verified AND DNS points to Vercel. */
+  private async evaluate(
+    domain: string,
+    vercel: VercelDomainResult,
+  ): Promise<Evaluation> {
+    if (!vercel.verified) {
+      return {
+        status: "pending",
+        message:
+          "Ownership is not verified yet. Add the DNS records below, then check status.",
+      };
+    }
+
+    const config = await vercelGetDomainConfig(domain);
+    if (!config) {
+      return {
+        status: "pending",
+        message: "Couldn't check your DNS right now. Try again in a minute.",
+      };
+    }
+    if (config.misconfigured) {
+      return {
+        status: "pending",
+        message:
+          "Your DNS isn't pointing to Orixa yet. Add the record below, then check status.",
+      };
+    }
+    return { status: "verified", message: null };
+  }
+
+  private async applyStatus(portfolioId: string, result: Evaluation) {
+    await portfolioDomainRepository.updateByPortfolioId(
+      portfolioId,
+      result.status === "verified"
+        ? {
+            status: "verified",
+            verifiedAt: new Date().toISOString(),
+            statusMessage: null,
+          }
+        : { status: "pending", statusMessage: result.message },
+    );
   }
 
   async addDomain(opts: {
@@ -66,34 +128,20 @@ export class DomainService {
       throw new Error("This domain is already connected to another portfolio.");
     }
 
-    // Attach on Vercel
-    let vercel;
-    try {
-      vercel = await vercelAddDomain(domain);
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "Vercel error";
-      throw new Error(msg);
-    }
+    // Attach on Vercel (throws Vercel's own message on failure)
+    const vercel = await vercelAddDomain(domain);
 
-    const row = await portfolioDomainRepository.insert({
+    await portfolioDomainRepository.insert({
       portfolioId: opts.portfolioId,
       domain,
-      status: vercel.verified ? "verified" : "pending",
-      statusMessage: vercel.verified
-        ? null
-        : "Waiting for DNS verification (usually 15 minutes–24 hours).",
+      status: "pending",
+      statusMessage: "Add the DNS records below, then check status.",
     });
 
-    if (vercel.verified) {
-      await portfolioDomainRepository.updateByPortfolioId(opts.portfolioId, {
-        status: "verified",
-        verifiedAt: new Date().toISOString(),
-        statusMessage: null,
-      });
-    }
+    await this.applyStatus(opts.portfolioId, await this.evaluate(domain, vercel));
 
     return {
-      domain: row,
+      domain: await portfolioDomainRepository.findByPortfolioId(opts.portfolioId),
       verification: vercel.verification ?? [],
       verified: Boolean(vercel.verified),
     };
@@ -109,46 +157,29 @@ export class DomainService {
     const row = await portfolioDomainRepository.findByPortfolioId(portfolioId);
     if (!row) throw new Error("No domain configured.");
 
-    const vercel = await vercelGetDomain(row.domain);
+    let vercel = await vercelGetDomain(row.domain);
+
     if (!vercel) {
       await portfolioDomainRepository.updateByPortfolioId(portfolioId, {
         status: "error",
-        statusMessage: "Domain not found on Vercel. Try removing and adding again.",
+        statusMessage: "Domain not found on Vercel. Remove it and add it again.",
       });
       return portfolioDomainRepository.findByPortfolioId(portfolioId);
     }
 
+    // Not verified yet → ask Vercel to re-check the TXT record
     if (!vercel.verified) {
-      try {
-        const verified = await vercelVerifyDomain(row.domain);
-        if (verified.verified) {
-          await portfolioDomainRepository.updateByPortfolioId(portfolioId, {
-            status: "verified",
-            verifiedAt: new Date().toISOString(),
-            statusMessage: null,
-          });
-        } else {
-          await portfolioDomainRepository.updateByPortfolioId(portfolioId, {
-            status: "pending",
-            statusMessage:
-              "Waiting for DNS verification (usually 15 minutes–24 hours).",
-          });
-        }
-      } catch {
-        await portfolioDomainRepository.updateByPortfolioId(portfolioId, {
-          status: "pending",
-          statusMessage:
-            "Waiting for DNS verification (usually 15 minutes–24 hours).",
-        });
-      }
-    } else {
-      await portfolioDomainRepository.updateByPortfolioId(portfolioId, {
-        status: "verified",
-        verifiedAt: row.verifiedAt ?? new Date().toISOString(),
-        statusMessage: null,
-      });
+      const attempt = await vercelVerifyDomain(row.domain);
+      vercel = {
+        ...vercel,
+        verified: attempt.verified,
+        verification: attempt.verification?.length
+          ? attempt.verification
+          : vercel.verification,
+      };
     }
 
+    await this.applyStatus(portfolioId, await this.evaluate(row.domain, vercel));
     return portfolioDomainRepository.findByPortfolioId(portfolioId);
   }
 
