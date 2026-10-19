@@ -14,7 +14,9 @@ import { Badge } from "@/components/UI/Badge";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { FormatDate } from "@/components/format-date";
 import { PortfolioTour } from "@/features/portfolio/components/portfolio-tour";
-
+import { CustomDomainCard } from "@/features/portfolio/components/custom-domain-card";
+import { domainService } from "@/services/domain/domain.service";
+import { isPremiumActive } from "@/constants/billing";
 type PortfolioPageProps = {
   params: Promise<{ portfolioId: string }>;
 };
