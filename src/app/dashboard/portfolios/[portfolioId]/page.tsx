@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { ReactNode } from "react";
 
 import { requireProfile } from "@/lib/auth/require-profile";
 import { requireUser } from "@/lib/auth/require-user";
@@ -11,12 +12,13 @@ import { PortfolioPublishingProvider } from "@/features/portfolio/components/por
 import { LifecycleGuide } from "@/features/portfolio/components/lifecycle-guide";
 import { PortfolioViewTracker } from "@/features/portfolio/components/portfolio-view-tracker";
 import { Badge } from "@/components/UI/Badge";
-import { StatCard } from "@/components/dashboard/stat-card";
 import { FormatDate } from "@/components/format-date";
 import { PortfolioTour } from "@/features/portfolio/components/portfolio-tour";
 import { CustomDomainCard } from "@/features/portfolio/components/custom-domain-card";
+
 import { domainService } from "@/services/domain/domain.service";
 import { isPremiumActive } from "@/constants/billing";
+import { CopyField } from "@/features/portfolio/components/copy-field";
 
 type PortfolioPageProps = {
   params: Promise<{ portfolioId: string }>;
@@ -28,41 +30,72 @@ const STATUS_VARIANT = {
   archived: "warning",
 } as const;
 
-/* Simple stroke icons (no extra dependency) */
-const ICONS = {
-  edit: "M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z",
-  design:
-    "M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3zM19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9L19 15z",
-  versions: "M12 7v5l3 2M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0z",
-  analytics: "M4 20V10M10 20V4M16 20v-7M22 20H2",
-} as const;
+const DISPLAY = "font-[family-name:var(--font-display)]";
 
-const NAV_LINKS = (portfolioId: string) => [
+const BUILD_LINKS = (portfolioId: string) => [
   {
     href: `/dashboard/portfolios/${portfolioId}/edit`,
-    label: "Edit",
-    icon: ICONS.edit,
+    label: "Edit content",
+    hint: "Headline, about and projects",
     isNew: false,
   },
   {
     href: `/dashboard/portfolios/${portfolioId}/design-lab`,
     label: "Design lab",
-    icon: ICONS.design,
+    hint: "Layouts, fonts and colors",
     isNew: true,
   },
   {
     href: `/dashboard/portfolios/${portfolioId}/versions`,
     label: "Versions",
-    icon: ICONS.versions,
-    isNew: false,
-  },
-  {
-    href: `/dashboard/portfolios/${portfolioId}/analytics`,
-    label: "Analytics",
-    icon: ICONS.analytics,
+    hint: "Compare and restore saves",
     isNew: false,
   },
 ];
+
+type StepProps = {
+  index: number;
+  title: string;
+  description: string;
+  state?: "done" | "next" | null;
+  children: ReactNode;
+};
+
+function Step({ index, title, description, state, children }: StepProps) {
+  return (
+    <section className="grid gap-8 border-t border-border py-14 lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-16">
+      <header className="space-y-3 lg:sticky lg:top-8 lg:self-start">
+        <p className={`${DISPLAY} text-sm tabular-nums text-muted-foreground`}>
+          {String(index).padStart(2, "0")}
+        </p>
+
+        <h2
+          className={`${DISPLAY} text-2xl font-semibold tracking-tight text-foreground`}
+        >
+          {title}
+        </h2>
+
+        <p className="text-small leading-6 text-muted-foreground">
+          {description}
+        </p>
+
+        {state && (
+          <p className="inline-flex items-center gap-2 pt-1 text-small font-medium text-foreground">
+            <span
+              aria-hidden="true"
+              className={`size-2 rounded-full ${
+                state === "done" ? "bg-emerald-500" : "bg-primary"
+              }`}
+            />
+            {state === "done" ? "Complete" : "Up next"}
+          </p>
+        )}
+      </header>
+
+      <div className="min-w-0">{children}</div>
+    </section>
+  );
+}
 
 export default async function PortfolioPage({ params }: PortfolioPageProps) {
   await requireUser();
@@ -91,23 +124,43 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
   const { portfolio, data } = result;
 
   const status = portfolio.status as "draft" | "published" | "archived";
+  const isPublished = status === "published";
 
   const currentVersion =
     versions.find((v) => v.version === portfolio.currentVersion) ?? null;
 
   const hasSavedVersion = Boolean(currentVersion);
-
   const hasUnpublishedChanges = Boolean(
     currentVersion && !currentVersion.published,
   );
 
+  /* Flow progress: build → publish → share → domain → track */
+  const totalViews = lightStats?.total ?? 0;
+  const done = [
+    hasSavedVersion,
+    isPublished && !hasUnpublishedChanges,
+    isPublished,
+    Boolean(domainRow?.verifiedAt),
+    totalViews > 0,
+  ];
+  const nextIndex = done.indexOf(false);
+  const stateOf = (i: number) =>
+    done[i] ? "done" : i === nextIndex ? "next" : null;
+
+  const stats = [
+    { label: "Total views", value: totalViews },
+    { label: "Last 7 days", value: lightStats?.last7Days ?? 0 },
+    { label: "Projects", value: data?.projects?.length ?? 0 },
+    { label: "Version", value: `v${portfolio.currentVersion}` },
+  ];
+
   return (
     <PortfolioPublishingProvider>
       <div
-        className="mx-auto w-full max-w-6xl space-y-12"
+        className="mx-auto w-full max-w-5xl pb-24"
         style={{ ["--font-display" as string]: "var(--font-dm), sans-serif" }}
       >
-        {/* ── Back link ── */}
+        {/* ── Back ── */}
         <Link
           href="/dashboard/portfolios"
           className="text-small inline-flex items-center gap-2 rounded-md text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
@@ -116,27 +169,124 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
           All portfolios
         </Link>
 
-        {/* ── Header ── */}
-        <header className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start lg:gap-12">
-          <div className="min-w-0 space-y-4">
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-              <Badge variant={STATUS_VARIANT[status]} dot>
-                {status}
-              </Badge>
+        {/* ── Hero ── */}
+        <header className="space-y-6 pb-16 pt-10">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <Badge variant={STATUS_VARIANT[status]} dot>
+              {status}
+            </Badge>
 
-              {portfolio.publishedAt && (
-                <p className="text-small text-muted-foreground">
-                  Published <FormatDate value={portfolio.publishedAt} />
-                </p>
-              )}
-            </div>
+            <span className="text-small text-muted-foreground">
+              Version {portfolio.currentVersion}
+            </span>
 
-            <h1 className="text-h1 break-words font-[family-name:var(--font-display)] font-semibold leading-[1.05] tracking-tight text-foreground">
-              {portfolio.title}
-            </h1>
+            {portfolio.publishedAt && (
+              <span className="text-small text-muted-foreground">
+                Published <FormatDate value={portfolio.publishedAt} />
+              </span>
+            )}
           </div>
 
-          <div className="flex w-full flex-col gap-3 rounded-2xl border border-border bg-foreground/[0.03] p-4">
+          <h1
+            className={`${DISPLAY} text-balance break-words text-4xl font-semibold leading-[1.05] tracking-tight text-foreground sm:text-6xl`}
+          >
+            {portfolio.title}
+          </h1>
+        </header>
+
+        <PortfolioTour />
+
+        {/* ── 01 Build ── */}
+        <Step
+          index={1}
+          title="Build"
+          description="Shape what visitors will see. Every save creates a version you can return to."
+          state={stateOf(0)}
+        >
+          <div className="space-y-8">
+            {/* Preview */}
+            <div className="overflow-hidden rounded-2xl border border-border">
+              <div className="flex items-center gap-4 border-b border-border bg-foreground/[0.03] px-4 py-3">
+                <div className="flex gap-1.5" aria-hidden="true">
+                  <span className="size-2.5 rounded-full bg-foreground/15" />
+                  <span className="size-2.5 rounded-full bg-foreground/15" />
+                  <span className="size-2.5 rounded-full bg-foreground/15" />
+                </div>
+
+                <p className="min-w-0 flex-1 truncate text-center font-mono text-xs text-muted-foreground">
+                  orixaAi / {profile.username} / {portfolio.slug}
+                </p>
+
+                <span className="hidden w-12 sm:block" aria-hidden="true" />
+              </div>
+
+              <div className="space-y-4 px-6 py-10 sm:px-10 sm:py-12">
+                <h3
+                  className={`${DISPLAY} max-w-xl text-balance text-3xl font-semibold leading-tight tracking-tight text-foreground`}
+                >
+                  {data?.headline || (
+                    <span className="font-normal text-muted-foreground">
+                      No headline yet
+                    </span>
+                  )}
+                </h3>
+
+                <p className="max-w-prose whitespace-pre-line text-base leading-7 text-foreground/75">
+                  {data?.about || (
+                    <span className="text-muted-foreground">
+                      Write your About section in the editor and it will appear
+                      here.
+                    </span>
+                  )}
+                </p>
+              </div>
+            </div>
+
+            {/* Links */}
+            <ul className="divide-y divide-border border-y border-border">
+              {BUILD_LINKS(portfolio.id).map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="group flex items-center justify-between gap-4 py-4 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                  >
+                    <span className="flex items-baseline gap-3">
+                      <span className="font-medium text-foreground">
+                        {link.label}
+                      </span>
+
+                      {link.isNew && (
+                        <span className="text-small font-medium text-primary">
+                          New
+                        </span>
+                      )}
+
+                      <span className="text-small hidden text-muted-foreground sm:inline">
+                        {link.hint}
+                      </span>
+                    </span>
+
+                    <span
+                      aria-hidden="true"
+                      className="text-muted-foreground transition-transform duration-200 group-hover:translate-x-1 group-hover:text-foreground"
+                    >
+                      →
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </Step>
+
+        {/* ── 02 Publish ── */}
+        <Step
+          index={2}
+          title="Publish"
+          description="Make your latest version public, or take it offline at any time."
+          state={stateOf(1)}
+        >
+          <div className="flex max-w-md flex-col gap-4">
             <LifecycleGuide
               status={status}
               hasSavedVersion={hasSavedVersion}
@@ -150,152 +300,89 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
               hasUnpublishedChanges={hasUnpublishedChanges}
             />
           </div>
-        </header>
+        </Step>
 
-        <PortfolioTour />
-
-        {/* ── Navigation ── */}
-        <nav
-          className="grid grid-cols-2 gap-3 lg:grid-cols-4"
-          aria-label="Portfolio sections"
-        >
-          {NAV_LINKS(portfolio.id).map((link) => (
-            <div
-              key={link.href}
-              className={
-                link.isNew
-                  ? "group rounded-xl bg-gradient-to-r from-violet-500 via-cyan-400 to-fuchsia-500 p-px"
-                  : "group rounded-xl bg-border p-px transition-colors duration-200 hover:bg-primary/50"
-              }
-            >
-              <Link
-                href={link.href}
-                className="flex items-center gap-3 rounded-[11px] bg-background px-4 py-3.5 text-foreground transition-colors duration-200 hover:bg-foreground/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
-              >
-                <span
-                  aria-hidden="true"
-                  className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-foreground/[0.06] text-foreground"
-                >
-                  <svg
-                    viewBox="0 0 24 24"
-                    className="size-[18px]"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.75"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d={link.icon} />
-                  </svg>
-                </span>
-
-                <span className="flex min-w-0 flex-1 flex-col items-start gap-0.5">
-                  <span className="text-small font-semibold leading-tight">
-                    {link.label}
-                  </span>
-
-                  {link.isNew && (
-                    <span className="rounded-full bg-violet-600 px-2 py-0.5 text-[11px] font-medium leading-none text-white">
-                      New
-                    </span>
-                  )}
-                </span>
-
-                <span
-                  aria-hidden="true"
-                  className="text-muted-foreground transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-foreground"
-                >
-                  →
-                </span>
-              </Link>
-            </div>
-          ))}
-        </nav>
-
-        {/* ── Stats ── */}
-        <section
-          aria-label="Portfolio stats"
-          className="grid grid-cols-2 gap-3 lg:grid-cols-4"
-        >
-          <StatCard label="Total views" value={lightStats?.total ?? 0} accent />
-          <StatCard label="Last 7 days" value={lightStats?.last7Days ?? 0} />
-          <StatCard label="Version" value={`v${portfolio.currentVersion}`} />
-          <StatCard label="Projects" value={data?.projects?.length ?? 0} />
-        </section>
-
-        {/* ── Share & domain ── */}
-        <section
-          aria-label="Sharing"
-          className="grid items-start gap-4 lg:grid-cols-2"
+        {/* ── 03 Share ── */}
+        <Step
+          index={3}
+          title="Share"
+          description="Send this link to recruiters, clients or add it to your profiles."
+          state={stateOf(2)}
         >
           <PublicLinkCard
             username={profile.username}
             portfolioSlug={portfolio.slug}
-            isPublished={status === "published"}
+            isPublished={isPublished}
           />
+        </Step>
 
-          <CustomDomainCard
-            portfolioId={portfolioId}
-            isPremium={premiumActive}
-            domain={
-              domainRow
-                ? {
-                    domain: domainRow.domain,
-                    status: domainRow.status,
-                    statusMessage: domainRow.statusMessage,
-                    verifiedAt: domainRow.verifiedAt,
-                  }
-                : null
-            }
-          />
-        </section>
-
-        {/* ── Preview (browser frame) ── */}
-        <section className="space-y-4">
-          <h2 className="text-lg font-semibold text-foreground">Preview</h2>
-
-          <div className="overflow-hidden rounded-2xl border border-border bg-background shadow-[0_24px_60px_-30px_rgba(0,0,0,0.45)]">
-            {/* Address bar */}
-            <div className="flex items-center gap-4 border-b border-border bg-foreground/[0.04] px-4 py-3">
-              <div className="flex gap-1.5" aria-hidden="true">
-                <span className="size-2.5 rounded-full bg-foreground/20" />
-                <span className="size-2.5 rounded-full bg-foreground/20" />
-                <span className="size-2.5 rounded-full bg-foreground/20" />
+        {/* ── 04 Domain ── */}
+        <Step
+          index={4}
+          title="Custom domain"
+          description="Serve your portfolio from your own address."
+          state={stateOf(3)}
+        >
+          <div className="space-y-6">
+            {domainRow && (
+              <div className="grid gap-4 sm:grid-cols-2">
+                <CopyField label="Domain" value={domainRow.domain} />
+                <CopyField
+                  label="Live URL"
+                  value={`https://${domainRow.domain}`}
+                />
               </div>
+            )}
 
-              <p className="min-w-0 flex-1 truncate rounded-md bg-background px-3 py-1 text-center font-mono text-xs text-foreground/70">
-                orixaAi / {profile.username} / {portfolio.slug}
-              </p>
-
-              <span className="hidden w-12 sm:block" aria-hidden="true" />
-            </div>
-
-            {/* Page content */}
-            <div className="space-y-5 px-6 py-10 sm:px-12 sm:py-14">
-              <span
-                aria-hidden="true"
-                className="block h-1 w-14 rounded-full bg-gradient-to-r from-violet-500 to-cyan-400"
-              />
-
-              <h3 className="max-w-2xl font-[family-name:var(--font-display)] text-3xl font-semibold leading-tight tracking-tight text-foreground sm:text-4xl">
-                {data?.headline || (
-                  <span className="font-normal text-muted-foreground">
-                    No headline yet. Add one from the editor.
-                  </span>
-                )}
-              </h3>
-
-              <p className="max-w-prose whitespace-pre-line text-base leading-7 text-foreground/75">
-                {data?.about || (
-                  <span className="text-muted-foreground">
-                    Your About section will show here once you write it in the
-                    editor.
-                  </span>
-                )}
-              </p>
-            </div>
+            <CustomDomainCard
+              portfolioId={portfolioId}
+              isPremium={premiumActive}
+              domain={
+                domainRow
+                  ? {
+                      domain: domainRow.domain,
+                      status: domainRow.status,
+                      statusMessage: domainRow.statusMessage,
+                      verifiedAt: domainRow.verifiedAt,
+                    }
+                  : null
+              }
+            />
           </div>
-        </section>
+        </Step>
+
+        {/* ── 05 Track ── */}
+        <Step
+          index={5}
+          title="Track"
+          description="See how many people are viewing your portfolio."
+          state={stateOf(4)}
+        >
+          <div className="space-y-8">
+            <dl className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-4 sm:gap-x-0 sm:divide-x sm:divide-border">
+              {stats.map((s) => (
+                <div key={s.label} className="sm:px-6 sm:first:pl-0">
+                  <dt className="text-small text-muted-foreground">
+                    {s.label}
+                  </dt>
+                  <dd
+                    className={`${DISPLAY} mt-2 text-4xl font-semibold tabular-nums tracking-tight text-foreground`}
+                  >
+                    {s.value}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+
+            <Link
+              href={`/dashboard/portfolios/${portfolio.id}/analytics`}
+              className="text-small inline-flex items-center gap-2 font-medium text-foreground underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+            >
+              Open full analytics
+              <span aria-hidden="true">→</span>
+            </Link>
+          </div>
+        </Step>
 
         <PortfolioViewTracker portfolioId={portfolio.id} />
       </div>
