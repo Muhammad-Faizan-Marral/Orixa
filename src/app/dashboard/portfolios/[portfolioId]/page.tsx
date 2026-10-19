@@ -17,6 +17,7 @@ import { PortfolioTour } from "@/features/portfolio/components/portfolio-tour";
 import { CustomDomainCard } from "@/features/portfolio/components/custom-domain-card";
 import { domainService } from "@/services/domain/domain.service";
 import { isPremiumActive } from "@/constants/billing";
+
 type PortfolioPageProps = {
   params: Promise<{ portfolioId: string }>;
 };
@@ -62,10 +63,16 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
   const profile = await requireProfile();
   const { portfolioId } = await params;
 
-  const [result, versions] = await Promise.all([
+  const [result, versions, domainRow] = await Promise.all([
     portfolioService.getPortfolioWithData(portfolioId, profile.id),
     portfolioService.getPortfolioVersions(portfolioId, profile.id),
+    domainService.getForPortfolio(portfolioId, profile.id),
   ]);
+
+  const premiumActive = isPremiumActive({
+    isPremium: profile.isPremium ?? false,
+    premiumUntil: profile.premiumUntil ?? null,
+  });
 
   if (!result) {
     notFound();
@@ -89,7 +96,10 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
 
   return (
     <PortfolioPublishingProvider>
-      <div className="space-y-10" style={{ ["--font-display" as string]: "var(--font-dm), sans-serif" }}>
+      <div
+        className="space-y-10"
+        style={{ ["--font-display" as string]: "var(--font-dm), sans-serif" }}
+      >
         {/* ── Back link ── */}
         <Link
           href="/dashboard/portfolios"
@@ -210,6 +220,22 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
           username={profile.username}
           portfolioSlug={portfolio.slug}
           isPublished={status === "published"}
+        />
+
+        {/* ── Custom Domain Card ── */}
+        <CustomDomainCard
+          portfolioId={portfolioId}
+          isPremium={premiumActive}
+          domain={
+            domainRow
+              ? {
+                  domain: domainRow.domain,
+                  status: domainRow.status,
+                  statusMessage: domainRow.statusMessage,
+                  verifiedAt: domainRow.verifiedAt,
+                }
+              : null
+          }
         />
 
         {/* ── Stats ── */}
