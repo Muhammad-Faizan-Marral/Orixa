@@ -1,11 +1,39 @@
 import { notFound } from "next/navigation";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { FiArrowLeft } from "react-icons/fi";
 
 import { requireProfile } from "@/lib/auth/require-profile";
 import { requireUser } from "@/lib/auth/require-user";
 import { portfolioService } from "@/services/portfolio/portfolio.service";
-import { PortfolioWizard } from "@/features/portfolio/components/portfolio-wizard";
+const PortfolioWizard = dynamic(
+  () =>
+    import("@/features/portfolio/components/portfolio-wizard").then((m) => ({
+      default: m.PortfolioWizard,
+    })),
+  {
+    loading: () => (
+      <div
+        role="status"
+        aria-live="polite"
+        className="mx-auto flex min-h-[40vh] w-full max-w-md flex-col items-center justify-center gap-4 text-center"
+      >
+        <span
+          aria-hidden="true"
+          className="size-9 animate-spin rounded-full border-[3px] border-violet-500/20 border-t-violet-600 motion-reduce:animate-none dark:border-t-violet-300"
+        />
+        <div className="space-y-1">
+          <p className="text-[15px] font-semibold text-foreground">
+            Loading editor
+          </p>
+          <p className="text-small text-muted-foreground">
+            Getting your portfolio ready to edit.
+          </p>
+        </div>
+      </div>
+    ),
+  },
+);
 
 type EditPortfolioPageProps = {
   params: Promise<{
@@ -24,7 +52,7 @@ export default async function EditPortfolioPage({
 
   const result = await portfolioService.getPortfolioWithData(
     portfolioId,
-    profile.id
+    profile.id,
   );
 
   if (!result) {
@@ -35,14 +63,8 @@ export default async function EditPortfolioPage({
     result.portfolio.status === "draft" &&
     !result.data?.name &&
     !result.data?.headline &&
-    !(
-      result.data?.skills &&
-      (result.data.skills as unknown[]).length
-    ) &&
-    !(
-      result.data?.projects &&
-      (result.data.projects as unknown[]).length
-    );
+    !(result.data?.skills && (result.data.skills as unknown[]).length) &&
+    !(result.data?.projects && (result.data.projects as unknown[]).length);
 
   return (
     <div className="min-h-full">
@@ -116,4 +138,3 @@ export default async function EditPortfolioPage({
     </div>
   );
 }
-

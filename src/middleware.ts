@@ -33,9 +33,13 @@ export async function middleware(request: NextRequest) {
         process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ||
         request.nextUrl.origin;
 
-      const res = await fetch(
+          const res = await fetch(
         `${origin}/api/internal/resolve-domain?host=${encodeURIComponent(host)}`,
-        { headers: { "x-middleware-domain-resolve": "1" }, cache: "no-store" },
+        {
+          headers: { "x-middleware-domain-resolve": "1" },
+         
+          next: { revalidate: 60 },
+        },
       );
 
       if (res.ok) {

@@ -31,8 +31,38 @@ type Props = {
   initialSettings: Settings;
 };
 
+const DISPLAY = "font-[family-name:var(--font-display,var(--font-dm))]";
+
+const FOCUS =
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background";
+
+const SECTION = "rounded-2xl border border-border bg-background p-6 sm:p-8";
+
+function SectionHeader({
+  title,
+  description,
+}: {
+  title: string;
+  description?: string;
+}) {
+  return (
+    <div className="mb-6 space-y-1.5">
+      <h2
+        className={`${DISPLAY} text-2xl font-semibold leading-tight tracking-[-0.02em] text-foreground`}
+      >
+        {title}
+      </h2>
+      {description && (
+        <p className="text-small max-w-[56ch] text-muted-foreground">
+          {description}
+        </p>
+      )}
+    </div>
+  );
+}
+
 function ThemeIcon({ variant }: { variant: "system" | "light" | "dark" }) {
-  const common = "h-5 w-5";
+  const common = "size-5";
 
   if (variant === "light") {
     return (
@@ -42,6 +72,7 @@ function ThemeIcon({ variant }: { variant: "system" | "light" | "dark" }) {
         fill="none"
         stroke="currentColor"
         strokeWidth="1.7"
+        aria-hidden="true"
       >
         <circle cx="12" cy="12" r="4" />
         <path
@@ -60,6 +91,7 @@ function ThemeIcon({ variant }: { variant: "system" | "light" | "dark" }) {
         fill="none"
         stroke="currentColor"
         strokeWidth="1.7"
+        aria-hidden="true"
       >
         <path
           d="M20.5 14.7A8.5 8.5 0 0 1 9.3 3.5a8.5 8.5 0 1 0 11.2 11.2Z"
@@ -77,6 +109,7 @@ function ThemeIcon({ variant }: { variant: "system" | "light" | "dark" }) {
       fill="none"
       stroke="currentColor"
       strokeWidth="1.7"
+      aria-hidden="true"
     >
       <rect x="3" y="4.5" width="18" height="12" rx="1.6" />
       <path d="M8.5 20.5h7M12 16.5v4" strokeLinecap="round" />
@@ -115,16 +148,24 @@ export function SettingsForm({ initialSettings }: Props) {
     },
   ];
 
-  const { register, handleSubmit, control, reset, formState: { isSubmitting, isDirty }} = useForm<UpdateSettingsInput>({
+  const {
+    register,
+    handleSubmit,
+    control,
+    reset,
+    formState: { isSubmitting, isDirty },
+  } = useForm<UpdateSettingsInput>({
     resolver: zodResolver(updateSettingsSchema),
     defaultValues: {
       language: (initialSettings.language as "en" | "es") ?? "en",
       timezone: initialSettings.timezone ?? "UTC",
       publicProfile: Boolean(initialSettings.publicProfile),
       emailNotifications: Boolean(initialSettings.emailNotifications),
-      themeMode: (initialSettings.themeMode as "light" | "dark" | "system") ?? "system",
+      themeMode:
+        (initialSettings.themeMode as "light" | "dark" | "system") ?? "system",
     },
   });
+
   const onSubmit = async (data: UpdateSettingsInput) => {
     setStatus(null);
 
@@ -149,17 +190,12 @@ export function SettingsForm({ initialSettings }: Props) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      {/* ---------------------------------------------------------------- */}
-      {/* Appearance                                                       */}
-      {/* ---------------------------------------------------------------- */}
-      <section className="surface-card p-6">
-        <div className="mb-5">
-          <p className="text-caption text-accent">Appearance</p>
-          <h2 className="text-h3 mt-1">{t.settings.theme}</h2>
-          <p className="text-small mt-1">
-            Choose how the dashboard looks on this device.
-          </p>
-        </div>
+      {/* Appearance */}
+      <section className={SECTION}>
+        <SectionHeader
+          title={t.settings.theme}
+          description="Choose how the dashboard looks on this device."
+        />
 
         <Controller
           control={control}
@@ -184,33 +220,50 @@ export function SettingsForm({ initialSettings }: Props) {
                       setTheme(option.value); // instant preview
                     }}
                     className={cn(
-                      "relative flex flex-col items-start gap-3 rounded-lg border p-4 text-left transition-all duration-200",
+                      "relative flex flex-col items-start gap-4 rounded-xl border p-4 text-left transition-colors duration-200",
+                      FOCUS,
                       active
-                        ? "border-primary/40 bg-gradient-ion-soft shadow-glow-primary"
-                        : "border-border bg-surface hover:border-border-strong hover:bg-surface-2",
+                        ? "border-violet-500/60 bg-violet-500/[0.07]"
+                        : "border-border bg-background hover:border-foreground/25 hover:bg-foreground/[0.025]",
                     )}
                   >
                     <span
                       className={cn(
-                        "flex h-9 w-9 items-center justify-center rounded-md",
+                        "flex size-10 items-center justify-center rounded-xl transition-colors",
                         active
-                          ? "bg-gradient-ion text-white"
-                          : "bg-surface-3 text-muted-foreground",
+                          ? "bg-violet-600 text-white"
+                          : "bg-foreground/[0.06] text-foreground/70",
                       )}
                     >
                       <ThemeIcon variant={option.value} />
                     </span>
+
                     <span>
-                      <span className="text-label block">{option.label}</span>
-                      <span className="text-small block">
+                      <span className="block text-[15px] font-semibold text-foreground">
+                        {option.label}
+                      </span>
+                      <span className="text-small mt-0.5 block text-muted-foreground">
                         {option.description}
                       </span>
                     </span>
+
                     {active && (
                       <span
-                        className="absolute right-3 top-3 h-2 w-2 rounded-full bg-primary"
-                        aria-hidden
-                      />
+                        className="absolute right-3.5 top-3.5 flex size-5 items-center justify-center rounded-full bg-violet-600 text-white"
+                        aria-hidden="true"
+                      >
+                        <svg
+                          viewBox="0 0 20 20"
+                          className="size-3"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="m4 10.5 4 4 8-9" />
+                        </svg>
+                      </span>
                     )}
                   </button>
                 );
@@ -220,17 +273,12 @@ export function SettingsForm({ initialSettings }: Props) {
         />
       </section>
 
-      {/* ---------------------------------------------------------------- */}
-      {/* Language & region                                                */}
-      {/* ---------------------------------------------------------------- */}
-      <section className="surface-card p-6">
-        <div className="mb-5">
-          <p className="text-caption text-accent">Language &amp; region</p>
-          <h2 className="text-h3 mt-1">{t.settings.title}</h2>
-          <p className="text-small mt-1">
-            Used for dashboard text and date/time formatting.
-          </p>
-        </div>
+      {/* Language & region */}
+      <section className={SECTION}>
+        <SectionHeader
+          title={t.settings.title}
+          description="Used for dashboard text and date/time formatting."
+        />
 
         <div className="grid gap-5 sm:grid-cols-2">
           <Controller
@@ -276,20 +324,15 @@ export function SettingsForm({ initialSettings }: Props) {
         </div>
       </section>
 
-      {/* ---------------------------------------------------------------- */}
-      {/* Privacy                                                          */}
-      {/* ---------------------------------------------------------------- */}
-      <section className="surface-card p-6">
-        <div className="mb-5">
-          <p className="text-caption text-accent">Privacy</p>
-          <h2 className="text-h3 mt-1">Visibility</h2>
-        </div>
+      {/* Privacy */}
+      <section className={SECTION}>
+        <SectionHeader title="Visibility" />
 
         <Controller
           control={control}
           name="publicProfile"
           render={({ field }) => (
-            <div className="surface-panel p-4">
+            <div className="rounded-xl border border-border bg-foreground/[0.025] p-4">
               <Switch
                 checked={field.value}
                 onChange={field.onChange}
@@ -301,49 +344,38 @@ export function SettingsForm({ initialSettings }: Props) {
         />
       </section>
 
-      {/* ---------------------------------------------------------------- */}
-      {/* Notifications                                                    */}
-      {/* ---------------------------------------------------------------- */}
-      {/* <section className="surface-card p-6">
-        <div className="mb-5">
-          <p className="text-caption text-accent">Notifications</p>
-          <h2 className="text-h3 mt-1">Email alerts</h2>
-        </div>
-
-        <Controller
-          control={control}
-          name="emailNotifications"
-          render={({ field }) => (
-            <div className="surface-panel p-4">
-              <Switch
-                checked={field.value}
-                onChange={field.onChange}
-                label="Email notifications"
-                description="Get notified at your account email whenever someone contacts you through a portfolio."
-              />
-            </div>
-          )}
-        />
-      </section> */}
-
-      {/* ---------------------------------------------------------------- */}
-      {/* Save bar                                                         */}
-      {/* ---------------------------------------------------------------- */}
-      <div className="surface-card flex flex-col-reverse items-start gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
-        <div className="min-h-[1.25rem]">
-          {status && (
+      {/* Save bar */}
+      <div className="sticky bottom-4 z-10 flex flex-col-reverse items-start gap-3 rounded-2xl border border-border bg-background/90 p-4 shadow-[0_16px_40px_-24px_rgba(0,0,0,0.35)] backdrop-blur sm:flex-row sm:items-center sm:justify-between sm:px-5">
+        <div className="min-h-[1.25rem]" aria-live="polite">
+          {status ? (
             <p
               className={cn(
-                "text-small animate-fade-in",
-                status.type === "success" ? "text-success" : "text-error",
+                "text-small flex items-center gap-2",
+                status.type === "success"
+                  ? "text-emerald-700 dark:text-emerald-300"
+                  : "text-red-600 dark:text-red-400",
               )}
               role={status.type === "error" ? "alert" : undefined}
             >
+              <span
+                aria-hidden="true"
+                className={cn(
+                  "size-1.5 shrink-0 rounded-full",
+                  status.type === "success" ? "bg-emerald-500" : "bg-red-500",
+                )}
+              />
               {status.message}
             </p>
-          )}
-          {!status && (
-            <p className="text-small">
+          ) : isDirty ? (
+            <p className="text-small flex items-center gap-2 text-muted-foreground">
+              <span
+                aria-hidden="true"
+                className="size-1.5 shrink-0 rounded-full bg-amber-500"
+              />
+              You have unsaved changes
+            </p>
+          ) : (
+            <p className="text-small text-muted-foreground">
               Changes apply immediately after saving.
             </p>
           )}

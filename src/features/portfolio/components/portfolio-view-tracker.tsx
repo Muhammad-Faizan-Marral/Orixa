@@ -19,11 +19,12 @@ function parseClientUa(ua: string) {
             ? "Safari"
             : "Other";
 
-  const device = /ipad|tablet/i.test(ua) || (/android/i.test(ua) && !/mobile/i.test(ua))
-    ? "Tablet"
-    : /iphone|ipod|android.*mobile|mobile|windows phone/i.test(ua)
-      ? "Mobile"
-      : "Desktop";
+  const device =
+    /ipad|tablet/i.test(ua) || (/android/i.test(ua) && !/mobile/i.test(ua))
+      ? "Tablet"
+      : /iphone|ipod|android.*mobile|mobile|windows phone/i.test(ua)
+        ? "Mobile"
+        : "Desktop";
 
   const os = /windows/i.test(ua)
     ? "Windows"
@@ -42,7 +43,22 @@ function parseClientUa(ua: string) {
 
 export function PortfolioViewTracker({ portfolioId }: Props) {
   useEffect(() => {
+    
     if (!portfolioId || typeof window === "undefined") return;
+
+
+    const storageKey = `orixa_viewed:${portfolioId}`;
+    try {
+      if (sessionStorage.getItem(storageKey)) {
+       
+        return;
+      }
+     
+      sessionStorage.setItem(storageKey, "1");
+    } catch {
+      // Private mode / blocked storage — ignore,
+    }
+    // ───────────────────────────────────────────────────────
 
     const ua = navigator.userAgent || "";
     const parsed = parseClientUa(ua);
@@ -65,7 +81,7 @@ export function PortfolioViewTracker({ portfolioId }: Props) {
         keepalive: true,
       }).catch(() => {});
 
-    // Slight delay so first paint isn't blocked
+   
     const t = window.setTimeout(send, 50);
 
     return () => window.clearTimeout(t);

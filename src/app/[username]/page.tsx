@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import Image from "next/image";
 
 import { portfolioService } from "@/services/portfolio/portfolio.service";
 import { isProfilePublicByUsername } from "@/services/profile/public-access.service";
 import { socialLinkService } from "@/services/profile/social-link.service";
-
 import { SocialLinksRow } from "@/features/public-profile/components/social-links-row";
 
 type PublicProfilePageProps = {
@@ -27,7 +27,9 @@ export async function generateMetadata({
 
   const name = profile.fullName || profile.username;
   const description = (
-    profile.headline || profile.bio || `${name}'s portfolio on OrixaAI.`
+    profile.headline ||
+    profile.bio ||
+    `${name}'s portfolio on OrixaAI.`
   ).slice(0, 160);
   const url = `https://www.orixaai.me/${profile.username}`;
 
@@ -66,7 +68,9 @@ export default async function PublicProfilePage({
     socialLinkService.getSocialLinks(profile.id),
   ]);
 
-  const publishedPortfolios = portfolios.filter((p) => p.status === "published",);
+  const publishedPortfolios = portfolios.filter(
+    (p) => p.status === "published",
+  );
   const initials = (profile.fullName ?? profile.username)
     .slice(0, 1)
     .toUpperCase();
@@ -81,13 +85,15 @@ export default async function PublicProfilePage({
       <div className="relative mx-auto max-w-2xl">
         <div className="text-center">
           {profile.avatarUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <Image
               src={profile.avatarUrl}
               alt={profile.fullName ?? profile.username}
               width={96}
               height={96}
-              decoding="async"
+              // Upar fold pe hai → pehle load (LCP ke liye achha)
+              priority
+              // Round avatar — exact size bata do
+              sizes="96px"
               className="border-gradient-ion mx-auto h-24 w-24 rounded-full object-cover"
             />
           ) : (

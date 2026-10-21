@@ -20,11 +20,8 @@ const STATUS_VARIANT: Record<string, BadgeVariant> = {
   archived: "warning",
 };
 
-const STATUS_GLOW: Record<string, string> = {
-  published: "from-success/20 via-transparent to-transparent",
-  draft: "from-primary/15 via-transparent to-transparent",
-  archived: "from-warning/15 via-transparent to-transparent",
-};
+/* Falls back to the DM font if the parent page didn't define --font-display */
+const DISPLAY = "font-[family-name:var(--font-display,var(--font-dm))]";
 
 export function PortfolioCard({ portfolio }: { portfolio: Portfolio }) {
   const status = portfolio.status;
@@ -34,73 +31,73 @@ export function PortfolioCard({ portfolio }: { portfolio: Portfolio }) {
     <Link
       href={`/dashboard/portfolios/${portfolio.id}`}
       className={cn(
-        "surface-card group relative flex flex-col overflow-hidden p-0",
-        "transition-all duration-300",
-        "hover:border-primary/35 hover:shadow-[0_0_0_1px_rgba(108,92,255,0.12),0_12px_40px_-12px_rgba(0,0,0,0.35)]",
-        "hover:-translate-y-0.5",
+        "group flex min-h-[188px] flex-col justify-between gap-6 rounded-2xl border border-border bg-background p-5",
+        "transition-all duration-200 hover:-translate-y-0.5",
+        "hover:border-violet-500/50 hover:shadow-[0_16px_32px_-20px_rgba(124,58,237,0.5)]",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
       )}
     >
-      {/* Top accent strip */}
-      <div
-        className={cn(
-          "h-1 w-full bg-gradient-to-r",
-          isPublished
-            ? "from-primary via-accent to-primary/40"
-            : "from-border-strong via-border to-transparent",
-        )}
-      />
+      <div className="space-y-4">
+        {/* Status + version */}
+        <div className="flex items-center justify-between gap-3">
+          <Badge
+            variant={STATUS_VARIANT[status] ?? "default"}
+            dot
+            className="shrink-0 capitalize"
+          >
+            {status}
+          </Badge>
 
-      <div className="relative flex flex-1 flex-col justify-between p-5">
-        {/* Soft glow */}
-        <div
-          className={cn(
-            "pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-gradient-to-br opacity-60 blur-2xl transition-opacity group-hover:opacity-100",
-            STATUS_GLOW[status] ?? STATUS_GLOW.draft,
-          )}
-        />
-
-        <div className="relative space-y-3">
-          <div className="flex items-start justify-between gap-3">
-            <h3 className="text-h3 !text-base line-clamp-2 leading-snug">
-              {portfolio.title}
-            </h3>
-            <Badge
-              variant={STATUS_VARIANT[status] ?? "default"}
-              dot
-              className="shrink-0 capitalize"
-            >
-              {status}
-            </Badge>
-          </div>
-
-          <p className="text-small flex items-center gap-1.5 text-primary/90">
-            <span className="inline-flex h-5 w-5 items-center justify-center rounded-md bg-primary/10 text-[10px] font-semibold text-primary">
-              /
-            </span>
-            <span className="truncate">orixa.ai/…/{portfolio.slug}</span>
-          </p>
-
-          <div className="flex flex-wrap gap-2 pt-1">
-            <span className="rounded-full border border-border bg-surface-2 px-2.5 py-0.5 text-[11px] text-muted-foreground">
-              v{portfolio.currentVersion}
-            </span>
-            {isPublished && portfolio.publishedAt && (
-              <span className="rounded-full border border-success/20 bg-success/5 px-2.5 py-0.5 text-[11px] text-success">
-                Live
-              </span>
-            )}
-          </div>
-        </div>
-
-        <div className="relative mt-6 flex items-center justify-between border-t border-border/60 pt-4">
-          <p className="text-caption text-muted-foreground">
-            Updated{" "}
-            <FormatDate value={portfolio.updatedAt} variant="date" />
-          </p>
-          <span className="text-small font-medium text-foreground/80 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-primary">
-            Open →
+          <span className="rounded-md bg-foreground/[0.06] px-2 py-1 text-xs font-medium tabular-nums text-foreground/80">
+            v{portfolio.currentVersion}
           </span>
         </div>
+
+        {/* Title + address */}
+        <div className="space-y-2.5">
+          <h3
+            className={cn(
+              DISPLAY,
+              "line-clamp-2 text-xl font-semibold leading-snug tracking-[-0.02em] text-foreground",
+            )}
+          >
+            {portfolio.title}
+          </h3>
+
+          <p className="flex min-w-0 items-center gap-2 font-mono text-xs text-muted-foreground">
+            <span
+              aria-hidden="true"
+              className={cn(
+                "size-1.5 shrink-0 rounded-full",
+                isPublished ? "bg-emerald-500" : "bg-foreground/25",
+              )}
+            />
+            <span className="truncate">orixa.ai/…/{portfolio.slug}</span>
+          </p>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="flex items-center justify-between gap-3 border-t border-border pt-4">
+        <p className="text-small text-muted-foreground">
+          Updated <FormatDate value={portfolio.updatedAt} variant="date" />
+        </p>
+
+        <span className="text-small inline-flex items-center gap-1.5 font-medium text-foreground/80 transition-colors group-hover:text-violet-700 dark:group-hover:text-violet-300">
+          Open
+          <svg
+            viewBox="0 0 24 24"
+            className="size-4 transition-transform duration-200 group-hover:translate-x-1"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M5 12h14M13 6l6 6-6 6" />
+          </svg>
+        </span>
       </div>
     </Link>
   );

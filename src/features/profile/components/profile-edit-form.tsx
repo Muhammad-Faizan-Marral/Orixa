@@ -5,7 +5,10 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { updateProfile } from "@/actions/profile/update-profile";
-import { updateProfileSchema, type UpdateProfileInput} from "@/validations/profile.schema";
+import {
+  updateProfileSchema,
+  type UpdateProfileInput,
+} from "@/validations/profile.schema";
 
 import { Input } from "@/components/UI/Input";
 import { Textarea } from "@/components/UI/Textarea";
@@ -22,11 +25,19 @@ type ProfileEditFormProps = {
   };
 };
 
+const DISPLAY = "font-[family-name:var(--font-display,var(--font-dm))]";
+
 export function ProfileEditForm({ profile }: ProfileEditFormProps) {
+  const [status, setStatus] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
-  const [status, setStatus] = useState<{type: "success" | "error"; message: string;} | null>(null);
-
-  const { register, handleSubmit, formState: { errors, isSubmitting, isDirty }} = useForm<UpdateProfileInput>({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting, isDirty },
+  } = useForm<UpdateProfileInput>({
     resolver: zodResolver(updateProfileSchema),
     defaultValues: {
       username: profile.username,
@@ -44,7 +55,10 @@ export function ProfileEditForm({ profile }: ProfileEditFormProps) {
     const result = await updateProfile(data);
 
     if (!result.success) {
-      setStatus({ type: "error", message: result.message||"Unable to update profile." });
+      setStatus({
+        type: "error",
+        message: result.message || "Unable to update profile.",
+      });
       return;
     }
 
@@ -52,11 +66,14 @@ export function ProfileEditForm({ profile }: ProfileEditFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-      <div>
-        <p className="text-caption text-accent">Identity</p>
-        <h2 className="text-h3 mt-1">Basic information</h2>
-        <p className="text-small mt-1">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-7">
+      <div className="space-y-1.5">
+        <h2
+          className={`${DISPLAY} text-2xl font-semibold leading-tight tracking-[-0.02em] text-foreground`}
+        >
+          Basic information
+        </h2>
+        <p className="text-small max-w-[56ch] text-muted-foreground">
           This appears on your public profile and every portfolio you publish.
         </p>
       </div>
@@ -87,7 +104,7 @@ export function ProfileEditForm({ profile }: ProfileEditFormProps) {
       <Textarea
         label="Bio"
         placeholder="I build scalable web applications..."
-        rows={4}
+        rows={5}
         {...register("bio")}
         error={errors.bio?.message}
       />
@@ -108,19 +125,34 @@ export function ProfileEditForm({ profile }: ProfileEditFormProps) {
         />
       </div>
 
-      <div className="flex items-center justify-between gap-4 border-t border-border pt-5">
-        <div className="min-h-[1.25rem]">
-          {status && (
+      <div className="flex flex-col-reverse gap-4 border-t border-border pt-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-h-[1.25rem]" aria-live="polite">
+          {status ? (
             <p
-              className={
-                "text-small animate-fade-in " +
-                (status.type === "success" ? "text-success" : "text-error")
-              }
+              className={`text-small flex items-center gap-2 ${
+                status.type === "success"
+                  ? "text-emerald-700 dark:text-emerald-300"
+                  : "text-red-600 dark:text-red-400"
+              }`}
               role={status.type === "error" ? "alert" : undefined}
             >
+              <span
+                aria-hidden="true"
+                className={`size-1.5 shrink-0 rounded-full ${
+                  status.type === "success" ? "bg-emerald-500" : "bg-red-500"
+                }`}
+              />
               {status.message}
             </p>
-          )}
+          ) : isDirty ? (
+            <p className="text-small flex items-center gap-2 text-muted-foreground">
+              <span
+                aria-hidden="true"
+                className="size-1.5 shrink-0 rounded-full bg-amber-500"
+              />
+              You have unsaved changes
+            </p>
+          ) : null}
         </div>
 
         <Button

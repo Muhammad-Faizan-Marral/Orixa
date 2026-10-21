@@ -20,7 +20,6 @@ export async function POST(req: NextRequest) {
 
     const fromUa = parseUserAgent(userAgent);
 
-    // Client-parsed values win when present (fixes Unknown)
     const browser =
       (typeof body?.browser === "string" && body.browser.trim()) ||
       fromUa.browser;
@@ -47,6 +46,8 @@ export async function POST(req: NextRequest) {
       req.headers.get("cf-ipcity") || req.headers.get("x-vercel-ip-city");
     const city = cityRaw ? decodeURIComponent(cityRaw) : null;
 
+    // Client ko jaldi jawab — write complete hone ka wait mat karo timeout ke liye
+    // (Vercel fluid pe request end hone se pehle promise resolve hona chahiye)
     await portfolioViewService.recordView({
       portfolioId,
       userAgent,
@@ -59,7 +60,15 @@ export async function POST(req: NextRequest) {
       city,
     });
 
-    return NextResponse.json({ ok: true, browser, device, os });
+    return NextResponse.json(
+      { ok: true, browser, device, os },
+      {
+        headers: {
+          // browser dobara spam na kare short window mein
+          "Cache-Control": "private, max-age=0, no-store",
+        },
+      },
+    );
   } catch (error) {
     console.error("[analytics/view]", error);
     return NextResponse.json({ ok: false });

@@ -28,6 +28,9 @@ type Props = {
   label?: string;
 };
 
+const FOCUS =
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background";
+
 function formatSize(bytes: number) {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
@@ -107,6 +110,10 @@ export function FileUpload({
   return (
     <div className="space-y-3">
       <div
+        role="button"
+        tabIndex={0}
+        aria-label={label}
+        aria-busy={isPending}
         onDragOver={(e) => {
           e.preventDefault();
           setIsDragging(true);
@@ -119,11 +126,18 @@ export function FileUpload({
           if (file) handleFile(file);
         }}
         onClick={() => inputRef.current?.click()}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            inputRef.current?.click();
+          }
+        }}
         className={cn(
-          "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-6 text-center transition-colors",
+          "flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border border-dashed p-5 text-center transition-colors",
+          FOCUS,
           isDragging
-            ? "border-primary/50 bg-gradient-ion-soft"
-            : "border-border hover:border-border-strong",
+            ? "border-violet-500 bg-violet-500/[0.08]"
+            : "border-foreground/25 hover:border-violet-500/50 hover:bg-violet-500/[0.04]",
         )}
       >
         <input
@@ -136,21 +150,49 @@ export function FileUpload({
             if (file) handleFile(file);
           }}
           className="hidden"
+          tabIndex={-1}
         />
-        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-ion-soft text-primary">
-          ↑
+
+        <span
+          aria-hidden="true"
+          className="flex size-10 items-center justify-center rounded-xl bg-violet-600 text-white"
+        >
+          {isPending ? (
+            <span className="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white motion-reduce:animate-none" />
+          ) : (
+            <svg
+              viewBox="0 0 24 24"
+              className="size-5"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.9"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M12 16V4M7 9l5-5 5 5M5 15v4h14v-4" />
+            </svg>
+          )}
         </span>
-        <p className="text-label">{isPending ? "Uploading..." : label}</p>
-        <p className="text-small">
-          Drag & drop, or click to browse · up to 5MB
-        </p>
+
+        <div className="space-y-0.5">
+          <p className="text-sm font-semibold text-foreground">
+            {isPending ? "Uploading..." : label}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Drag and drop or click to browse. Up to 5MB.
+          </p>
+        </div>
       </div>
 
       {error && (
         <p
           role="alert"
-          className="text-small rounded-lg border border-error/20 bg-error/10 px-3 py-2 text-error"
+          className="text-small flex items-center gap-2 rounded-xl border border-red-500/25 bg-red-500/10 px-3 py-2 text-red-700 dark:text-red-300"
         >
+          <span
+            aria-hidden="true"
+            className="size-1.5 shrink-0 rounded-full bg-red-500"
+          />
           {error}
         </p>
       )}
@@ -160,7 +202,7 @@ export function FileUpload({
           {files.map((upload) => (
             <li
               key={upload.id}
-              className="surface-panel flex items-center justify-between gap-3 px-3 py-2.5"
+              className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background px-3 py-2.5"
             >
               <div className="flex min-w-0 items-center gap-3">
                 {upload.mimeType?.startsWith("image/") && upload.url ? (
@@ -168,37 +210,46 @@ export function FileUpload({
                   <img
                     src={upload.url}
                     alt=""
-                    className="h-9 w-9 rounded-md object-cover"
+                    className="size-10 shrink-0 rounded-lg object-cover ring-1 ring-border"
                   />
                 ) : (
-                  <span className="flex h-9 w-9 items-center justify-center rounded-md bg-surface-3 text-xs">
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-foreground/[0.06] text-[11px] font-semibold text-foreground/70">
                     {upload.mimeType === "application/pdf" ? "PDF" : "FILE"}
                   </span>
                 )}
+
                 <div className="min-w-0">
                   {upload.url ? (
                     <a
                       href={upload.url}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-small block truncate text-foreground hover:text-primary"
+                      className={cn(
+                        "block truncate rounded text-sm font-medium text-foreground underline decoration-foreground/25 underline-offset-4 transition-colors hover:decoration-foreground",
+                        FOCUS,
+                      )}
                     >
                       View file
                     </a>
                   ) : (
-                    <span className="text-small block truncate">
+                    <span className="block truncate text-sm text-muted-foreground">
                       Processing...
                     </span>
                   )}
-                  <span className="text-small block">
+                  <span className="mt-0.5 block text-xs tabular-nums text-muted-foreground">
                     {formatSize(upload.size)}
                   </span>
                 </div>
               </div>
+
               <button
                 type="button"
                 onClick={() => handleRemove(upload.id)}
-                className="text-small shrink-0 text-error/80 hover:text-error"
+                disabled={isPending}
+                className={cn(
+                  "text-small shrink-0 rounded-md px-2 py-1 text-red-600 transition-colors hover:bg-red-500/10 disabled:opacity-50 dark:text-red-400",
+                  FOCUS,
+                )}
               >
                 Remove
               </button>

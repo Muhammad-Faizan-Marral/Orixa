@@ -29,6 +29,11 @@ type Props = {
   minWithdraw: number;
 };
 
+const DISPLAY = "font-[family-name:var(--font-display,var(--font-dm))]";
+
+const FOCUS =
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background";
+
 const money = (amount: number) =>
   new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -63,7 +68,6 @@ const doesNotCount = [
   "Failed or refunded payments",
 ];
 
-/* Icons are inline so no extra dependency is needed. */
 function Check({ className = "" }: { className?: string }) {
   return (
     <svg
@@ -213,267 +217,321 @@ export function ReferAndEarnClient({
     },
   };
 
-  const card =
-    "rounded-2xl border border-border bg-surface-1 shadow-[0_1px_0_0_rgba(255,255,255,0.04)_inset]";
+  const card = "rounded-2xl border border-border bg-background";
 
   return (
     <motion.main
       variants={container}
       initial="hidden"
       animate="show"
-      className="mx-auto w-full max-w-4xl space-y-6 px-4 py-8 sm:px-6 sm:py-12"
+      className="mx-auto w-full max-w-5xl space-y-8 px-4 py-8 sm:px-6 sm:py-12"
     >
       {/* Header */}
-      <motion.header variants={item} className="space-y-3">
-        <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+      <motion.header variants={item} className="space-y-5">
+        <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
           <Shield />
           Every payout is verified
         </div>
-        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+
+        <h1
+          className={`${DISPLAY} max-w-2xl text-balance text-4xl font-semibold leading-[1.05] tracking-[-0.03em] text-foreground sm:text-6xl`}
+        >
           Share Orixa, earn {percentage}%
         </h1>
-        <p className="max-w-xl text-[15px] leading-7 text-muted-foreground">
+
+        <p className="max-w-[54ch] text-base leading-7 text-muted-foreground">
           When someone you refer makes their first paid Premium purchase, you
-          earn {percentage}% of that payment. Simple, transparent, and
-          tracked in real time.
+          earn {percentage}% of that payment. Simple, transparent, and tracked
+          in real time.
         </p>
       </motion.header>
 
-      {/* Referral link: the one hero element */}
+      {/* Referral link: the hero */}
       <motion.section
         variants={item}
-        className={`${card} relative overflow-hidden p-5 sm:p-7`}
+        aria-labelledby="referral-link-title"
+        className="space-y-5 rounded-2xl border border-violet-500/30 bg-gradient-to-br from-violet-500/[0.1] via-violet-500/[0.04] to-transparent p-5 sm:p-7"
       >
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -right-24 -top-24 size-64 rounded-full bg-primary/10 blur-3xl"
-        />
-        <div className="relative">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-base font-semibold">Your referral link</h2>
-            <span className="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground">
-              Code <span className="font-medium text-foreground">{referralCode}</span>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2
+            id="referral-link-title"
+            className={`${DISPLAY} text-xl font-semibold tracking-tight text-foreground`}
+          >
+            Your referral link
+          </h2>
+          <span className="rounded-full bg-background px-3 py-1 text-xs text-muted-foreground ring-1 ring-border">
+            Code{" "}
+            <span className="font-mono font-medium text-foreground">
+              {referralCode}
             </span>
+          </span>
+        </div>
+
+        <div className="flex flex-col gap-2.5 sm:flex-row">
+          <div className="min-w-0 flex-1 rounded-xl border border-border bg-background px-4 py-3.5">
+            <p
+              className="truncate font-mono text-sm text-foreground"
+              title={referralUrl}
+            >
+              {referralUrl}
+            </p>
           </div>
 
-          <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-            <div className="min-w-0 flex-1 rounded-xl border border-border bg-surface-2 px-4 py-3.5">
-              <p className="truncate text-sm" title={referralUrl}>
-                {referralUrl}
+          <div className="flex gap-2.5">
+            <motion.button
+              type="button"
+              onClick={copyLink}
+              whileTap={reduce ? undefined : { scale: 0.97 }}
+              className={`flex min-w-[8.5rem] flex-1 items-center justify-center gap-2 rounded-xl bg-foreground px-5 py-3.5 text-sm font-medium text-background transition-opacity hover:opacity-90 sm:flex-none ${FOCUS}`}
+            >
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.span
+                  key={copied ? "done" : "idle"}
+                  initial={{ opacity: 0, y: reduce ? 0 : 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: reduce ? 0 : -6 }}
+                  transition={{ duration: 0.15 }}
+                  className="flex items-center gap-2"
+                >
+                  {copied && <Check />}
+                  {copied ? "Copied" : "Copy link"}
+                </motion.span>
+              </AnimatePresence>
+            </motion.button>
+
+            <button
+              type="button"
+              onClick={shareLink}
+              className={`rounded-xl border border-violet-500/35 bg-background px-5 py-3.5 text-sm font-medium text-violet-700 transition-colors hover:bg-violet-500/10 dark:text-violet-300 ${FOCUS}`}
+            >
+              Share
+            </button>
+          </div>
+        </div>
+
+        <p
+          role="status"
+          aria-live="polite"
+          className="min-h-[1rem] text-xs text-muted-foreground"
+        >
+          {copied && "Link copied. Ready to share."}
+          {copyError && "Copy failed. Select the link and copy it manually."}
+        </p>
+      </motion.section>
+
+      {/* How it works + earnings */}
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
+        <motion.section
+          variants={item}
+          className={`${card} space-y-7 p-5 sm:p-7`}
+        >
+          <h2
+            className={`${DISPLAY} text-xl font-semibold tracking-tight text-foreground`}
+          >
+            How it works
+          </h2>
+
+          <ol>
+            {steps.map((step, index) => (
+              <li
+                key={step.title}
+                className={`relative flex gap-4 ${
+                  index < steps.length - 1 ? "pb-6" : ""
+                }`}
+              >
+                {index < steps.length - 1 && (
+                  <span
+                    aria-hidden="true"
+                    className="absolute bottom-0 left-[17px] top-10 w-px bg-border"
+                  />
+                )}
+                <span
+                  aria-hidden="true"
+                  className={`${DISPLAY} relative flex size-9 shrink-0 items-center justify-center rounded-xl bg-violet-500/10 text-sm font-semibold tabular-nums text-violet-700 dark:bg-violet-400/15 dark:text-violet-300`}
+                >
+                  {index + 1}
+                </span>
+                <div className="pt-1">
+                  <h3 className="text-[15px] font-semibold text-foreground">
+                    {step.title}
+                  </h3>
+                  <p className="mt-0.5 text-sm leading-6 text-muted-foreground">
+                    {step.text}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ol>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/[0.06] p-4">
+              <p className="text-sm font-semibold text-foreground">
+                What earns commission
+              </p>
+              <ul className="mt-3 space-y-2">
+                {counts.map((line) => (
+                  <li
+                    key={line}
+                    className="flex items-start gap-2 text-sm text-foreground/75"
+                  >
+                    <Check className="mt-0.5 text-emerald-600 dark:text-emerald-400" />
+                    {line}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="rounded-xl border border-border bg-foreground/[0.025] p-4">
+              <p className="text-sm font-semibold text-foreground">
+                What does not
+              </p>
+              <ul className="mt-3 space-y-2">
+                {doesNotCount.map((line) => (
+                  <li
+                    key={line}
+                    className="flex items-start gap-2 text-sm text-muted-foreground"
+                  >
+                    <Cross className="mt-0.5 text-muted-foreground/70" />
+                    {line}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </motion.section>
+
+        <motion.section
+          variants={item}
+          aria-label="Your earnings"
+          className="flex flex-col overflow-hidden rounded-2xl border border-border"
+        >
+          <div className="bg-violet-500/[0.08] p-6 dark:bg-violet-400/[0.1]">
+            <p className="text-small text-foreground/70">
+              Estimated commission
+            </p>
+            <p
+              className={`${DISPLAY} mt-1 text-5xl font-semibold leading-none tracking-[-0.04em] tabular-nums text-violet-700 dark:text-violet-300 sm:text-6xl`}
+            >
+              {money(estimatedCommission)}
+            </p>
+            <p className="text-small mt-3 text-muted-foreground">
+              Pending verification
+            </p>
+          </div>
+
+          <dl className="grid grid-cols-2 divide-x divide-border border-y border-border">
+            <div className="px-5 py-4">
+              <dd
+                className={`${DISPLAY} text-2xl font-semibold tabular-nums tracking-tight text-foreground`}
+              >
+                {totalSignups}
+              </dd>
+              <dt className="text-small mt-0.5 text-muted-foreground">
+                Referred signups
+              </dt>
+            </div>
+            <div className="px-5 py-4">
+              <dd
+                className={`${DISPLAY} text-2xl font-semibold tabular-nums tracking-tight text-foreground`}
+              >
+                {paidCount}
+              </dd>
+              <dt className="text-small mt-0.5 text-muted-foreground">
+                Paid purchases
+              </dt>
+            </div>
+          </dl>
+
+          <div className="flex flex-1 flex-col justify-between gap-4 p-5">
+            <div className="space-y-3">
+              <div className="flex items-baseline justify-between gap-3">
+                <h2 className="text-sm font-semibold text-foreground">
+                  Payout progress
+                </h2>
+                <p className="text-xs tabular-nums text-muted-foreground">
+                  {money(estimatedCommission)} / {money(minWithdraw)}
+                </p>
+              </div>
+
+              <div
+                className="h-2 overflow-hidden rounded-full bg-foreground/[0.08]"
+                role="progressbar"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={Math.round(progress * 100)}
+                aria-label="Progress toward minimum payout"
+              >
+                <motion.div
+                  className="h-full rounded-full bg-violet-600 dark:bg-violet-400"
+                  initial={{ width: reduce ? `${progress * 100}%` : 0 }}
+                  animate={{ width: `${progress * 100}%` }}
+                  transition={{
+                    duration: 0.9,
+                    ease: [0.22, 1, 0.36, 1],
+                    delay: 0.3,
+                  }}
+                />
+              </div>
+
+              <p className="text-sm text-muted-foreground">
+                {remaining > 0
+                  ? `${money(remaining)} more to reach the ${money(minWithdraw)} minimum.`
+                  : "You have reached the minimum. You can request a payout."}
               </p>
             </div>
 
-            <div className="flex gap-2">
-              <motion.button
-                type="button"
-                onClick={copyLink}
-                whileTap={reduce ? undefined : { scale: 0.97 }}
-                className="relative flex min-w-[8.5rem] flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:flex-none"
-              >
-                <AnimatePresence mode="wait" initial={false}>
-                  <motion.span
-                    key={copied ? "done" : "idle"}
-                    initial={{ opacity: 0, y: reduce ? 0 : 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: reduce ? 0 : -6 }}
-                    transition={{ duration: 0.15 }}
-                    className="flex items-center gap-2"
-                  >
-                    {copied && <Check />}
-                    {copied ? "Copied" : "Copy link"}
-                  </motion.span>
-                </AnimatePresence>
-              </motion.button>
-
-              <button
-                type="button"
-                onClick={shareLink}
-                className="rounded-xl border border-border px-4 py-3.5 text-sm font-medium transition-colors hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                Share
-              </button>
-            </div>
-          </div>
-
-          <p
-            role="status"
-            aria-live="polite"
-            className="mt-2 min-h-[1rem] text-xs text-muted-foreground"
-          >
-            {copied && "Link copied. Ready to share."}
-            {copyError &&
-              "Copy failed. Select the link and copy it manually."}
-          </p>
-        </div>
-      </motion.section>
-
-      {/* How it works: all visible, no carousel */}
-      <motion.section variants={item} className={`${card} p-5 sm:p-7`}>
-        <h2 className="text-base font-semibold">How it works</h2>
-
-        <ol className="mt-5 grid gap-5 sm:grid-cols-3 sm:gap-6">
-          {steps.map((step, index) => (
-            <li key={step.title} className="relative flex gap-4 sm:block">
-              {/* connector line (desktop) */}
-              {index < steps.length - 1 && (
-                <span
-                  aria-hidden="true"
-                  className="absolute left-[2.6rem] right-[-1.5rem] top-[1.1rem] hidden h-px bg-border sm:block"
-                />
-              )}
-              <span className="relative z-10 flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-surface-2 text-sm font-medium tabular-nums">
-                {index + 1}
-              </span>
-              <div className="sm:mt-4">
-                <h3 className="text-[15px] font-semibold">{step.title}</h3>
-                <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                  {step.text}
-                </p>
-              </div>
-            </li>
-          ))}
-        </ol>
-
-        {/* Eligibility: clear at a glance, so no rule is missed */}
-        <div className="mt-6 grid gap-3 sm:grid-cols-2">
-          <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] p-4">
-            <p className="text-sm font-medium">What earns commission</p>
-            <ul className="mt-3 space-y-2">
-              {counts.map((line) => (
-                <li
-                  key={line}
-                  className="flex items-start gap-2 text-sm text-muted-foreground"
-                >
-                  <Check className="mt-0.5 text-emerald-500" />
-                  {line}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="rounded-xl border border-border bg-surface-2/60 p-4">
-            <p className="text-sm font-medium">What does not</p>
-            <ul className="mt-3 space-y-2">
-              {doesNotCount.map((line) => (
-                <li
-                  key={line}
-                  className="flex items-start gap-2 text-sm text-muted-foreground"
-                >
-                  <Cross className="mt-0.5 text-muted-foreground/70" />
-                  {line}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      </motion.section>
-
-      {/* Metrics */}
-      <motion.section
-        variants={item}
-        className="grid grid-cols-1 gap-3 sm:grid-cols-3"
-      >
-        <div className={`${card} p-5`}>
-          <p className="text-sm text-muted-foreground">Referred signups</p>
-          <p className="mt-3 text-3xl font-semibold tabular-nums">
-            {totalSignups}
-          </p>
-        </div>
-
-        <div className={`${card} p-5`}>
-          <p className="text-sm text-muted-foreground">Paid purchases</p>
-          <p className="mt-3 text-3xl font-semibold tabular-nums">
-            {paidCount}
-          </p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Free unlocks excluded
-          </p>
-        </div>
-
-        <div className={`${card} p-5`}>
-          <p className="text-sm text-muted-foreground">Estimated commission</p>
-          <p className="mt-3 text-3xl font-semibold tabular-nums">
-            {money(estimatedCommission)}
-          </p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Pending verification
-          </p>
-        </div>
-      </motion.section>
-
-      {/* Payout progress */}
-      <motion.section variants={item} className={`${card} p-5 sm:p-7`}>
-        <div className="flex flex-wrap items-end justify-between gap-2">
-          <div>
-            <h2 className="text-base font-semibold">Payout progress</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {remaining > 0
-                ? `${money(remaining)} more to reach the ${money(minWithdraw)} minimum.`
-                : "You have reached the minimum. You can request a payout."}
+            <p className="text-xs leading-5 text-muted-foreground">
+              Estimated rewards are not an approved balance. Final amounts
+              depend on the verified payment and program rules.
             </p>
           </div>
-          <p className="text-sm tabular-nums text-muted-foreground">
-            {money(estimatedCommission)} / {money(minWithdraw)}
-          </p>
-        </div>
-
-        <div
-          className="mt-4 h-2 overflow-hidden rounded-full bg-surface-2"
-          role="progressbar"
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-valuenow={Math.round(progress * 100)}
-          aria-label="Progress toward minimum payout"
-        >
-          <motion.div
-            className="h-full rounded-full bg-primary"
-            initial={{ width: reduce ? `${progress * 100}%` : 0 }}
-            animate={{ width: `${progress * 100}%` }}
-            transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
-          />
-        </div>
-
-        <p className="mt-3 text-xs leading-5 text-muted-foreground">
-          Estimated rewards are not an approved balance. Final amounts depend
-          on the verified payment and program rules.
-        </p>
-      </motion.section>
+        </motion.section>
+      </div>
 
       {/* Ledger */}
       <motion.section variants={item} className={`${card} p-5 sm:p-7`}>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h2 className="text-base font-semibold">Paid Premium buyers</h2>
+            <h2
+              className={`${DISPLAY} text-xl font-semibold tracking-tight text-foreground`}
+            >
+              Paid Premium buyers
+            </h2>
             <p className="mt-1 text-sm text-muted-foreground">
               Only eligible, successful purchases appear here.
             </p>
           </div>
-          <span className="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground">
+          <span className="rounded-full bg-foreground/[0.06] px-3 py-1 text-xs font-medium text-foreground/80">
             {paidCount} eligible
           </span>
         </div>
 
         {eligiblePurchases.length === 0 ? (
-          <div className="mt-5 rounded-xl border border-dashed border-border px-4 py-10 text-center">
-            <p className="text-sm font-medium">No qualifying purchases yet</p>
+          <div className="mt-6 rounded-xl border border-dashed border-foreground/25 px-4 py-10 text-center">
+            <p className="text-sm font-medium text-foreground">
+              No qualifying purchases yet
+            </p>
             <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
-              Share your link to get started. Free referral unlocks do not
-              earn commission.
+              Share your link to get started. Free referral unlocks do not earn
+              commission.
             </p>
           </div>
         ) : (
-          <ul className="mt-4 divide-y divide-border">
+          <ul className="mt-5 divide-y divide-border">
             {eligiblePurchases.map((buyer) => (
               <li
                 key={buyer.paymentId}
                 className="flex flex-wrap items-center justify-between gap-3 py-3.5"
               >
                 <div className="flex min-w-0 items-center gap-3">
-                  <span className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-surface-2 text-xs font-medium uppercase">
+                  <span
+                    aria-hidden="true"
+                    className="flex size-10 shrink-0 items-center justify-center rounded-full bg-violet-500/10 text-xs font-semibold uppercase text-violet-700 dark:bg-violet-400/15 dark:text-violet-300"
+                  >
                     {buyer.username.slice(0, 2)}
                   </span>
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">
+                    <p className="truncate text-sm font-medium text-foreground">
                       @{buyer.username}
                     </p>
                     <p className="mt-0.5 text-xs capitalize text-muted-foreground">
@@ -484,7 +542,7 @@ export function ReferAndEarnClient({
                 </div>
 
                 <div className="text-right">
-                  <p className="text-sm font-semibold tabular-nums">
+                  <p className="text-sm font-semibold tabular-nums text-foreground">
                     {money(buyer.paidAmountUsd * rate)}
                   </p>
                   <p className="mt-0.5 text-xs text-muted-foreground">
@@ -497,23 +555,29 @@ export function ReferAndEarnClient({
         )}
       </motion.section>
 
-      {/* Payout rules: expands with smooth height animation */}
+      {/* Payout rules */}
       <motion.section variants={item} className={card}>
         <button
           type="button"
           onClick={() => setRulesOpen((open) => !open)}
           aria-expanded={rulesOpen}
-          className="flex w-full items-center justify-between gap-3 rounded-2xl px-5 py-4 text-left text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-7"
+          className={`flex w-full items-center justify-between gap-3 rounded-2xl px-5 py-4 text-left text-sm font-medium text-foreground transition-colors hover:bg-foreground/[0.03] sm:px-7 ${FOCUS}`}
         >
           Payout rules and how to request payment
-          <motion.span
+          <motion.svg
+            viewBox="0 0 24 24"
+            className="size-4 shrink-0 text-muted-foreground"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
             animate={{ rotate: rulesOpen ? 180 : 0 }}
             transition={{ duration: 0.2 }}
-            className="text-muted-foreground"
             aria-hidden="true"
           >
-            ↓
-          </motion.span>
+            <path d="m6 9 6 6 6-6" />
+          </motion.svg>
         </button>
 
         <AnimatePresence initial={false}>
@@ -546,20 +610,19 @@ export function ReferAndEarnClient({
                   Email{" "}
                   <a
                     href="mailto:contact@orixaai.me"
-                    className="text-foreground underline underline-offset-4"
+                    className="text-foreground underline decoration-foreground/25 underline-offset-4 hover:decoration-foreground"
                   >
                     contact@orixaai.me
                   </a>{" "}
-                  from your Orixa account email and include your referral
-                  code.
+                  from your Orixa account email and include your referral code.
                 </p>
                 <p>
                   <span className="font-medium text-foreground">
                     Verification:
                   </span>{" "}
                   Purchases are verified before payout. Failed or refunded
-                  transactions are not eligible. Contact support if a
-                  qualifying purchase seems to be missing.
+                  transactions are not eligible. Contact support if a qualifying
+                  purchase seems to be missing.
                 </p>
               </div>
             </motion.div>

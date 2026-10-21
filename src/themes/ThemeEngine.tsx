@@ -1,44 +1,23 @@
 import type { ComponentType, CSSProperties } from "react";
 import dynamic from "next/dynamic";
+
 import { getTheme } from "./registry";
 import {
   getThemeIdFromPreferences,
   normalizeSelectionForTheme,
 } from "./lab-helpers";
+
 import type {
   PortfolioRenderConfig,
   PublicProfileMeta,
 } from "@/portfolio-renderer/types";
-import type {
-  ThemePageComponent,
-  ThemePageProps,
-  ThemeSectionId,
-  ThemeId,
-} from "./types";
+
+import type { ThemePageProps, ThemeSectionId, ThemeId } from "./types";
+
 import { ThemeBootGate, ThemeLoader } from "./shared/theme-loaders";
-import { isPremiumTheme, FREE_THEMES } from "@/constants/billing";
+import { FREE_THEMES, isPremiumTheme } from "@/constants/billing";
 
-const FALLBACK_FREE_THEME: ThemeId = FREE_THEMES[0]; // "minimal-airy"
-
-const themePageLoaders: Record<
-  ThemeId,
-  () => Promise<{ default: ThemePageComponent }>
-> = {
-  "minimal-airy": () =>
-    import("./minimal-airy").then((m) => ({ default: m.default.ThemePage! })),
-  "tech-dense": () =>
-    import("./tech-dense").then((m) => ({ default: m.default.ThemePage! })),
-  editorial: () =>
-    import("./editorial").then((m) => ({ default: m.default.ThemePage! })),
-  "soft-luxury": () =>
-    import("./soft-luxury").then((m) => ({ default: m.default.ThemePage! })),
-  "neo-glass": () =>
-    import("./neo-glass").then((m) => ({ default: m.default.ThemePage! })),
-  brutalist: () =>
-    import("./brutalist").then((m) => ({ default: m.default.ThemePage! })),
-  cinematic: () =>
-    import("./cinematic").then((m) => ({ default: m.default.ThemePage! })),
-};
+const FALLBACK_FREE_THEME: ThemeId = FREE_THEMES[0];
 
 function makeLoading(themeId: ThemeId) {
   return function ThemeChunkLoading() {
@@ -46,36 +25,116 @@ function makeLoading(themeId: ThemeId) {
   };
 }
 
-const themePages = Object.fromEntries(
-  (Object.keys(themePageLoaders) as ThemeId[]).map((id) => [
-    id,
-    dynamic<ThemePageProps>(themePageLoaders[id], {
-      ssr: true,
-      loading: makeLoading(id),
-    }),
-  ]),
-) as Record<ThemeId, ComponentType<ThemePageProps>>;
+/**
+ * IMPORTANT:
+ * Keep every dynamic() declaration at module scope.
+ * Do not create dynamic components inside ThemeEngine().
+ *
+ * SSR is preserved for SEO and compatibility with Server Components.
+ */
 
-export function ThemeEngine({
-  config,
-  profile,
-}: {
+const themePages: Record<ThemeId, ComponentType<ThemePageProps>> = {
+  "minimal-airy": dynamic<ThemePageProps>(
+    () =>
+      import("./minimal-airy").then((m) => ({
+        default: m.default.ThemePage!,
+      })),
+    {
+      ssr: true,
+      loading: makeLoading("minimal-airy"),
+    },
+  ),
+
+  "tech-dense": dynamic<ThemePageProps>(
+    () =>
+      import("./tech-dense").then((m) => ({
+        default: m.default.ThemePage!,
+      })),
+    {
+      ssr: true,
+      loading: makeLoading("tech-dense"),
+    },
+  ),
+
+  editorial: dynamic<ThemePageProps>(
+    () =>
+      import("./editorial").then((m) => ({
+        default: m.default.ThemePage!,
+      })),
+    {
+      ssr: true,
+      loading: makeLoading("editorial"),
+    },
+  ),
+
+  "soft-luxury": dynamic<ThemePageProps>(
+    () =>
+      import("./soft-luxury").then((m) => ({
+        default: m.default.ThemePage!,
+      })),
+    {
+      ssr: true,
+      loading: makeLoading("soft-luxury"),
+    },
+  ),
+
+  "neo-glass": dynamic<ThemePageProps>(
+    () =>
+      import("./neo-glass").then((m) => ({
+        default: m.default.ThemePage!,
+      })),
+    {
+      ssr: true,
+      loading: makeLoading("neo-glass"),
+    },
+  ),
+
+  brutalist: dynamic<ThemePageProps>(
+    () =>
+      import("./brutalist").then((m) => ({
+        default: m.default.ThemePage!,
+      })),
+    {
+      ssr: true,
+      loading: makeLoading("brutalist"),
+    },
+  ),
+
+  cinematic: dynamic<ThemePageProps>(
+    () =>
+      import("./cinematic").then((m) => ({
+        default: m.default.ThemePage!,
+      })),
+    {
+      ssr: true,
+      loading: makeLoading("cinematic"),
+    },
+  ),
+};
+
+type ThemeEngineProps = {
   config: PortfolioRenderConfig;
-  profile: PublicProfileMeta & { isPremium?: boolean };
-}) {
+  profile: PublicProfileMeta & {
+    isPremium?: boolean;
+  };
+};
+
+export function ThemeEngine({ config, profile }: ThemeEngineProps) {
   const requestedId = getThemeIdFromPreferences(config.designPreferences);
 
-  // Free user + premium DNA saved → public page pe free theme dikhao
+  // A free user must not receive a saved premium theme publicly.
   const resolvedId: ThemeId =
     !profile.isPremium && isPremiumTheme(requestedId)
       ? FALLBACK_FREE_THEME
       : requestedId;
 
   const theme = getTheme(resolvedId);
+
   const normalized = normalizeSelectionForTheme(
     theme,
     config.componentSelection,
   );
+
   const selection = Object.fromEntries(
     Object.entries(normalized).map(([key, value]) => [key, value.variant]),
   ) as Record<ThemeSectionId, string>;
@@ -92,6 +151,7 @@ export function ThemeEngine({
     fontFamily: theme.tokens.fontSans,
   } as CSSProperties;
 
+  // Lookup an already-created component; never call dynamic() here.
   const ThemePage = themePages[theme.id];
 
   return (

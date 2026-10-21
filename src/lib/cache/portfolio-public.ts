@@ -3,8 +3,9 @@ import { revalidatePath, revalidateTag } from "next/cache";
 
 import { portfolioService } from "@/services/portfolio/portfolio.service";
 
-export const PORTFOLIO_REVALIDATE_SECONDS = 60;
-export const PORTFOLIO_SWR_SECONDS = 300;
+
+export const PORTFOLIO_REVALIDATE_SECONDS = 3600;
+export const PORTFOLIO_SWR_SECONDS = 86400; 
 
 export function portfolioCacheTag(username: string, slug: string) {
   return `portfolio:${username}:${slug}`;
@@ -33,7 +34,7 @@ export async function getCachedPublishedPortfolio(
       }
       return result;
     },
-    ["published-portfolio-v3", username, portfolioSlug],
+    ["published-portfolio-v4", username, portfolioSlug], // version bump
     {
       tags: [
         portfolioCacheTag(username, portfolioSlug),
@@ -46,12 +47,13 @@ export async function getCachedPublishedPortfolio(
   try {
     return await loadCachedHit();
   } catch {
-    return portfolioService.getPublishedPublic(username, portfolioSlug);
+    // not-found / error — short-circuit, sticky null cache mat banao
+    return null;
   }
 }
 
 export function publicPageCacheHeaders(): Record<string, string> {
-  const value = `public, s-maxage=${PORTFOLIO_REVALIDATE_SECONDS}, stale-while-revalidate=${PORTFOLIO_SWR_SECONDS}, stale-if-error=30`;
+  const value = `public, s-maxage=${PORTFOLIO_REVALIDATE_SECONDS}, stale-while-revalidate=${PORTFOLIO_SWR_SECONDS}, stale-if-error=86400`;
   return {
     "Cache-Control": value,
     "CDN-Cache-Control": value,

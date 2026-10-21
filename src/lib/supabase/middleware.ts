@@ -10,12 +10,7 @@ const GUEST_ONLY_PREFIXES = [
   "/auth/reset-password",
 ];
 
-const NO_CACHE_PREFIXES = [
-  "/dashboard",
-  "/onboarding",
-  "/auth",
-  "/api",
-];
+const NO_CACHE_PREFIXES = ["/dashboard", "/onboarding", "/auth", "/api"];
 
 const RESERVED_FIRST_SEGMENTS = new Set([
   "dashboard",
@@ -30,11 +25,10 @@ const RESERVED_FIRST_SEGMENTS = new Set([
 ]);
 
 function isPublicContentPath(pathname: string): boolean {
+  if (pathname === "/design-lab" || pathname.startsWith("/design-lab/")) { return true; }
+
   if (pathname === "/" || pathname === "") return false;
-  if (
-    NO_CACHE_PREFIXES.some(
-      (p) => pathname === p || pathname.startsWith(p + "/"),
-    )
+  if ( NO_CACHE_PREFIXES.some( (p) => pathname === p || pathname.startsWith(p + "/"),)
   ) {
     return false;
   }
@@ -123,4 +117,4 @@ export async function updateSession(request: NextRequest) {
   );
 
   return supabaseResponse;
-} 
+}

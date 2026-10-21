@@ -269,7 +269,7 @@ function ProjectImage({
           alt={`${project.title} preview`}
           fill
           sizes={sizes}
-          unoptimized
+          // unoptimized
           onError={() => {
             console.error("Project image failed to load:", imageUrl);
             setImageFailed(true);

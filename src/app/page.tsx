@@ -1,20 +1,48 @@
 import type { Metadata } from "next";
 import "@/components/landing/landing.css";
 
+import dynamic from "next/dynamic";
+
 import Navbar from "@/components/landing/Navbar";
 import HeroSection from "@/components/landing/HeroSection";
-import PillarsSection from "@/components/landing/PillarsSection";
-import WorkflowSection from "@/components/landing/WorkflowSection";
-import DifferenceSection from "@/components/landing/DifferenceSection";
-import FeaturesSection from "@/components/landing/FeaturesSection";
-import PricingSection from "@/components/landing/PricingSection";
-import FAQSection from "@/components/landing/FAQSection";
-import FinalCTA from "@/components/landing/FinalCTA";
-import Footer from "@/components/landing/Footer";
 import DeferredGameRoot from "@/components/landing/DeferredGameRoot";
-import DesignLabSection from "@/components/landing/Designlabsection";
 import { CookieNotice } from "@/components/legal/legal-notices";
 import { BILLING } from "@/constants/billing";
+
+
+const PillarsSection = dynamic(
+  () => import("@/components/landing/PillarsSection"),
+  { loading: () => null },
+);
+const WorkflowSection = dynamic(
+  () => import("@/components/landing/WorkflowSection"),
+  { loading: () => null },
+);
+const DifferenceSection = dynamic(
+  () => import("@/components/landing/DifferenceSection"),
+  { loading: () => null },
+);
+const FeaturesSection = dynamic(
+  () => import("@/components/landing/FeaturesSection"),
+  { loading: () => null },
+);
+const DesignLabSection = dynamic(
+  () => import("@/components/landing/Designlabsection"),
+  { loading: () => null },
+);
+const PricingSection = dynamic(
+  () => import("@/components/landing/PricingSection"),
+  { loading: () => null },
+);
+const FAQSection = dynamic(() => import("@/components/landing/FAQSection"), {
+  loading: () => null,
+});
+const FinalCTA = dynamic(() => import("@/components/landing/FinalCTA"), {
+  loading: () => null,
+});
+const Footer = dynamic(() => import("@/components/landing/Footer"), {
+  loading: () => null,
+});
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },

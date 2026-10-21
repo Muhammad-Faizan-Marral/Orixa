@@ -8,12 +8,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export const dynamic = "force-dynamic";
 
-/**
- * http://localhost:3000/design-lab
- * Internal playground — dummy data, live DNA / variant switching.
- */
 export default function DesignLabPage() {
   return <DesignLabClient />;
 }

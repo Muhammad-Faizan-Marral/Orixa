@@ -30,11 +30,6 @@ const STATUS_VARIANT = {
 
 const DISPLAY = "font-[family-name:var(--font-display)]";
 
-const RING =
-  "conic-gradient(from 0deg, #8b5cf6 0deg, #06b6d4 55deg, #22c55e 120deg, #f59e0b 180deg, #f43f5e 240deg, #ec4899 305deg, #8b5cf6 360deg)";
-const GLOW =
-  "linear-gradient(90deg, #8b5cf6, #06b6d4, #22c55e, #f59e0b, #ec4899)";
-
 const ICONS = {
   edit: "M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z",
   design:
@@ -45,75 +40,128 @@ const ICONS = {
     "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM3 12h18M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18z",
 } as const;
 
+type Tone = "live" | "paused" | "setup";
+
+const TONE_DOT: Record<Tone, string> = {
+  live: "bg-emerald-500",
+  paused: "bg-amber-500",
+  setup: "bg-foreground/30",
+};
+
 type Feature = {
   href: string;
   label: string;
   hint: string;
   icon: string;
+  /** Highlighted feature: tinted surface, pulsing "New" dot and a call to action */
   isNew: boolean;
-  spin: string;
+  /** Short action text shown at the bottom of highlighted tiles */
+  cta?: string;
+  tone?: Tone;
   className?: string;
 };
 
-function FeatureTile({ href, label, hint, icon, isNew, spin, className = "" }: Feature) {
+const FOCUS =
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background";
+
+function Arrow({ className = "" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={`size-4 shrink-0 ${className}`}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M5 12h14M13 6l6 6-6 6" />
+    </svg>
+  );
+}
+
+function NewBadge() {
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-violet-600/10 px-2.5 py-1 text-[11px] font-semibold leading-none text-violet-700 dark:bg-violet-400/15 dark:text-violet-300">
+      <span className="relative flex size-1.5" aria-hidden="true">
+        <span className="absolute inline-flex size-full animate-ping rounded-full bg-violet-500 opacity-70 motion-reduce:animate-none" />
+        <span className="relative inline-flex size-1.5 rounded-full bg-violet-500" />
+      </span>
+      New
+    </span>
+  );
+}
+
+function FeatureTile({
+  href,
+  label,
+  hint,
+  icon,
+  isNew,
+  cta,
+  tone,
+  className = "",
+}: Feature) {
+  const surface = isNew
+    ? "border-violet-500/30 bg-gradient-to-b from-violet-500/[0.09] via-violet-500/[0.03] to-transparent hover:border-violet-500/60 hover:shadow-[0_14px_30px_-18px_rgba(124,58,237,0.55)]"
+    : "border-border bg-background hover:border-foreground/25 hover:bg-foreground/[0.025] hover:shadow-sm";
+
+  const iconBox = isNew
+    ? "bg-violet-600 text-white"
+    : "bg-foreground/[0.06] text-foreground group-hover:bg-foreground group-hover:text-background";
+
   return (
     <Link
       href={href}
-      className={`group relative isolate block rounded-2xl transition-transform duration-300 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 ${className}`}
+      className={`group relative flex h-full min-h-[132px] flex-col justify-between gap-5 rounded-2xl border p-4 transition-all duration-200 hover:-translate-y-0.5 ${surface} ${FOCUS} ${className}`}
     >
-      {/* Soft glow on hover */}
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute -inset-1 -z-20 rounded-3xl opacity-0 blur-lg transition-opacity duration-500 group-hover:opacity-25"
-        style={{ background: GLOW }}
-      />
-
-      {/* Rotating rainbow ring (clipped, never touches content) */}
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10 grid place-items-center overflow-hidden rounded-2xl opacity-80 transition-opacity duration-300 group-hover:opacity-100"
-      >
+      <span className="flex items-start justify-between gap-2">
         <span
-          className={`block aspect-square w-[220%] ${spin}`}
-          style={{ background: RING, willChange: "transform" }}
-        />
+          aria-hidden="true"
+          className={`flex size-10 items-center justify-center rounded-xl transition-colors duration-200 ${iconBox}`}
+        >
+          <svg
+            viewBox="0 0 24 24"
+            className="size-5"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.75"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d={icon} />
+          </svg>
+        </span>
+
+        {isNew ? (
+          <NewBadge />
+        ) : (
+          <Arrow className="mt-1 -translate-x-1 text-muted-foreground opacity-0 transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100" />
+        )}
       </span>
 
-      {/* Solid, high-contrast surface */}
-      <span className="relative m-[1.5px] flex h-[calc(100%-3px)] flex-col gap-4 rounded-[14px] bg-background p-4 transition-colors duration-300 group-hover:bg-foreground/[0.03]">
-        <span className="flex items-start justify-between">
-          <span
-            aria-hidden="true"
-            className="flex size-10 items-center justify-center rounded-xl bg-foreground/[0.07] text-foreground"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              className="size-5"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.75"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d={icon} />
-            </svg>
-          </span>
+      <span className="block">
+        <span className="block text-base font-semibold leading-tight tracking-tight text-foreground">
+          {label}
+        </span>
 
-          {isNew && (
-            <span className="rounded-full bg-violet-600 px-2 py-1 text-[11px] font-semibold leading-none text-white">
-              New
-            </span>
+        <span className="text-small mt-1 flex items-center gap-1.5 text-muted-foreground">
+          {tone && (
+            <span
+              aria-hidden="true"
+              className={`size-1.5 shrink-0 rounded-full ${TONE_DOT[tone]}`}
+            />
           )}
+          {hint}
         </span>
 
-        <span className="block">
-          <span className="block text-base font-semibold leading-tight text-foreground">
-            {label}
+        {isNew && cta && (
+          <span className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-violet-700 dark:text-violet-300">
+            {cta}
+            <Arrow className="transition-transform duration-200 group-hover:translate-x-1" />
           </span>
-          <span className="text-small mt-1 block text-muted-foreground">
-            {hint}
-          </span>
-        </span>
+        )}
       </span>
     </Link>
   );
@@ -172,6 +220,22 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
         ? "Paused"
         : "Finish setup";
 
+  const domainTone: Tone | undefined = !domainRow
+    ? undefined
+    : domainRow.status === "verified"
+      ? "live"
+      : domainRow.status === "suspended"
+        ? "paused"
+        : "setup";
+
+  const domainCta = !domainRow
+    ? "Connect domain"
+    : domainRow.status === "verified"
+      ? "Manage"
+      : domainRow.status === "suspended"
+        ? "Review"
+        : "Finish setup";
+
   const id = portfolio.id;
   const features: Feature[] = [
     {
@@ -180,7 +244,6 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
       hint: "Update your content",
       icon: ICONS.edit,
       isNew: false,
-      spin: "animate-[spin_7s_linear_infinite] motion-reduce:animate-none",
     },
     {
       href: `/dashboard/portfolios/${id}/design-lab`,
@@ -188,7 +251,7 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
       hint: "Change the look",
       icon: ICONS.design,
       isNew: true,
-      spin: "animate-[spin_8.5s_linear_infinite_reverse] motion-reduce:animate-none",
+      cta: "Try it",
     },
     {
       href: `/dashboard/portfolios/${id}/versions`,
@@ -196,7 +259,6 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
       hint: "Restore past saves",
       icon: ICONS.versions,
       isNew: false,
-      spin: "animate-[spin_6.5s_linear_infinite] motion-reduce:animate-none",
     },
     {
       href: `/dashboard/portfolios/${id}/analytics`,
@@ -204,7 +266,6 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
       hint: "See your visitors",
       icon: ICONS.analytics,
       isNew: false,
-      spin: "animate-[spin_9s_linear_infinite_reverse] motion-reduce:animate-none",
     },
     {
       href: "#domain",
@@ -212,7 +273,8 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
       hint: domainHint,
       icon: ICONS.globe,
       isNew: true,
-      spin: "animate-[spin_7.5s_linear_infinite] motion-reduce:animate-none",
+      cta: domainCta,
+      tone: domainTone,
       className: "col-span-2 lg:col-span-1",
     },
   ];
@@ -226,7 +288,7 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
         {/* ── Back ── */}
         <Link
           href="/dashboard/portfolios"
-          className="text-small inline-flex items-center gap-2 rounded-md text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+          className={`text-small -ml-1 inline-flex items-center gap-2 rounded-md px-1 py-0.5 text-muted-foreground transition-colors hover:text-foreground ${FOCUS}`}
         >
           <span aria-hidden="true">←</span>
           All portfolios
@@ -234,13 +296,13 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
 
         {/* ── Header ── */}
         <header className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start lg:gap-10">
-          <div className="min-w-0 space-y-3">
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <div className="min-w-0 space-y-4">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
               <Badge variant={STATUS_VARIANT[status]} dot>
                 {status}
               </Badge>
 
-              <span className="text-small text-muted-foreground">
+              <span className="rounded-md bg-foreground/[0.06] px-2 py-1 text-xs font-medium tabular-nums text-foreground/80">
                 v{portfolio.currentVersion}
               </span>
 
@@ -252,7 +314,7 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
             </div>
 
             <h1
-              className={`${DISPLAY} text-balance break-words text-3xl font-semibold leading-tight tracking-tight text-foreground sm:text-5xl`}
+              className={`${DISPLAY} text-balance break-words text-3xl font-semibold leading-[1.08] tracking-[-0.025em] text-foreground sm:text-5xl`}
             >
               {portfolio.title}
             </h1>
@@ -326,26 +388,35 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
 
         {/* ── Preview ── */}
         <section className="space-y-4">
-          <h2 className="text-lg font-semibold text-foreground">Preview</h2>
+          <div className="flex items-baseline justify-between gap-4">
+            <h2
+              className={`${DISPLAY} text-xl font-semibold tracking-tight text-foreground`}
+            >
+              Preview
+            </h2>
+            <p className="text-small text-muted-foreground">
+              The top of your page, as visitors see it
+            </p>
+          </div>
 
-          <div className="overflow-hidden rounded-2xl border border-border">
-            <div className="flex items-center gap-4 border-b border-border bg-foreground/[0.03] px-4 py-3">
+          <div className="overflow-hidden rounded-2xl border border-border bg-background shadow-[0_24px_48px_-36px_rgba(0,0,0,0.3)]">
+            <div className="flex items-center gap-4 border-b border-border bg-foreground/[0.03] px-4 py-2.5">
               <div className="flex gap-1.5" aria-hidden="true">
                 <span className="size-2.5 rounded-full bg-foreground/15" />
                 <span className="size-2.5 rounded-full bg-foreground/15" />
                 <span className="size-2.5 rounded-full bg-foreground/15" />
               </div>
 
-              <p className="min-w-0 flex-1 truncate text-center font-mono text-xs text-muted-foreground">
+              <p className="min-w-0 flex-1 truncate rounded-md bg-foreground/[0.05] px-3 py-1 text-center font-mono text-xs text-muted-foreground">
                 orixaAi / {profile.username} / {portfolio.slug}
               </p>
 
               <span className="hidden w-12 sm:block" aria-hidden="true" />
             </div>
 
-            <div className="space-y-4 px-6 py-10 sm:px-10 sm:py-12">
+            <div className="space-y-5 px-6 py-10 sm:px-12 sm:py-14">
               <h3
-                className={`${DISPLAY} max-w-xl text-balance text-2xl font-semibold leading-tight tracking-tight text-foreground sm:text-3xl`}
+                className={`${DISPLAY} max-w-2xl text-balance text-2xl font-semibold leading-[1.12] tracking-[-0.02em] text-foreground sm:text-4xl`}
               >
                 {data?.headline || (
                   <span className="font-normal text-muted-foreground">
@@ -354,7 +425,7 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
                 )}
               </h3>
 
-              <p className="max-w-prose whitespace-pre-line text-base leading-7 text-foreground/75">
+              <p className="max-w-[60ch] whitespace-pre-line text-base leading-7 text-foreground/75">
                 {data?.about || (
                   <span className="text-muted-foreground">
                     Write your About section in the editor and it will appear

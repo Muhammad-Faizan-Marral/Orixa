@@ -1,10 +1,18 @@
+import type { HTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
-function Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+function Skeleton({
+  className,
+  ...props
+}: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn("animate-shimmer rounded-md", className)}
       {...props}
+      aria-hidden="true"
+      className={cn(
+        "rounded-lg bg-foreground/[0.055]",
+        className
+      )}
     />
   );
 }
