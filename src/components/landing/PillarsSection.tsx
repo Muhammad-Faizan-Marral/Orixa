@@ -3,9 +3,10 @@
 /**
  * OrixaAI — compact product pillars (understood in one glance).
  *   Row 1: Resume → Templates → Portfolio
- *   Row 2: Analytics  |  Contact form (auto-plays: fill → send → green success)
+ *   Row 2: Analytics (stats + animated trend graph + highlights)  |  Contact form
+ *   Row 3: Custom Domain Mapping (auto-plays: type → connect → DNS → SSL → live)
  *
- * CSS-only visuals, transform/opacity animations, timers run only while
+ * CSS-only visuals, transform/opacity/clip animations, timers run only while
  * visible, reduced-motion shows the final static state.
  */
 
@@ -127,6 +128,47 @@ const DEMO = {
 } as const;
 type Field = keyof typeof DEMO;
 const ORDER: Field[] = ["name", "email", "subject", "message"];
+
+/* ── trend chart (computed once at module level) ── */
+
+const TREND = [38, 52, 45, 70, 64, 88, 76, 104, 97, 128, 118, 150, 141, 172];
+const CH_W = 300;
+const CH_H = 100;
+
+function buildChart(data: number[]) {
+  const pad = 10;
+  const min = Math.min(...data);
+  const max = Math.max(...data);
+  const pts = data.map((v, i) => ({
+    x: (i / (data.length - 1)) * CH_W,
+    y: CH_H - pad - ((v - min) / (max - min)) * (CH_H - pad * 2),
+  }));
+  let d = `M${pts[0].x.toFixed(1)},${pts[0].y.toFixed(1)}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] ?? pts[i];
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    const p3 = pts[i + 2] ?? p2;
+    const c1x = p1.x + (p2.x - p0.x) / 6;
+    const c1y = p1.y + (p2.y - p0.y) / 6;
+    const c2x = p2.x - (p3.x - p1.x) / 6;
+    const c2y = p2.y - (p3.y - p1.y) / 6;
+    d += ` C${c1x.toFixed(1)},${c1y.toFixed(1)} ${c2x.toFixed(1)},${c2y.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`;
+  }
+  return {
+    line: d,
+    area: `${d} L${CH_W},${CH_H} L0,${CH_H} Z`,
+    last: pts[pts.length - 1],
+  };
+}
+
+const CHART = buildChart(TREND);
+
+/* ── custom domain demo ── */
+
+const DOMAIN = "ayeshakhan.com";
+const SUBDOMAIN = "ayeshakhan.orixaai.com";
+const CHECKS = ["Add CNAME record", "Verify DNS", "Issue SSL certificate"];
 
 /* ───────────────────────── hooks ───────────────────────── */
 
@@ -406,6 +448,64 @@ function Analytics() {
           </div>
         ))}
       </div>
+
+      <div
+        className={`an-chart ${seen ? "an-chart--on" : ""}`}
+        role="img"
+        aria-label="Visitors trend over the last 30 days, rising 18 percent"
+      >
+        <div className="an-chart-head">
+          <p className="an-label">Visitors · last 30 days</p>
+          <span className="an-badge">▲ 18.4%</span>
+        </div>
+        <div className="an-chart-body">
+          <div className="an-plot">
+            <svg
+              viewBox={`0 0 ${CH_W} ${CH_H}`}
+              preserveAspectRatio="none"
+              aria-hidden="true"
+            >
+              <defs>
+                <linearGradient id="an-grad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#22d3ee" stopOpacity="0.38" />
+                  <stop offset="100%" stopColor="#22d3ee" stopOpacity="0" />
+                </linearGradient>
+              </defs>
+              {[25, 50, 75].map((y) => (
+                <line
+                  key={y}
+                  x1="0"
+                  x2={CH_W}
+                  y1={y}
+                  y2={y}
+                  className="an-grid-line"
+                />
+              ))}
+              <path d={CHART.area} fill="url(#an-grad)" />
+              <path
+                d={CHART.line}
+                fill="none"
+                stroke="#22d3ee"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                vectorEffect="non-scaling-stroke"
+              />
+            </svg>
+          </div>
+          <span
+            className="an-dot"
+            style={{ top: `${(CHART.last.y / CH_H) * 100}%` }}
+          />
+        </div>
+        <div className="an-axis" aria-hidden="true">
+          <span>30d ago</span>
+          <span>20d</span>
+          <span>10d</span>
+          <span>Today</span>
+        </div>
+      </div>
+
       <div className="an-hl">
         {HIGHLIGHTS.map((h) => (
           <div key={h.label} className="an-hl-item">
@@ -530,6 +630,165 @@ function ContactDemo() {
   );
 }
 
+/* ───────────────────────── Row 3: Custom domain (auto-plays) ───────────────────────── */
+
+function DomainDemo() {
+  const reduced = useReducedMotion();
+  const { ref, live } = useInView<HTMLDivElement>();
+  const [domain, setDomain] = useState(reduced ? DOMAIN : "");
+  const [typing, setTyping] = useState(false);
+  // 0 idle · 1 CNAME · 2 DNS · 3 SSL · 4 live
+  const [step, setStep] = useState(reduced ? 4 : 0);
+
+  useEffect(() => {
+    if (reduced) {
+      setDomain(DOMAIN);
+      setStep(4);
+      return;
+    }
+    if (!live) return;
+    let dead = false;
+    const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+    (async () => {
+      while (!dead) {
+        setStep(0);
+        setDomain("");
+        await sleep(600);
+        setTyping(true);
+        for (let i = 1; i <= DOMAIN.length; i++) {
+          if (dead) return;
+          setDomain(DOMAIN.slice(0, i));
+          await sleep(70);
+        }
+        setTyping(false);
+        await sleep(500);
+        for (let s = 1; s <= 4; s++) {
+          if (dead) return;
+          setStep(s);
+          await sleep(s === 4 ? 3800 : 1000);
+        }
+      }
+    })();
+    return () => {
+      dead = true;
+    };
+  }, [live, reduced]);
+
+  const connected = step === 4;
+  const busy = step > 0 && step < 4;
+
+  return (
+    <div
+      ref={ref}
+      className={`dm ${connected ? "dm--live" : ""}`}
+      aria-label="Custom domain mapping demo"
+    >
+      <div className="dm-col">
+        <p className="dm-label">Your domain</p>
+        <div className={`dm-input ${typing ? "is-focus" : ""}`}>
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="9" />
+            <path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z" />
+          </svg>
+          <span className="dm-input-text">
+            {domain || <em>yourname.com</em>}
+            {typing && <i className="cf-caret" />}
+          </span>
+        </div>
+        <div
+          className={`dm-btn ${busy ? "is-busy" : ""} ${connected ? "is-ok" : ""}`}
+        >
+          {busy ? (
+            <>
+              <span className="cf-spin" /> Connecting
+            </>
+          ) : connected ? (
+            "Connected"
+          ) : (
+            "Connect domain"
+          )}
+        </div>
+        <div className="dm-rec">
+          <span>
+            <b>Type</b>CNAME
+          </span>
+          <span>
+            <b>Host</b>www
+          </span>
+          <span>
+            <b>Points to</b>cname.orixaai.com
+          </span>
+        </div>
+      </div>
+
+      <ul className="dm-checks" aria-live="polite">
+        {CHECKS.map((c, i) => {
+          const state =
+            step - 1 > i ? "done" : step - 1 === i ? "active" : "wait";
+          return (
+            <li key={c} className={`dm-check is-${state}`}>
+              <span className="dm-check-ico">
+                {state === "done" ? (
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M5 12.5l4.5 4.5L19 7.5" />
+                  </svg>
+                ) : state === "active" ? (
+                  <span className="cf-spin dm-spin" />
+                ) : null}
+              </span>
+              {c}
+            </li>
+          );
+        })}
+      </ul>
+
+      <div className="dm-browser">
+        <div className="browser-bar" aria-hidden="true">
+          <i />
+          <i />
+          <i />
+          <span className="dm-url">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className={`dm-lock ${connected ? "is-on" : ""}`}
+            >
+              <rect x="5" y="11" width="14" height="9" rx="2" />
+              <path d="M8 11V8a4 4 0 018 0v3" />
+            </svg>
+            <span key={connected ? "c" : "s"} className="dm-url-text">
+              {connected ? DOMAIN : SUBDOMAIN}
+            </span>
+          </span>
+        </div>
+        <div className="dm-view">
+          <Thumb t={TEMPLATES[4]} />
+          <span className={`dm-live ${connected ? "is-on" : ""}`}>● Live</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ───────────────────────── section ───────────────────────── */
 
 export default function PillarsSection() {
@@ -568,6 +827,13 @@ export default function PillarsSection() {
               <ContactDemo />
             </Panel>
           </div>
+
+          <Panel
+            title="Custom Domain Mapping"
+            sub="Connect your own custom domain name effortlessly to brand your personal portfolio."
+          >
+            <DomainDemo />
+          </Panel>
         </div>
       </div>
 
@@ -1156,10 +1422,96 @@ export default function PillarsSection() {
           font-weight: 700;
           font-variant-numeric: tabular-nums;
         }
+
+        .an-chart {
+          flex: 1;
+          min-height: 8rem;
+          display: flex;
+          flex-direction: column;
+          gap: 0.35rem;
+          border-radius: 0.7rem;
+          border: 1px solid rgb(34 211 238 / 0.22);
+          background: rgb(34 211 238 / 0.05);
+          padding: 0.6rem 0.7rem 0.45rem;
+        }
+        .an-chart-head {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 0.5rem;
+        }
+        .an-badge {
+          font-size: 0.64rem;
+          font-weight: 600;
+          color: #34d399;
+          background: rgb(52 211 153 / 0.14);
+          border-radius: 999px;
+          padding: 0.1rem 0.45rem;
+        }
+        .an-chart-body {
+          position: relative;
+          flex: 1;
+          min-height: 4.5rem;
+        }
+        .an-plot {
+          position: absolute;
+          inset: 0;
+          clip-path: inset(0 100% 0 0);
+          transition: clip-path 1.5s cubic-bezier(0.22, 0.8, 0.3, 1);
+          will-change: clip-path;
+        }
+        .an-chart--on .an-plot {
+          clip-path: inset(0 0 0 0);
+        }
+        .an-plot svg {
+          width: 100%;
+          height: 100%;
+          display: block;
+        }
+        .an-grid-line {
+          stroke: rgb(120 120 140 / 0.25);
+          stroke-width: 1;
+          stroke-dasharray: 3 4;
+          vector-effect: non-scaling-stroke;
+        }
+        .an-dot {
+          position: absolute;
+          right: 0;
+          width: 9px;
+          height: 9px;
+          margin: -4.5px -4.5px 0 0;
+          border-radius: 50%;
+          background: #22d3ee;
+          box-shadow: 0 0 0 3px rgb(34 211 238 / 0.25);
+          opacity: 0;
+          transform: scale(0.4);
+          transition:
+            opacity 0.3s 1.4s,
+            transform 0.3s 1.4s;
+        }
+        .an-chart--on .an-dot {
+          opacity: 1;
+          transform: none;
+          animation: dot-pulse 2s 1.8s ease-out infinite;
+        }
+        @keyframes dot-pulse {
+          0% {
+            box-shadow: 0 0 0 0 rgb(34 211 238 / 0.5);
+          }
+          100% {
+            box-shadow: 0 0 0 10px rgb(34 211 238 / 0);
+          }
+        }
+        .an-axis {
+          display: flex;
+          justify-content: space-between;
+          font-size: 0.58rem;
+          opacity: 0.5;
+        }
+
         .an-hl {
           display: grid;
           gap: 0.5rem;
-          margin-top: auto;
         }
         @media (min-width: 560px) {
           .an-hl {
@@ -1323,19 +1675,267 @@ export default function PillarsSection() {
           opacity: 0.8;
         }
 
+        /* ── Custom domain demo ── */
+        .dm {
+          display: grid;
+          gap: 1rem;
+          align-items: center;
+        }
+        @media (min-width: 900px) {
+          .dm {
+            grid-template-columns: 1fr 1fr 15rem;
+            gap: 1.5rem;
+          }
+        }
+        .dm-col {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+          min-width: 0;
+        }
+        .dm-label {
+          font-size: 0.68rem;
+          opacity: 0.65;
+        }
+        .dm-input {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          min-height: 2.3rem;
+          padding: 0.4rem 0.7rem;
+          border-radius: 0.6rem;
+          font-size: 0.85rem;
+          border: 1px solid rgb(120 120 140 / 0.35);
+          background: rgb(120 120 140 / 0.08);
+          transition:
+            border-color 0.2s,
+            box-shadow 0.2s;
+        }
+        .dm-input.is-focus {
+          border-color: #22d3ee;
+          box-shadow: 0 0 0 3px rgb(34 211 238 / 0.18);
+        }
+        .dm-input svg {
+          width: 1rem;
+          height: 1rem;
+          flex: none;
+          opacity: 0.6;
+        }
+        .dm-input-text {
+          min-width: 0;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .dm-input-text em {
+          font-style: normal;
+          opacity: 0.35;
+        }
+        .dm-btn {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+          padding: 0.5rem 1rem;
+          border-radius: 0.65rem;
+          font-weight: 600;
+          font-size: 0.82rem;
+          color: #06222a;
+          background: linear-gradient(90deg, #22d3ee, #6c5cff);
+          transition:
+            transform 0.2s,
+            opacity 0.2s,
+            background 0.3s;
+        }
+        .dm-btn.is-busy {
+          opacity: 0.85;
+          transform: scale(0.985);
+        }
+        .dm-btn.is-ok {
+          color: #052e1c;
+          background: #34d399;
+        }
+        .dm-rec {
+          display: grid;
+          gap: 0.15rem;
+          margin-top: 0.15rem;
+          padding: 0.5rem 0.7rem;
+          border-radius: 0.6rem;
+          border: 1px dashed rgb(120 120 140 / 0.4);
+          font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+          font-size: 0.66rem;
+        }
+        .dm-rec span {
+          display: flex;
+          gap: 0.6rem;
+          min-width: 0;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .dm-rec b {
+          flex: none;
+          width: 4.2rem;
+          font-weight: 500;
+          opacity: 0.5;
+        }
+
+        .dm-checks {
+          display: flex;
+          flex-direction: column;
+          gap: 0.55rem;
+        }
+        .dm-check {
+          display: flex;
+          align-items: center;
+          gap: 0.6rem;
+          padding: 0.5rem 0.7rem;
+          border-radius: 0.65rem;
+          font-size: 0.82rem;
+          border: 1px solid rgb(120 120 140 / 0.25);
+          background: rgb(120 120 140 / 0.06);
+          opacity: 0.55;
+          transition:
+            opacity 0.3s,
+            border-color 0.3s,
+            background 0.3s;
+        }
+        .dm-check.is-active {
+          opacity: 1;
+          border-color: rgb(34 211 238 / 0.5);
+          background: rgb(34 211 238 / 0.08);
+        }
+        .dm-check.is-done {
+          opacity: 1;
+          color: #34d399;
+          border-color: rgb(52 211 153 / 0.4);
+          background: rgb(52 211 153 / 0.1);
+        }
+        .dm-check-ico {
+          display: grid;
+          place-items: center;
+          flex: none;
+          width: 1.2rem;
+          height: 1.2rem;
+          border-radius: 50%;
+          border: 1.5px solid currentColor;
+          opacity: 0.9;
+        }
+        .dm-check.is-wait .dm-check-ico {
+          opacity: 0.3;
+        }
+        .dm-check-ico svg {
+          width: 0.7rem;
+          height: 0.7rem;
+        }
+        .dm-check-ico .dm-spin {
+          width: 0.7rem;
+          height: 0.7rem;
+          border-color: rgb(34 211 238 / 0.3);
+          border-top-color: #22d3ee;
+        }
+        .dm-check.is-active .dm-check-ico {
+          border-color: transparent;
+        }
+
+        .dm-browser {
+          position: relative;
+          width: 100%;
+          max-width: 15rem;
+          justify-self: center;
+          border-radius: 0.65rem;
+          overflow: hidden;
+          border: 1px solid rgb(120 120 140 / 0.35);
+          background: #0f1116;
+          box-shadow: 0 16px 34px rgb(0 0 0 / 0.3);
+          transition:
+            border-color 0.4s,
+            box-shadow 0.4s;
+        }
+        .dm--live .dm-browser {
+          border-color: rgb(52 211 153 / 0.6);
+          box-shadow:
+            0 16px 34px rgb(0 0 0 / 0.3),
+            0 0 22px rgb(52 211 153 / 0.22);
+        }
+        .dm-url {
+          display: flex;
+          align-items: center;
+          gap: 0.25rem;
+          min-width: 0;
+        }
+        .dm-url-text {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          animation: view-in 0.4s ease both;
+        }
+        .dm-lock {
+          width: 0.6rem;
+          height: 0.6rem;
+          flex: none;
+          color: #34d399;
+          opacity: 0;
+          transform: scale(0.5);
+          transition:
+            opacity 0.3s,
+            transform 0.3s;
+        }
+        .dm-lock.is-on {
+          opacity: 1;
+          transform: none;
+        }
+        .dm-view {
+          position: relative;
+        }
+        .dm-live {
+          position: absolute;
+          right: 0.4rem;
+          bottom: 0.4rem;
+          z-index: 3;
+          font-size: 0.55rem;
+          font-weight: 600;
+          color: #34d399;
+          padding: 0.15rem 0.4rem;
+          border-radius: 999px;
+          background: rgb(0 0 0 / 0.7);
+          opacity: 0;
+          transform: translateY(4px);
+          transition:
+            opacity 0.3s,
+            transform 0.3s;
+        }
+        .dm-live.is-on {
+          opacity: 1;
+          transform: none;
+        }
+
         @media (prefers-reduced-motion: reduce) {
           .flow--on .resume-scan,
           .flow--on .flow-beam span,
           .cf-caret,
-          .cf-spin {
+          .cf-spin,
+          .an-chart--on .an-dot {
             animation: none !important;
           }
-          .browser-view {
+          .browser-view,
+          .dm-url-text {
             animation: none !important;
           }
           .cf-ok,
-          .rail-pill {
+          .rail-pill,
+          .an-plot,
+          .an-dot,
+          .dm-check,
+          .dm-live,
+          .dm-lock {
             transition: none !important;
+          }
+          .an-plot {
+            clip-path: inset(0 0 0 0) !important;
+          }
+          .an-dot {
+            opacity: 1;
+            transform: none;
           }
           .cf-ok.is-on .cf-ring,
           .cf-ok.is-on .cf-tick {

@@ -16,6 +16,11 @@ const FEATURES = [
     span: "lg:col-span-3",
   },
   {
+    title: "Custom Domain Mapping",
+    desc: "Connect your own custom domain name effortlessly to brand your personal portfolio.",
+    span: "lg:col-span-2",
+  },
+  {
     title: "Premium Designs",
     desc: "Layouts built to feel like a real personal site — not another generic template.",
     span: "lg:col-span-2",
@@ -28,7 +33,7 @@ const FEATURES = [
   {
     title: "Direct Contact",
     desc: "Working contact forms on your portfolio so recruiters and clients email you directly.",
-    span: "lg:col-span-2",
+    span: "lg:col-span-3",
   },
   {
     title: "Share Your Work",
@@ -87,7 +92,7 @@ export default function FeaturesSection() {
               </SpotlightCard>
             </li>
           ))}
-          <li className="sm:col-span-2 lg:col-span-3">
+          <li className="sm:col-span-2 lg:col-span-6">
             <Relic id="alchemy" label="An empty slot with a keyhole"
               className="relative flex h-full min-h-28 w-full items-center justify-center rounded-xl border border-dashed border-border-strong p-6 transition hover:border-accent">
               {({ solved, sealed }) => (
