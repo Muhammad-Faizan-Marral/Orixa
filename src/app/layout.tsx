@@ -36,6 +36,9 @@ const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
   display: "swap",
+  // Only the fallback in --font-sans (DM Sans is primary), so don't preload it
+  // on every route; the file is still fetched on demand when actually used.
+  preload: false,
   adjustFontFallback: true,
 });
 
@@ -46,6 +49,8 @@ const bricolage = Bricolage_Grotesque({
   variable: "--font-bricolage",
   subsets: ["latin"],
   display: "swap",
+  // Only the neo-glass portfolio theme uses it; never needed for first paint.
+  preload: false,
   adjustFontFallback: true,
 });
 
@@ -87,7 +92,10 @@ const dmSans = DM_Sans({
   variable: "--font-dm",
   subsets: ["latin"],
   display: "swap",
-  preload: false,
+  // Primary body/display font (see --font-sans): preload so text doesn't
+  // reflow when it swaps in, which protects LCP/CLS on the landing page.
+  preload: true,
+  adjustFontFallback: true,
 });
 
 /**

@@ -16,9 +16,9 @@
   .btn-ion:hover:not(:disabled) { background:var(--primary-hover); transform:translateY(-2px);
     box-shadow:0 0 0 1px color-mix(in srgb,var(--accent) 50%,transparent), 0 16px 44px -10px color-mix(in srgb,var(--primary) 90%,transparent); }
   .btn-ion:hover:not(:disabled)::after { transform:translateX(120%); }
-  .btn-ghost { border:1px solid var(--border-strong); color:var(--foreground); background:color-mix(in srgb,var(--surface) 70%,transparent); backdrop-filter:blur(8px); }
+  .btn-ghost { border:1px solid var(--border-strong); color:var(--foreground); background:color-mix(in srgb,var(--surface) 70%,transparent); }
   .btn-ghost:hover:not(:disabled) { background:var(--surface-2); border-color:var(--primary); }
-  .glass { background:color-mix(in srgb,var(--background) 72%,transparent); backdrop-filter:blur(14px) saturate(1.4); }
+  .glass { background:color-mix(in srgb,var(--background) 78%,transparent); backdrop-filter:blur(10px); }
   .spot { position:relative; }
   .spot::before { content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none; opacity:0; transition:opacity .3s;
     background:radial-gradient(360px circle at var(--x,50%) var(--y,50%), color-mix(in srgb,var(--primary) 22%,transparent), transparent 70%); }
@@ -56,3 +56,105 @@ dialog.cabinet::backdrop { background:color-mix(in srgb,var(--background) 86%,tr
   .anim-portal,.anim-shake,.anim-pop,.anim-blink,.anim-beacon,.anim-break,.anim-glitch,.anim-ring,.coin,.spark { animation:none !important; }
   .btn,.btn-ion::after { transition:none; }
 }
+
+/* ---- Design Lab teaser (moved out of styled-jsx; kept unlayered like the old global <style jsx>) ---- */
+.dl-card {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  border: 1px solid rgb(120 120 140 / 0.25);
+  border-radius: 1.4rem;
+  background: rgb(120 120 140 / 0.06);
+  padding: 2.2rem 1.25rem;
+}
+@media (min-width: 768px) {
+  .dl-card {
+    padding: 3rem 2.5rem;
+  }
+}
+.dl-glow {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      520px circle at 15% 0%,
+      rgb(108 92 255 / 0.16),
+      transparent 60%
+    ),
+    radial-gradient(
+      520px circle at 90% 100%,
+      rgb(34 211 238 / 0.14),
+      transparent 60%
+    );
+}
+.dl-url {
+  font-size: 0.74rem;
+  opacity: 0.55;
+  letter-spacing: 0.02em;
+}
+.dl-hint {
+  text-align: center;
+  font-size: 0.8rem;
+  opacity: 0.65;
+  margin-bottom: 0.9rem;
+}
+.dl-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  max-width: 40rem;
+  margin: 0 auto;
+}
+.dl-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.9rem 0.45rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  white-space: nowrap;
+  border: 1px solid rgb(120 120 140 / 0.3);
+  background: rgb(120 120 140 / 0.08);
+  transition:
+    transform 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+.dl-dot {
+  width: 1.15rem;
+  height: 1.15rem;
+  border-radius: 50%;
+  flex: none;
+  background: linear-gradient(135deg, var(--from), var(--to));
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.25);
+}
+.dl-chip:hover {
+  transform: translateY(-2px);
+  border-color: var(--to);
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--to) 28%, transparent);
+}
+.dl-chip:focus-visible {
+  outline: 2px solid var(--to);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .dl-chip {
+    transition: none;
+  }
+  .dl-chip:hover {
+    transform: none;
+  }
+}
+
+/* ---- FAQ accordion (native <details>) ---- */
+.faq > summary { list-style: none; }
+.faq > summary::-webkit-details-marker { display: none; }
+.faq-sign::before { content: "+"; }
+.faq[open] .faq-sign::before { content: "\2212"; }
+.faq > summary:focus-visible { outline: 2px solid var(--ring, var(--color-ring)); outline-offset: -2px; }
+
+/* ---- In-page anchors must clear the 4rem sticky navbar ---- */
+#how, #features, #samplework, #pricing, #pillars, #design-lab { scroll-margin-top: 4.5rem; }

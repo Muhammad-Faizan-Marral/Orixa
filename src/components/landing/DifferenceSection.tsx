@@ -21,16 +21,18 @@ export default function DifferenceSection() {
           <p className="text-body-lg mt-4">OrixaAI is focused on one thing: helping you present your work.</p>
         </div>
 
-        <div role="table" aria-label="What changes with OrixaAI" className="space-y-3">
-          <div role="row" className="text-caption grid grid-cols-[1fr_1.6fr] gap-4 px-4">
-            <span role="columnheader">Instead of</span><span role="columnheader">OrixaAI gives you</span>
-          </div>
-          {ROWS.map((r) => (
-            <div role="row" key={r.from} className="surface-panel grid grid-cols-[1fr_1.6fr] gap-4 p-4 transition hover:border-primary/60">
-              <span role="cell" className="text-muted-foreground line-through decoration-error/70">{r.from}</span>
-              <span role="cell" className="font-medium">{r.to}</span>
+        <div className="space-y-3">
+          <div role="table" aria-label="What changes with OrixaAI" className="space-y-3">
+            <div role="row" className="text-caption grid grid-cols-[1fr_1.6fr] gap-4 px-4">
+              <span role="columnheader">Instead of</span><span role="columnheader">OrixaAI gives you</span>
             </div>
-          ))}
+            {ROWS.map((r) => (
+              <div role="row" key={r.from} className="surface-panel grid grid-cols-[1fr_1.6fr] gap-4 p-4 transition hover:border-primary/60">
+                <span role="cell" className="text-muted-foreground line-through decoration-error/70">{r.from}</span>
+                <span role="cell" className="font-medium">{r.to}</span>
+              </div>
+            ))}
+          </div>
           <Relic id="decoder" label="A corrupted row, inspect it" className="relative grid w-full grid-cols-[1fr_1.6fr] gap-4 rounded-lg border border-dashed border-border-strong p-4 text-left transition hover:border-accent">
             {({ solved }) => (
               <>

@@ -1,25 +1,18 @@
-"use client";
-
 import Link from "next/link";
-import { useRef } from "react";
 import ArtifactStage from "./hero/ArtifactStage";
 
+/**
+ * Server Component: only <ArtifactStage/> is a client island. The old
+ * pointer-follow glow rewrote CSS variables on every mouse move and repainted
+ * the whole hero background; it is now a static gradient.
+ */
 export default function HeroSection() {
-  const ref = useRef<HTMLElement>(null);
   return (
-    <section
-      ref={ref}
-      className="relative isolate overflow-hidden"
-      onPointerMove={(e) => {
-        const r = e.currentTarget.getBoundingClientRect();
-        ref.current?.style.setProperty("--mx", `${e.clientX - r.left}px`);
-        ref.current?.style.setProperty("--my", `${e.clientY - r.top}px`);
-      }}
-    >
+    <section className="relative isolate overflow-hidden">
       <div className="bg-aurora absolute inset-0 -z-30" aria-hidden="true" />
       <div className="bg-grain absolute inset-0 -z-20" aria-hidden="true" />
       <div
-        className="absolute inset-0 -z-10 [background:radial-gradient(520px_circle_at_var(--mx,70%)_var(--my,40%),color-mix(in_srgb,var(--primary)_16%,transparent),transparent_65%)]"
+        className="absolute inset-0 -z-10 [background:radial-gradient(520px_circle_at_70%_40%,color-mix(in_srgb,var(--primary)_16%,transparent),transparent_65%)]"
         aria-hidden="true"
       />
 

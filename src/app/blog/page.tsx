@@ -6,18 +6,18 @@ import { BlogFooter, BlogHeader } from "@/components/blog/BlogHeader";
 import { BLOG_ARTICLES } from "@/content/blog";
 
 export const metadata: Metadata = {
-  title: "Portfolio Guides for Developers and Creators",
+  title: "Portfolio Guides & Custom Domain Tips | OrixaAI",
   description:
-    "Practical guidance on developer portfolios, presenting your work, and using AI to organize a portfolio.",
+    "Practical guides to developer portfolios, personal portfolio websites, custom domains, and using AI to organize and present your work.",
   alternates: {
     canonical: "https://www.orixaai.me/blog",
   },
   openGraph: {
     type: "website",
     url: "https://www.orixaai.me/blog",
-    title: "Portfolio Guides for Developers and Creators | OrixaAI",
+    title: "Portfolio Guides & Custom Domain Tips | OrixaAI",
     description:
-      "Practical guidance on developer portfolios, presenting your work, and using AI to organize a portfolio.",
+      "Practical guides to developer portfolios, personal portfolio websites, custom domains, and using AI to organize and present your work.",
   },
 };
 

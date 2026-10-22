@@ -60,6 +60,14 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // The marketing home page is static and shows no per-user UI, so it must not
+  // pay for a Supabase round-trip, and must not be forced to `no-store`.
+  // We deliberately set NO Cache-Control here: Next/Vercel's own static-page
+  // headers (CDN cacheable + revalidate) stay intact.
+  if (pathname === "/") {
+    return NextResponse.next({ request });
+  }
+
   if (isPublicContentPath(pathname)) {
     const response = NextResponse.next({ request });
     return applyPublicCacheHeaders(response);

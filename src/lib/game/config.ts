@@ -3,6 +3,8 @@
  * Digits and the secret code are server-only (lib/server/game-secrets.ts).
  * Puzzle *boards* live here because the client has to render them; the server re-verifies every answer.
  */
+import { BILLING } from "@/constants/billing";
+
 export const MAX_LIVES = 3;
 export const CODE_LENGTH = 5;
 
@@ -76,8 +78,12 @@ export const TERMINAL_FILES: Record<string, string> = {
   "notes.txt": "legend:  [x] done   [ ] to do   [?] unknown, not done yet\nThe workflow has 3 steps in total.\nReport the number still left with: submit <n>",
 };
 
-/** Real prices taken from the existing PricingSection. */
-export const PRICING = { monthly: 9, yearly: 69, secretOff: 9 } as const;
+/** Prices come from constants/billing.ts so the UI, JSON-LD and checkout can never drift apart. */
+export const PRICING = {
+  monthly: BILLING.PRICE_MONTHLY,
+  yearly: BILLING.PRICE_YEARLY,
+  secretOff: 9,
+} as const;
 
 export interface DiscountState {
   applied: boolean;

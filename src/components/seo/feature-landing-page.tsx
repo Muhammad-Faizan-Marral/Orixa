@@ -10,6 +10,11 @@ const SITE_URL = "https://www.orixaai.me";
 
 const RELATED_PAGES = [
   {
+    href: "/portfolio-builder",
+    title: "Portfolio builder",
+    description: "Create a portfolio website from your resume or professional details.",
+  },
+  {
     href: "/developer-portfolio-builder",
     title: "Developer portfolio builder",
     description: "Present projects, skills, experience, and profile links.",

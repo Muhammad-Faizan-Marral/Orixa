@@ -34,6 +34,8 @@ export class BillingService {
     email: string;
     productKey: "monthly" | "yearly";
     successUrl?: string;
+    /** Polar discount to attach (e.g. the landing-page secret code reward). */
+    discountId?: string;
   }) {
     const productId = POLAR_PRODUCTS[params.productKey];
 
@@ -51,6 +53,7 @@ export class BillingService {
         params.successUrl ??
         `${appUrl}/dashboard?checkout=success&checkout_id={CHECKOUT_ID}`,
       customerEmail: params.email,
+      ...(params.discountId ? { discountId: params.discountId } : {}),
       // Links Polar customer → your auth user (webhook externalId ke liye zaroori)
       externalCustomerId: params.userId,
       metadata: {

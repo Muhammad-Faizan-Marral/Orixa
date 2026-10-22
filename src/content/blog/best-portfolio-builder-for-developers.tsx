@@ -68,6 +68,7 @@ const article: BlogArticle = {
           presentation, publish projects, and provide a contact path. Depending
           on the configured portfolio workflow, users can attach an existing
           resume or generate a PDF from their form details. Learn more about
+          the <Link href="/portfolio-builder" className="text-primary underline-offset-4 hover:underline">Orixa AI portfolio builder</Link>,
           the <Link href="/developer-portfolio-builder" className="text-primary underline-offset-4 hover:underline">developer portfolio builder</Link>,
           the <Link href="/resume-to-portfolio" className="text-primary underline-offset-4 hover:underline">resume-to-portfolio workflow</Link>,
           and <Link href="/portfolio-templates" className="text-primary underline-offset-4 hover:underline">portfolio design options</Link>.

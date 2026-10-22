@@ -33,12 +33,11 @@ const FREE_FEATURES = [
 ];
 
 const PREMIUM_FEATURES = [
-  "All premium Design DNAs",
+  "Custom Domain",
   "Apply premium designs",
-  "Remove watermark",
+  "Remove watermark", 
   "Premium template pack",
   "Unlimited create portfolios",
-  "Remove watermark",
   "All Premium designs",
   "Create & publish portfolios",
   "Resume upload & parsing",

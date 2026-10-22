@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PRICING, type DiscountState } from "@/lib/game/config";
 import { allDigitsFound, useGameStore } from "@/lib/game/store";
 import DigitRail from "./game/DigitRail";
@@ -24,6 +24,7 @@ const FREE = [
 ];
 const PRO = [
   "Unlimited create portfolios",
+  "Custom Domain",
   "Remove watermark",
   "All Premium designs",
   "Create & publish portfolios",
@@ -61,20 +62,45 @@ export default function PricingSection() {
   const digits = useGameStore((s) => s.digits);
   const complete = allDigitsFound(digits);
 
-  // The cookie is signed and httpOnly: refresh keeps the discount, DevTools can't fake it.
+  // The cookie is signed and httpOnly, so the browser can't tell us whether a
+  // discount exists without asking the server. Ask lazily: only once the pricing
+  // section is about to be seen, so visitors who bounce earlier cost no request.
+  const sectionRef = useRef<HTMLElement>(null);
   useEffect(() => {
-    let live = true;
-    fetch("/api/discount/validate")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d: DiscountState | null) => {
-        if (live && d?.applied) {
-          setDiscount(d);
-          setStatus("valid");
+    const el = sectionRef.current;
+    if (!el) return;
+    const ctrl = new AbortController();
+    let started = false;
+    const load = () => {
+      if (started) return;
+      started = true;
+      fetch("/api/discount/validate", { signal: ctrl.signal, cache: "no-store" })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d: DiscountState | null) => {
+          if (d?.applied) {
+            setDiscount(d);
+            setStatus("valid");
+          }
+        })
+        .catch(() => {});
+    };
+    if (typeof IntersectionObserver === "undefined") {
+      load();
+      return () => ctrl.abort();
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          io.disconnect();
+          load();
         }
-      })
-      .catch(() => {});
+      },
+      { rootMargin: "600px 0px" },
+    );
+    io.observe(el);
     return () => {
-      live = false;
+      io.disconnect();
+      ctrl.abort();
     };
   }, []);
 
@@ -115,6 +141,7 @@ export default function PricingSection() {
 
   return (
     <section
+      ref={sectionRef}
       id="pricing"
       className="relative bg-surface py-24 [clip-path:polygon(0_0,100%_2.5rem,100%_100%,0_100%)] md:py-36"
     >

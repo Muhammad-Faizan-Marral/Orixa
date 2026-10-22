@@ -9,6 +9,9 @@ export function BlogHeader() {
           <Logo variant="wordmark" height={30} />
         </Link>
         <nav aria-label="Blog navigation" className="flex items-center gap-4 text-sm sm:gap-6">
+          <Link href="/portfolio-builder" className="hidden text-muted-foreground transition hover:text-foreground sm:inline">
+            Portfolio builder
+          </Link>
           <Link href="/blog" className="text-foreground transition hover:text-primary">
             Blog
           </Link>
@@ -38,6 +41,9 @@ export function BlogFooter() {
           OrixaAI
         </Link>
         <nav aria-label="Footer" className="flex flex-wrap gap-x-5 gap-y-2">
+          <Link href="/portfolio-builder" className="transition hover:text-foreground">
+            Portfolio builder
+          </Link>
           <Link href="/blog" className="transition hover:text-foreground">
             Blog
           </Link>

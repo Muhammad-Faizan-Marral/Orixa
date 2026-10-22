@@ -6,10 +6,14 @@ import dynamic from "next/dynamic";
 import Navbar from "@/components/landing/Navbar";
 import HeroSection from "@/components/landing/HeroSection";
 import DeferredGameRoot from "@/components/landing/DeferredGameRoot";
+// Server components (no client JS): static imports. next/dynamic around them only added chunk indirection.
+import DesignLabSection from "@/components/landing/Designlabsection";
+import FinalCTA from "@/components/landing/FinalCTA";
+import Footer from "@/components/landing/Footer";
 import { CookieNotice } from "@/components/legal/legal-notices";
 import { BILLING } from "@/constants/billing";
 
-
+// Client sections stay code-split.
 const PillarsSection = dynamic(
   () => import("@/components/landing/PillarsSection"),
   { loading: () => null },
@@ -26,10 +30,6 @@ const FeaturesSection = dynamic(
   () => import("@/components/landing/FeaturesSection"),
   { loading: () => null },
 );
-const DesignLabSection = dynamic(
-  () => import("@/components/landing/Designlabsection"),
-  { loading: () => null },
-);
 const PricingSection = dynamic(
   () => import("@/components/landing/PricingSection"),
   { loading: () => null },
@@ -37,25 +37,47 @@ const PricingSection = dynamic(
 const FAQSection = dynamic(() => import("@/components/landing/FAQSection"), {
   loading: () => null,
 });
-const FinalCTA = dynamic(() => import("@/components/landing/FinalCTA"), {
-  loading: () => null,
-});
-const Footer = dynamic(() => import("@/components/landing/Footer"), {
-  loading: () => null,
-});
+
+const HOME_TITLE = "Orixa AI | AI Portfolio Builder";
+const HOME_DESCRIPTION =
+  "Orixa AI is an AI-assisted portfolio builder for developers, designers, and professionals. Start with your resume or details, customize your portfolio, and share one professional link.";
 
 export const metadata: Metadata = {
+  title: { absolute: HOME_TITLE },
+  description: HOME_DESCRIPTION,
   alternates: { canonical: "/" },
   keywords: [
+    "Orixa AI",
+    "OrixaAI",
     "AI portfolio builder",
-    "premium portfolio builder",
+    "portfolio builder",
+    "online portfolio builder",
+    "portfolio website builder",
     "resume to portfolio",
     "developer portfolio builder",
     "designer portfolio builder",
     "portfolio analytics",
     "ATS-friendly resume builder",
-    "portfolio website maker",
   ],
+  openGraph: {
+    type: "website",
+    url: "https://www.orixaai.me",
+    siteName: "Orixa AI",
+    title: HOME_TITLE,
+    description: HOME_DESCRIPTION,
+    images: [
+      {
+        url: "/logowithBGandText.png",
+        alt: "Orixa AI — AI portfolio builder",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: HOME_TITLE,
+    description: HOME_DESCRIPTION,
+    images: ["/logowithBGandText.png"],
+  },
 };
 
 const SITE_URL = "https://www.orixaai.me";
@@ -66,7 +88,8 @@ const structuredData = {
     {
       "@type": "Organization",
       "@id": `${SITE_URL}/#organization`,
-      name: "OrixaAI",
+      name: "Orixa AI",
+      alternateName: ["OrixaAI"],
       url: SITE_URL,
       logo: {
         "@type": "ImageObject",
@@ -77,14 +100,16 @@ const structuredData = {
       "@type": "WebSite",
       "@id": `${SITE_URL}/#website`,
       url: SITE_URL,
-      name: "OrixaAI",
+      name: "Orixa AI",
+      alternateName: "OrixaAI",
       publisher: { "@id": `${SITE_URL}/#organization` },
       inLanguage: "en",
     },
     {
       "@type": "SoftwareApplication",
       "@id": `${SITE_URL}/#software`,
-      name: "OrixaAI",
+      name: "Orixa AI",
+      alternateName: "OrixaAI",
       url: SITE_URL,
       applicationCategory: "DesignApplication",
       operatingSystem: "Web",

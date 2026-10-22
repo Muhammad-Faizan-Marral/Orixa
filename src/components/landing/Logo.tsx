@@ -12,6 +12,8 @@ interface Props {
   className?: string;
   /** Decorative uses (next to visible text) pass alt="" */
   alt?: string;
+  /** Above-the-fold logo: load eagerly. Everything else is lazy-loaded. */
+  priority?: boolean;
 }
 
 /** Plain <img>: brand files have unknown dimensions, so we size by height and keep the aspect ratio. */
@@ -20,6 +22,7 @@ export default function Logo({
   height = 32,
   className = "",
   alt = "OrixaAI",
+  priority = false,
 }: Props) {
   return (
     // eslint-disable-next-line @next/next/no-img-element
@@ -30,6 +33,8 @@ export default function Logo({
       style={{ height, width: "auto" }}
       className={`select-none ${className} `}
       draggable={false}
+      loading={priority ? "eager" : "lazy"}
+      decoding="async"
     />
   );
 }

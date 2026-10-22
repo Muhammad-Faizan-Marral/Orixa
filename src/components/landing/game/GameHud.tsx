@@ -7,7 +7,10 @@ import LifeMeter from "./LifeMeter";
 /** Floating progress panel. Appears only after the first discovery; collapsible so it never covers a CTA. */
 export default function GameHud() {
   const hydrated = useHydrated();
-  const { started, lives, digits, status } = useGameStore();
+  const started = useGameStore((s) => s.started);
+  const lives = useGameStore((s) => s.lives);
+  const digits = useGameStore((s) => s.digits);
+  const status = useGameStore((s) => s.status);
   const [collapsed, setCollapsed] = useState(false);
   if (!hydrated || !started) return null;
   const done = allDigitsFound(digits);

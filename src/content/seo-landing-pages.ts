@@ -28,6 +28,127 @@ export type SeoLandingPageData = {
 };
 
 export const SEO_LANDING_PAGES: Record<string, SeoLandingPageData> = {
+  "portfolio-builder": {
+    slug: "portfolio-builder",
+    eyebrow: "AI-assisted portfolio builder",
+    title: "Portfolio Builder for Developers, Designers & Professionals",
+    description:
+      "Create a professional portfolio website with Orixa AI. Start with a resume or enter your details, organize your projects, customize the presentation, and publish a shareable page.",
+    promise:
+      "A useful portfolio builder helps people understand your work quickly. Orixa AI brings your projects, skills, experience, and contact options into one portfolio you can review before publishing.",
+    outcomes: [
+      {
+        title: "Start with your existing details",
+        description:
+          "Use an eligible PDF resume as a starting point or enter your profile, projects, skills, and experience manually.",
+      },
+      {
+        title: "Make the presentation your own",
+        description:
+          "Choose from distinct portfolio design directions and shape the content before the page goes public.",
+      },
+      {
+        title: "Publish one link for your work",
+        description:
+          "Give recruiters, clients, and collaborators one place to explore your projects and contact you.",
+      },
+    ],
+    sections: [
+      {
+        eyebrow: "Understand the category",
+        title: "What is a portfolio builder?",
+        description:
+          "A portfolio builder is a tool for creating a public website that presents examples of your work. Instead of sending people through disconnected documents and links, you can organize projects and professional details into one experience.",
+        bullets: [
+          "Present projects with context, your role, tools, and relevant links.",
+          "Bring together skills, experience, education, and professional profile details.",
+          "Give visitors a clear route to contact you or explore more of your work.",
+        ],
+      },
+      {
+        eyebrow: "From resume to portfolio",
+        title: "Build from your details, then review the result",
+        description:
+          "You do not need to start from a blank page. Use a PDF resume as source material where supported, or choose the manual workflow. Review extracted or AI-assisted wording and correct every factual detail before publishing.",
+        bullets: [
+          "Keep dates, skills, project contributions, and outcomes accurate.",
+          "Add context that may be missing from a traditional one-page resume.",
+          "Decide which sections and links belong in the final public portfolio.",
+        ],
+      },
+      {
+        eyebrow: "Design and customization",
+        title: "Choose a portfolio design that fits your work",
+        description:
+          "A designer, developer, freelancer, or student may need a different visual presentation. Explore the available design directions, check the page on desktop and mobile, and choose a layout that helps the work—not just the decoration—stand out.",
+        bullets: [
+          "Explore minimal, editorial, technical, and other design directions available in Orixa AI.",
+          "Use clear project descriptions and genuine work samples to build trust.",
+          "Test the published page, navigation, and external links before sharing it.",
+        ],
+      },
+      {
+        eyebrow: "After publishing",
+        title: "Keep your portfolio useful after launch",
+        description:
+          "A portfolio is an evolving record of your work, not a one-time file. Update projects when your experience changes, use available analytics to review visits, and make your contact route easy to find. Eligible Premium users can also review the custom-domain option for their published portfolio.",
+        bullets: [
+          "Share the public address in your resume, LinkedIn profile, applications, or proposals.",
+          "Use available portfolio analytics to understand visits and traffic sources.",
+          "Review the current plan details before using Premium features such as custom domains.",
+        ],
+      },
+    ],
+    steps: [
+      {
+        title: "Add your information",
+        description:
+          "Begin with a supported PDF resume or enter your profile, skills, and project details manually.",
+      },
+      {
+        title: "Review and personalize",
+        description:
+          "Correct the content, choose a design, arrange the sections, and test the portfolio on different screen sizes.",
+      },
+      {
+        title: "Publish and share",
+        description:
+          "Publish when you are satisfied, then share the portfolio link with recruiters, clients, and collaborators.",
+      },
+    ],
+    faqs: [
+      {
+        question: "What is the best way to choose a portfolio builder?",
+        answer:
+          "Compare how each tool handles project storytelling, design control, resume workflows, publishing, contact options, privacy, analytics, custom domains, and total cost. The best fit depends on the kind of work you need to show and how much control you want.",
+      },
+      {
+        question: "Can I build a portfolio without coding?",
+        answer:
+          "Yes. Orixa AI is designed so you can enter or upload supported information, customize the presentation, and publish a portfolio without building the website from scratch.",
+      },
+      {
+        question: "Can I turn my resume into a portfolio website?",
+        answer:
+          "You can use a supported PDF resume as a starting point or enter your details manually. Always review the extracted content and edit it so it accurately reflects your real experience before publishing.",
+      },
+      {
+        question: "Is Orixa AI free to use?",
+        answer:
+          "Orixa AI offers a free plan with limits. Premium features and current plan limits are listed on the pricing page, so check them before choosing a plan.",
+      },
+      {
+        question: "Can I connect my own domain to my portfolio?",
+        answer:
+          "Custom-domain access depends on an active eligible Premium plan and a published portfolio. You also need to control the domain's DNS settings and use the exact records provided in the product's setup flow.",
+      },
+      {
+        question: "Will using a portfolio builder guarantee that I rank on Google?",
+        answer:
+          "No. A builder can help you publish a well-structured page, but rankings depend on many factors, including useful original content, crawlability, indexing, competition, and relevant links. No portfolio builder can guarantee a search position.",
+      },
+    ],
+  },
   "developer-portfolio-builder": {
     slug: "developer-portfolio-builder",
     eyebrow: "For developers",

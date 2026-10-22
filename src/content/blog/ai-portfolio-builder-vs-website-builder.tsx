@@ -74,10 +74,11 @@ const article: BlogArticle = {
           students, and professionals who want to start with resume information
           or enter their details manually, choose a presentation, and publish a
           shareable portfolio. It also provides portfolio analytics and contact
-          options. Review the actual workflow and plan limits on the
-          <Link href="/developer-portfolio-builder" className="text-primary underline-offset-4 hover:underline"> developer portfolio builder page</Link>,
-          the <Link href="/resume-to-portfolio" className="text-primary underline-offset-4 hover:underline"> resume-to-portfolio page</Link>,
-          and the <Link href="/portfolio-analytics" className="text-primary underline-offset-4 hover:underline"> analytics overview</Link> before deciding whether it fits your needs.
+          options. Review the actual workflow and plan limits on the{" "}
+          <Link href="/portfolio-builder" className="text-primary underline-offset-4 hover:underline">Orixa AI portfolio builder page</Link>,{" "}
+          the <Link href="/developer-portfolio-builder" className="text-primary underline-offset-4 hover:underline">developer portfolio builder page</Link>,{" "}
+          the <Link href="/resume-to-portfolio" className="text-primary underline-offset-4 hover:underline">resume-to-portfolio page</Link>,{" "}
+          and the <Link href="/portfolio-analytics" className="text-primary underline-offset-4 hover:underline">analytics overview</Link> before deciding whether it fits your needs.
         </>,
         "This is a category-level decision guide, not an independently tested ranking of named products. Features, limits, pricing, and available integrations can change; verify the current offer before you choose any tool.",
       ],

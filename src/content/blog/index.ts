@@ -4,6 +4,7 @@ import portfolioExamples from "./developer-portfolio-examples";
 import bestPortfolioBuilder from "./best-portfolio-builder-for-developers";
 import portfolioAnalytics from "./portfolio-analytics-explained";
 import portfolioBuilderVsWebsiteBuilder from "./ai-portfolio-builder-vs-website-builder";
+import customDomainPortfolio from "./custom-domain-portfolio";
 import type { BlogArticle } from "./types";
 
 export const BLOG_ARTICLES: BlogArticle[] = [
@@ -13,6 +14,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
   bestPortfolioBuilder,
   portfolioAnalytics,
   portfolioBuilderVsWebsiteBuilder,
+  customDomainPortfolio,
 ];
 
 export const BLOG_ARTICLES_BY_SLUG: Record<string, BlogArticle> =

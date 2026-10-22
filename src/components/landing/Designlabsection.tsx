@@ -1,14 +1,14 @@
-"use client";
-
 /**
  * OrixaAI — Design Lab teaser (compact).
- * Short line + link to the Design Lab + 7 style chips.
+ * Short line + link to the Design Lab + 7 style chips (Server Component, CSS in landing.css).
  * Each chip opens the Design Lab filtered to that style.
  */
 
+import Link from "next/link";
 import type { CSSProperties } from "react";
 
-const DESIGN_LAB_URL = "https://www.orixaai.me/design-lab";
+/** Internal route: works on previews/localhost too, and keeps visitors in the app. */
+const DESIGN_LAB_PATH = "/design-lab";
 
 type Style = { id: string; name: string; from: string; to: string };
 
@@ -41,14 +41,12 @@ export default function DesignLabSection() {
             </p>
 
             <div className="mt-7 flex flex-col items-center gap-3">
-              <a
-                href={DESIGN_LAB_URL}
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                href={DESIGN_LAB_PATH}
                 className="btn btn-ion w-full sm:w-auto sm:min-w-[12rem]"
               >
                 Open Design Lab
-              </a>
+              </Link>
               <p className="dl-url">orixaai.me/design-lab</p>
             </div>
           </div>
@@ -58,10 +56,8 @@ export default function DesignLabSection() {
             <ul className="dl-chips" aria-label="Design styles">
               {STYLES.map((s) => (
                 <li key={s.id}>
-                  <a
-                    href={`${DESIGN_LAB_URL}?theme=${s.id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <Link
+                    href={`${DESIGN_LAB_PATH}?theme=${s.id}`}
                     className="dl-chip"
                     style={
                       {
@@ -72,7 +68,7 @@ export default function DesignLabSection() {
                   >
                     <span className="dl-dot" aria-hidden="true" />
                     {s.name}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -80,98 +76,6 @@ export default function DesignLabSection() {
         </div>
       </div>
 
-      <style jsx global>{`
-        .dl-card {
-          position: relative;
-          overflow: hidden;
-          isolation: isolate;
-          border: 1px solid rgb(120 120 140 / 0.25);
-          border-radius: 1.4rem;
-          background: rgb(120 120 140 / 0.06);
-          padding: 2.2rem 1.25rem;
-        }
-        @media (min-width: 768px) {
-          .dl-card {
-            padding: 3rem 2.5rem;
-          }
-        }
-        .dl-glow {
-          position: absolute;
-          inset: 0;
-          z-index: -1;
-          pointer-events: none;
-          background:
-            radial-gradient(
-              520px circle at 15% 0%,
-              rgb(108 92 255 / 0.16),
-              transparent 60%
-            ),
-            radial-gradient(
-              520px circle at 90% 100%,
-              rgb(34 211 238 / 0.14),
-              transparent 60%
-            );
-        }
-        .dl-url {
-          font-size: 0.74rem;
-          opacity: 0.55;
-          letter-spacing: 0.02em;
-        }
-        .dl-hint {
-          text-align: center;
-          font-size: 0.8rem;
-          opacity: 0.65;
-          margin-bottom: 0.9rem;
-        }
-        .dl-chips {
-          display: flex;
-          flex-wrap: wrap;
-          justify-content: center;
-          gap: 0.5rem;
-          max-width: 40rem;
-          margin: 0 auto;
-        }
-        .dl-chip {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.5rem;
-          padding: 0.45rem 0.9rem 0.45rem 0.55rem;
-          border-radius: 999px;
-          font-size: 0.82rem;
-          white-space: nowrap;
-          border: 1px solid rgb(120 120 140 / 0.3);
-          background: rgb(120 120 140 / 0.08);
-          transition:
-            transform 0.25s ease,
-            border-color 0.25s ease,
-            box-shadow 0.25s ease;
-        }
-        .dl-dot {
-          width: 1.15rem;
-          height: 1.15rem;
-          border-radius: 50%;
-          flex: none;
-          background: linear-gradient(135deg, var(--from), var(--to));
-          box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.25);
-        }
-        .dl-chip:hover {
-          transform: translateY(-2px);
-          border-color: var(--to);
-          box-shadow: 0 8px 22px color-mix(in srgb, var(--to) 28%, transparent);
-        }
-        .dl-chip:focus-visible {
-          outline: 2px solid var(--to);
-          outline-offset: 2px;
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .dl-chip {
-            transition: none;
-          }
-          .dl-chip:hover {
-            transform: none;
-          }
-        }
-      `}</style>
     </section>
   );
 }

@@ -12,6 +12,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: SITE_URL, priority: 1 },
     { url: `${SITE_URL}/pricing`, priority: 0.8 },
     { url: `${SITE_URL}/blog`, priority: 0.8 },
+    { url: `${SITE_URL}/portfolio-builder`, priority: 0.9 },
     { url: `${SITE_URL}/developer-portfolio-builder`, priority: 0.8 },
     { url: `${SITE_URL}/resume-to-portfolio`, priority: 0.8 },
     { url: `${SITE_URL}/ats-resume-builder`, priority: 0.8 },

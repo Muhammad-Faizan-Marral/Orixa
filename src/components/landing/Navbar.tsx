@@ -1,8 +1,7 @@
 "use client";
 
-import { motion, useReducedMotion, useScroll, useSpring } from "framer-motion";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Logo from "./Logo";
 
 const LINKS = [
@@ -15,9 +14,35 @@ const LINKS = [
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
-  const reduced = useReducedMotion();
-  const { scrollYProgress } = useScroll();
-  const progress = useSpring(scrollYProgress, { stiffness: 120, damping: 28 });
+  const bar = useRef<HTMLDivElement>(null);
+
+  // Scroll progress without framer-motion (keeps framer-motion out of the first
+  // load). One passive listener, at most one transform write per frame, and no
+  // React re-renders. Skipped entirely for reduced-motion visitors.
+  useEffect(() => {
+    const el = bar.current;
+    if (!el) return;
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (mq.matches) return;
+    let raf = 0;
+    const update = () => {
+      raf = 0;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const p = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
+      el.style.transform = `scaleX(${p})`;
+    };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -28,14 +53,15 @@ export default function Navbar() {
 
   return (
     <header className="glass sticky top-0 z-50 border-b border-border">
-      <motion.div
+      <div
+        ref={bar}
         aria-hidden="true"
-        style={{ scaleX: reduced ? 0 : progress }}
-        className="bg-gradient-ion absolute inset-x-0 top-0 h-0.5 origin-left"
+        style={{ transform: "scaleX(0)" }}
+        className="bg-gradient-ion absolute inset-x-0 top-0 h-0.5 origin-left will-change-transform motion-reduce:hidden"
       />
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
         <Link href="/" aria-label="OrixaAI home">
-          <Logo variant="wordmark" height={100} />
+          <Logo variant="wordmark" height={100} priority />
         </Link>
 
         <nav
