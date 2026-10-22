@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { PRICING, type DiscountState } from "@/lib/game/config";
 import { allDigitsFound, useGameStore } from "@/lib/game/store";
 import DigitRail from "./game/DigitRail";
@@ -62,75 +62,32 @@ export default function PricingSection() {
   const digits = useGameStore((s) => s.digits);
   const complete = allDigitsFound(digits);
 
-  // The cookie is signed and httpOnly, so the browser can't tell us whether a
-  // discount exists without asking the server. Ask lazily: only once the pricing
-  // section is about to be seen, so visitors who bounce earlier cost no request.
+  // Landing-page game is pure client interaction — no API / Polar / cookie
+  // round-trips. Secret code matches the one shipped in game-secrets default.
   const sectionRef = useRef<HTMLElement>(null);
-  useEffect(() => {
-    const el = sectionRef.current;
-    if (!el) return;
-    const ctrl = new AbortController();
-    let started = false;
-    const load = () => {
-      if (started) return;
-      started = true;
-      fetch("/api/discount/validate", { signal: ctrl.signal, cache: "no-store" })
-        .then((r) => (r.ok ? r.json() : null))
-        .then((d: DiscountState | null) => {
-          if (d?.applied) {
-            setDiscount(d);
-            setStatus("valid");
-          }
-        })
-        .catch(() => {});
-    };
-    if (typeof IntersectionObserver === "undefined") {
-      load();
-      return () => ctrl.abort();
-    }
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((e) => e.isIntersecting)) {
-          io.disconnect();
-          load();
-        }
-      },
-      { rootMargin: "600px 0px" },
-    );
-    io.observe(el);
-    return () => {
-      io.disconnect();
-      ctrl.abort();
-    };
-  }, []);
+  const SECRET_CODE = "63125";
 
-  async function apply() {
+  function apply() {
     if (status === "checking" || discount.applied) return;
     const trimmed = code.trim();
     if (!trimmed) return;
     setStatus("checking");
-    try {
-      const res = await fetch("/api/discount/validate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: trimmed }),
-      });
-      if (!res.ok) {
-        setStatus("error");
-        return;
-      }
-      const d = (await res.json()) as DiscountState & { valid: boolean };
-      if (d.valid) {
-        setDiscount(d);
+
+    // Tiny delay so the "Checking" state is visible, then pure UI update.
+    window.setTimeout(() => {
+      if (trimmed === SECRET_CODE) {
+        setDiscount({
+          applied: true,
+          amountOff: PRICING.secretOff,
+          yearlyPrice: PRICING.yearly - PRICING.secretOff,
+        });
         setStatus("valid");
         setCelebrate(true);
       } else {
         setStatus("invalid");
         setShake(true);
       }
-    } catch {
-      setStatus("error");
-    }
+    }, 280);
   }
 
   const yearly = billing === "yearly";
