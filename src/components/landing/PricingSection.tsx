@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { PRICING, type DiscountState } from "@/lib/game/config";
 import { allDigitsFound, useGameStore } from "@/lib/game/store";
 import DigitRail from "./game/DigitRail";
 
-type Status = "idle" | "checking" | "valid" | "invalid" | "error";
+type Status = "idle" | "checking" | "valid" | "invalid";
 const SPARKS = Array.from({ length: 16 }, (_, i) => {
   const a = (i / 16) * Math.PI * 2;
   return {
@@ -64,7 +64,6 @@ export default function PricingSection() {
 
   // Landing-page game is pure client interaction — no API / Polar / cookie
   // round-trips. Secret code matches the one shipped in game-secrets default.
-  const sectionRef = useRef<HTMLElement>(null);
   const SECRET_CODE = "63125";
 
   function apply() {
@@ -98,7 +97,6 @@ export default function PricingSection() {
 
   return (
     <section
-      ref={sectionRef}
       id="pricing"
       className="relative bg-surface py-24 [clip-path:polygon(0_0,100%_2.5rem,100%_100%,0_100%)] md:py-36"
     >
@@ -256,12 +254,6 @@ export default function PricingSection() {
                     <span className="text-error">
                       That code doesn&apos;t match. The digits are earned inside
                       the page. Keep exploring.
-                    </span>
-                  )}
-                  {status === "error" && (
-                    <span className="text-warning">
-                      Couldn&apos;t check the code right now. Try again in a
-                      moment.
                     </span>
                   )}
                   {status === "valid" && celebrate && (

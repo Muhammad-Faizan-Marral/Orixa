@@ -1,7 +1,6 @@
 /**
  * Shared (client + server) game configuration.
- * Digits and the secret code are server-only (lib/server/game-secrets.ts).
- * Puzzle *boards* live here because the client has to render them; the server re-verifies every answer.
+ * Puzzle boards live here because the client has to render them.
  */
 import { BILLING } from "@/constants/billing";
 
@@ -41,20 +40,20 @@ export const PUZZLES: Record<PuzzleId, PuzzleMeta> = {
       "Every contact must be switched off to ignite the cartridge. Pressing a contact flips it and its four neighbours (up, down, left, right). Reset is free.",
     nudge:
       "Think in presses, not cells: the order doesn't matter, and pressing the same contact twice cancels out.",
-    next: "A transmission is breaking up in the comparison table. One row has gone to static.",
+    next: "A sealed case file has surfaced. The leak happened after midnight, and someone left a trail.",
   },
   decoder: {
     id: "decoder",
     slot: 1,
-    title: "Decoder Ring",
-    kicker: "Cipher",
+    title: "The Black File",
+    kicker: "Classified case",
     teaser:
-      "The corrupted row is a message. Someone shifted every letter by the same amount.",
+      "Portfolio template “neo-glass” appeared in a public gist at 01:14. The access trail is still warm.",
     objective:
-      "Turn the ring until the message becomes readable, then answer the question it asks.",
+      "Review the brief, access log, chat, and field notes. How many people still had write access after midnight?",
     nudge:
-      "Every letter moved the same distance. Turn the ring until real words appear, then read the question again.",
-    next: "Look at the corners of the Features section. One frame mark is not like the others.",
+      "Count only people with write access at midnight. Mira had logged out; Kai was read-only.",
+    next: "Case closed. The frame's handshake is next: watch the pads, then repeat their sequence.",
   },
   pads: {
     id: "pads",
@@ -67,32 +66,32 @@ export const PUZZLES: Record<PuzzleId, PuzzleMeta> = {
       "Watch the pads light up, then repeat the exact sequence. A wrong sequence costs a life and replays the pattern.",
     nudge:
       "Say the colours in your head as they flash. Replays are free, so use them.",
-    next: "There's a blinking cursor after the Features heading. Terminals wait for input.",
+    next: "Handshake accepted. A fictional recruiter is waiting to evaluate your portfolio and your boundaries.",
   },
   terminal: {
     id: "terminal",
     slot: 3,
-    title: "ORIXA-OS",
-    kicker: "Terminal",
+    title: "AI Interview from Hell",
+    kicker: "Unpaid opportunity",
     teaser:
-      "The cursor was waiting for you. A tiny operating system boots in the dark.",
+      "The recruiter promises a “quick chat” and has already scheduled seven follow-ups.",
     objective:
-      "Explore the files with commands. When you know how many steps are left before the portfolio is live, send it with submit <number>.",
+      "Answer five questions from a fictional AI recruiter. The choices are for fun; only accepting your final classification claims the digit.",
     nudge:
-      "Type help, then read every file. The legend in notes.txt tells you what each mark means.",
-    next: "At the end of the Features grid, an empty slot has been waiting. It needs four digits.",
+      "No answer costs a life. Pick what feels right, then decide whether to accept the classification.",
+    next: "Interview complete. One last step: forge a creative identity from the clues you've collected.",
   },
   alchemy: {
     id: "alchemy",
     slot: 4,
-    title: "Digit Alchemy",
-    kicker: "Final forge",
+    title: "The Identity Forge",
+    kicker: "Creative identity",
     teaser:
-      "The keyhole opens only for someone who has been collecting. Bring your digits.",
+      "The forge is sealed until your first four digits are collected. Bring your choices, not a résumé.",
     objective:
-      "Combine the digits you collected, using each at most once, with + − × ÷ and brackets, to forge a number equal to how many digits the full code has.",
+      "Choose an artifact, a personality, a superpower, and a visual identity. Your combination will become a small creative identity card.",
     nudge:
-      "How long is the code? Count the slots. Then find two of your digits that make that number.",
+      "There are no wrong choices here. Each choice shapes the title, description, and tagline on your card.",
     next: "The code is complete. Take it to the Pro card in Pricing.",
   },
 };
