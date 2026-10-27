@@ -1,13 +1,18 @@
 /* Brand files live in /public. Change the names here if you rename them. */
 export const LOGOS = {
-  wordmark: "/LogowithTextbutWithoutBG.png", // logo + text, transparent background
+  darkwordmark: "/darktextlogonobg.png", // logo + text, transparent background for light backgrounds
+  wordmark: "/LogowithTextbutWithoutBG.png", // logo + text, transparent background for dark backgrounds
   mark: "/justLogoWihoutText.png", // symbol only
   markCutout: "/justLogo-removebg-preview.png", // symbol only, background removed
   badge: "/logowithBGandText.png", // logo + text on its own background
 } as const;
 
 interface Props {
-  variant: keyof typeof LOGOS;
+  /**
+   * "auto" renders the right wordmark for the current theme:
+   * darkwordmark on light backgrounds, wordmark on dark backgrounds.
+   */
+  variant: keyof typeof LOGOS | "auto";
   height?: number;
   className?: string;
   /** Decorative uses (next to visible text) pass alt="" */
@@ -24,17 +29,44 @@ export default function Logo({
   alt = "OrixaAI",
   priority = false,
 }: Props) {
+  const common = {
+    height,
+    style: { height, width: "auto" } as const,
+    draggable: false,
+    loading: (priority ? "eager" : "lazy") as "eager" | "lazy",
+    decoding: "async" as const,
+  };
+
+  if (variant === "auto") {
+    return (
+      <>
+        {/* Light theme: dark text logo */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={LOGOS.darkwordmark}
+          alt={alt}
+          {...common}
+          className={`select-none dark:hidden ${className}`}
+        />
+        {/* Dark theme: light text logo */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={LOGOS.wordmark}
+          alt={alt}
+          {...common}
+          className={`hidden select-none dark:block ${className}`}
+        />
+      </>
+    );
+  }
+
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
       src={LOGOS[variant]}
       alt={alt}
-      height={height}
-      style={{ height, width: "auto" }}
-      className={`select-none ${className} `}
-      draggable={false}
-      loading={priority ? "eager" : "lazy"}
-      decoding="async"
+      {...common}
+      className={`select-none ${className}`}
     />
   );
 }

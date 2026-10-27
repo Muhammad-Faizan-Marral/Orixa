@@ -43,17 +43,14 @@ function parseClientUa(ua: string) {
 
 export function PortfolioViewTracker({ portfolioId }: Props) {
   useEffect(() => {
-    
     if (!portfolioId || typeof window === "undefined") return;
-
 
     const storageKey = `orixa_viewed:${portfolioId}`;
     try {
       if (sessionStorage.getItem(storageKey)) {
-       
         return;
       }
-     
+
       sessionStorage.setItem(storageKey, "1");
     } catch {
       // Private mode / blocked storage — ignore,
@@ -81,7 +78,6 @@ export function PortfolioViewTracker({ portfolioId }: Props) {
         keepalive: true,
       }).catch(() => {});
 
-   
     const t = window.setTimeout(send, 50);
 
     return () => window.clearTimeout(t);

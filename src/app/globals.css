@@ -1,49 +1,63 @@
 @import "tailwindcss";
 
 /* =========================================================================
-   ORIXA AI — DESIGN FOUNDATION
-   Visual language: "Ink & Ion" — a near-black studio canvas with a signature
-   indigo → cyan "ion" gradient used sparingly for AI / emphasis moments.
-   Built for Tailwind v4 (CSS-first theme, no tailwind.config needed).
+   ORIXA AI — DESIGN FOUNDATION  ("Ink & Ion")
+   Tailwind v4, CSS-first. Contrast-checked (WCAG AA) token pairs.
    ========================================================================= */
 
 :root {
   color-scheme: dark;
 
-  /* ---- Surfaces ---------------------------------------------------- */
-  --background: #08090c;          /* app canvas */
-  --surface: #0f1116;             /* cards, panels */
-  --surface-2: #161922;           /* elevated / hovered panels */
-  --surface-3: #1e222d;           /* popovers, menus */
-  --border: #23262f;              /* default hairline */
-  --border-strong: #2f333f;       /* emphasized hairline */
+  /* ---- Surfaces ---- */
+  --background: #08090c;
+  --surface: #0f1116;
+  --surface-2: #161922;
+  --surface-3: #1e222d;
+  --border: #262a35;
+  --border-strong: #353a48;
 
-  /* ---- Text ---------------------------------------------------------- */
-  --foreground: #f5f6f8;          /* primary text */
-  --muted-foreground: #9498a3;    /* secondary text */
-  --subtle-foreground: #6b6f7b;   /* tertiary / captions */
+  /* ---- Text ---- */
+  --foreground: #f5f6f8;          /* 17:1 on background */
+  --muted-foreground: #a3a7b3;    /* 7.5:1 */
+  --subtle-foreground: #7f8390;   /* 4.9:1 (AA) */
 
-  /* ---- Brand ----------------------------------------------------------
-     Primary = Ion Indigo. Accent = Ion Cyan. The gradient between the two
-     is Orixa's signature mark — reserved for AI moments, hero type, and
-     primary CTAs, never used as decoration by default. */
+  /* ---- Brand ---- */
   --primary: #6c5cff;
   --primary-foreground: #ffffff;
   --primary-hover: #7d6eff;
+  --primary-text: #b4a9ff;        /* violet text on dark / tinted bg: 9:1 */
+  --primary-tint: color-mix(in oklab, #a78bfa 14%, transparent);  /* violet-400 tint */
+  --primary-tint-hover: color-mix(in oklab, #a78bfa 22%, transparent);
+  --primary-tint-border: color-mix(in oklab, #a78bfa 35%, transparent);
+
   --accent: #22d3ee;
   --accent-foreground: #04121a;
+  --accent-text: #67e8f9;         /* cyan text on dark / tint: 12:1 */
+  --accent-tint: color-mix(in oklab, #22d3ee 12%, transparent);
+  --accent-tint-border: color-mix(in oklab, #22d3ee 32%, transparent);
 
-  /* ---- Semantic -------------------------------------------------------- */
+  /* ---- Semantic (solid bg + text-on-tint pairs) ---- */
   --success: #34d399;
   --success-foreground: #04231a;
+  --success-text: #6ee7b7;
+  --success-tint: color-mix(in oklab, #34d399 13%, transparent);
+
   --warning: #fbbf24;
   --warning-foreground: #241a03;
+  --warning-text: #fcd34d;
+  --warning-tint: color-mix(in oklab, #fbbf24 13%, transparent);
+
   --error: #fb7185;
   --error-foreground: #2a0710;
+  --error-text: #fda4af;
+  --error-tint: color-mix(in oklab, #fb7185 13%, transparent);
+
   --info: #38bdf8;
   --info-foreground: #041c26;
+  --info-text: #7dd3fc;
+  --info-tint: color-mix(in oklab, #38bdf8 13%, transparent);
 
-  --ring: #6c5cff;
+  --ring: #8b7dff;
 
   --radius-sm: 0.375rem;
   --radius-md: 0.625rem;
@@ -52,20 +66,34 @@
   --radius-2xl: 1.75rem;
 }
 
-/* Optional light theme — opt in later via <html class="light"> */
+/* Light theme — <html class="light"> */
 .light {
   color-scheme: light;
   --background: #fbfbfc;
   --surface: #ffffff;
   --surface-2: #f4f5f7;
   --surface-3: #ebedf1;
-  --border: #e6e7eb;
-  --border-strong: #d7d9df;
+  --border: #e2e4e9;
+  --border-strong: #cfd2da;
   --foreground: #0e0f13;
-  --muted-foreground: #565a66;
-  --subtle-foreground: #858994;
+  --muted-foreground: #4b4f5b;
+  --subtle-foreground: #6b6f7b;
+  --primary: #5b4bf0;
   --primary-foreground: #ffffff;
+  --primary-hover: #4c3ce0;
+  --primary-text: #4c3bd6;        /* dark violet text on light tint: 7:1 */
+  --primary-tint: color-mix(in oklab, #7c5cff 10%, transparent);
+  --primary-tint-hover: color-mix(in oklab, #7c5cff 16%, transparent);
+  --primary-tint-border: color-mix(in oklab, #7c5cff 30%, transparent);
   --accent-foreground: #04121a;
+  --accent-text: #0e7490;
+  --accent-tint: color-mix(in oklab, #22d3ee 14%, transparent);
+  --accent-tint-border: color-mix(in oklab, #0891b2 30%, transparent);
+  --success-text: #047857;
+  --warning-text: #92400e;
+  --error-text: #be123c;
+  --info-text: #0369a1;
+  --ring: #5b4bf0;
 }
 
 @theme inline {
@@ -83,17 +111,33 @@
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary-hover: var(--primary-hover);
+  --color-primary-text: var(--primary-text);
+  --color-primary-tint: var(--primary-tint);
+  --color-primary-tint-hover: var(--primary-tint-hover);
+  --color-primary-tint-border: var(--primary-tint-border);
+
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-accent-text: var(--accent-text);
+  --color-accent-tint: var(--accent-tint);
+  --color-accent-tint-border: var(--accent-tint-border);
 
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
+  --color-success-text: var(--success-text);
+  --color-success-tint: var(--success-tint);
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
+  --color-warning-text: var(--warning-text);
+  --color-warning-tint: var(--warning-tint);
   --color-error: var(--error);
   --color-error-foreground: var(--error-foreground);
+  --color-error-text: var(--error-text);
+  --color-error-tint: var(--error-tint);
   --color-info: var(--info);
   --color-info-foreground: var(--info-foreground);
+  --color-info-text: var(--info-text);
+  --color-info-tint: var(--info-tint);
 
   --color-ring: var(--ring);
 
@@ -103,9 +147,10 @@
   --radius-xl: var(--radius-xl);
   --radius-2xl: var(--radius-2xl);
 
---font-sans: var(--font-dm), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
---font-display: var(--font-dm), var(--font-inter), ui-sans-serif, sans-serif;
---font-mono: var(--font-jetbrains), ui-monospace, monospace;
+  --font-sans: var(--font-dm), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-dm), var(--font-inter), ui-sans-serif, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+
   /* Motion */
   --ease-orixa: cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -131,7 +176,7 @@ body {
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--color-primary) 35%, transparent);
+  background: color-mix(in srgb, var(--color-primary) 40%, transparent);
   color: var(--color-foreground);
 }
 
@@ -154,8 +199,6 @@ body {
 
 /* =========================================================================
    TYPOGRAPHY SCALE
-   Editorial, deliberate hierarchy. Use these instead of ad-hoc text-* stacks
-   wherever a heading/body role is being expressed.
    ========================================================================= */
 
 @utility text-display-1 {
@@ -255,12 +298,11 @@ body {
 }
 
 /* =========================================================================
-   SIGNATURE GRADIENT — the one visual flourish reused everywhere AI /
-   emphasis appears. Not a generic purple blob; a controlled 2-stop ion arc.
+   SIGNATURE GRADIENT
    ========================================================================= */
 
 @utility text-gradient-ion {
-  background: linear-gradient(100deg, var(--color-primary) 0%, var(--color-accent) 100%);
+  background: linear-gradient(100deg, #8b7dff 0%, var(--color-accent) 100%);
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
@@ -285,7 +327,6 @@ body {
     linear-gradient(100deg, var(--color-primary), var(--color-accent)) border-box;
 }
 
-/* Ambient background glow — used once per view (hero/AI panels), never stacked */
 @utility bg-aurora {
   background-image:
     radial-gradient(60% 50% at 20% 0%, color-mix(in srgb, var(--color-primary) 22%, transparent) 0%, transparent 60%),
@@ -294,6 +335,50 @@ body {
 
 @utility bg-grain {
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/></svg>");
+}
+
+/* =========================================================================
+   TINTED SURFACES — readable tint + text pairs (use these instead of
+   `violet-400 10%` with random text colors)
+   ========================================================================= */
+
+@utility tint-violet {
+  background-color: var(--color-primary-tint);
+  color: var(--color-primary-text);
+  border: 1px solid var(--color-primary-tint-border);
+  &:hover {
+    background-color: var(--color-primary-tint-hover);
+  }
+}
+
+@utility tint-cyan {
+  background-color: var(--color-accent-tint);
+  color: var(--color-accent-text);
+  border: 1px solid var(--color-accent-tint-border);
+}
+
+@utility tint-success {
+  background-color: var(--color-success-tint);
+  color: var(--color-success-text);
+  border: 1px solid color-mix(in oklab, var(--color-success) 30%, transparent);
+}
+
+@utility tint-warning {
+  background-color: var(--color-warning-tint);
+  color: var(--color-warning-text);
+  border: 1px solid color-mix(in oklab, var(--color-warning) 30%, transparent);
+}
+
+@utility tint-error {
+  background-color: var(--color-error-tint);
+  color: var(--color-error-text);
+  border: 1px solid color-mix(in oklab, var(--color-error) 30%, transparent);
+}
+
+@utility tint-info {
+  background-color: var(--color-info-tint);
+  color: var(--color-info-text);
+  border: 1px solid color-mix(in oklab, var(--color-info) 30%, transparent);
 }
 
 /* =========================================================================
@@ -324,7 +409,7 @@ body {
 }
 
 /* =========================================================================
-   MOTION — a small, intentional vocabulary reused across the product.
+   MOTION
    ========================================================================= */
 
 @utility animate-fade-in-up {
@@ -406,7 +491,7 @@ body {
   }
 }
 
-/* Scrollbar — subtle, on-brand, not intrusive */
+/* Scrollbar */
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--color-border-strong) transparent;
@@ -422,11 +507,13 @@ body {
   border-radius: 999px;
   border: 2px solid var(--color-background);
 }
+
 /* ===== Rotating colorful border for portfolio nav buttons ===== */
 .nav-rotating-btn {
   position: relative;
   overflow: hidden;
   background: var(--surface);
+  color: var(--foreground);
   border: 1px solid transparent;
   isolation: isolate;
 }
@@ -468,4 +555,47 @@ body {
   to {
     transform: rotate(360deg);
   }
+}
+
+
+/* ===== Hero extras ===== */
+.hero-gradient-text {
+  background: linear-gradient(100deg, #8b7dff 0%, #22d3ee 45%, #8b7dff 100%);
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: hero-gradient 6s linear infinite;
+}
+
+.hero-shine {
+  position: relative;
+}
+.hero-shine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(110deg, transparent 35%, rgb(255 255 255 / 0.14) 50%, transparent 65%);
+  transform: translateX(-100%);
+  animation: hero-shine 1.6s var(--ease-orixa) 1.6s 1 forwards;
+}
+
+.hero-glow {
+  animation: hero-glow 7s ease-in-out infinite;
+}
+
+@keyframes hero-gradient {
+  to { background-position: -200% center; }
+}
+@keyframes hero-shine {
+  to { transform: translateX(100%); }
+}
+@keyframes hero-glow {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50% { opacity: 0.9; transform: scale(1.08); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-gradient-text, .hero-shine::after, .hero-glow { animation: none !important; }
 }

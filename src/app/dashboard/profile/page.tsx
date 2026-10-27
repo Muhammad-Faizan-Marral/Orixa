@@ -105,9 +105,7 @@ export default async function ProfilePage() {
             aria-label="Public URL"
             className="space-y-3 rounded-2xl border border-border bg-background p-5"
           >
-            <p className="text-small font-medium text-foreground">
-              Public URL
-            </p>
+            <p className="text-small font-medium text-foreground">Public URL</p>
 
             <CopyUrlButton url={`orixa.ai/${profile.username}`} />
 

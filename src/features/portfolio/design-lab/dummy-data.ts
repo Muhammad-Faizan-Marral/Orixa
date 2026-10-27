@@ -34,7 +34,7 @@ export const LAB_CONFIG_BASE: PortfolioRenderConfig = {
     { id: "10", name: "Framer Motion", level: "Advanced" },
     { id: "11", name: "GraphQL", level: "Intermediate" },
     { id: "12", name: "Playwright", level: "Intermediate" },
-   
+
   ],
   projects: [
     {

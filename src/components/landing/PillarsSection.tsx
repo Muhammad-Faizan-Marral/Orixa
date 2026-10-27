@@ -1,13 +1,8 @@
 "use client";
 
 /**
- * OrixaAI — compact product pillars (understood in one glance).
- *   Row 1: Resume → Templates → Portfolio
- *   Row 2: Analytics (stats + animated trend graph + highlights)  |  Contact form
- *   Row 3: Custom Domain Mapping (auto-plays: type → connect → DNS → SSL → live)
- *
- * CSS-only visuals, transform/opacity/clip animations, timers run only while
- * visible, reduced-motion shows the final static state.
+ * OrixaAI — Product Pillars
+ * Clean, premium, and focused presentation of the core product value.
  */
 
 import {
@@ -126,10 +121,11 @@ const DEMO = {
   subject: "Project inquiry",
   message: "Hi Ayesha, loved your work. Are you free for a project next month?",
 } as const;
+
 type Field = keyof typeof DEMO;
 const ORDER: Field[] = ["name", "email", "subject", "message"];
 
-/* ── trend chart (computed once at module level) ── */
+/* ── trend chart ── */
 
 const TREND = [38, 52, 45, 70, 64, 88, 76, 104, 97, 128, 118, 150, 141, 172];
 const CH_W = 300;
@@ -164,7 +160,7 @@ function buildChart(data: number[]) {
 
 const CHART = buildChart(TREND);
 
-/* ── custom domain demo ── */
+/* ── custom domain ── */
 
 const DOMAIN = "ayeshakhan.com";
 const SUBDOMAIN = "ayeshakhan.orixaai.com";
@@ -176,6 +172,7 @@ function useInView<T extends Element>() {
   const ref = useRef<T | null>(null);
   const [seen, setSeen] = useState(false);
   const [live, setLive] = useState(false);
+
   useEffect(() => {
     const el = ref.current;
     if (!el || typeof IntersectionObserver === "undefined") {
@@ -193,6 +190,7 @@ function useInView<T extends Element>() {
     io.observe(el);
     return () => io.disconnect();
   }, []);
+
   return { ref, seen, live };
 }
 
@@ -264,6 +262,7 @@ function Thumb({ t, size = "md" }: { t: Template; size?: "md" | "xs" }) {
     "--bd": t.bd,
     "--ff": t.ff,
   } as CSSProperties;
+
   return (
     <div
       className={`tp tp--${t.id} tp--${size}`}
@@ -436,6 +435,7 @@ function ResumeFlow() {
 function Analytics() {
   const reduced = useReducedMotion();
   const { ref, seen } = useInView<HTMLDivElement>();
+
   return (
     <div ref={ref} className="an">
       <div className="an-grid">
@@ -518,7 +518,7 @@ function Analytics() {
   );
 }
 
-/* ───────────────────────── Row 2b: Contact form (auto-plays) ───────────────────────── */
+/* ───────────────────────── Row 2b: Contact form ───────────────────────── */
 
 type Phase = "typing" | "sending" | "sent";
 
@@ -541,13 +541,16 @@ function ContactDemo() {
       return;
     }
     if (!live) return;
+
     let dead = false;
     const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+
     (async () => {
       while (!dead) {
         setPhase("typing");
         setVals({ name: "", email: "", subject: "", message: "" });
         await sleep(500);
+
         for (const k of ORDER) {
           setFocus(k);
           const text = DEMO[k];
@@ -558,16 +561,20 @@ function ContactDemo() {
           }
           await sleep(160);
         }
+
         setFocus(null);
         await sleep(350);
         if (dead) return;
+
         setPhase("sending");
         await sleep(1000);
         if (dead) return;
+
         setPhase("sent");
         await sleep(3600);
       }
     })();
+
     return () => {
       dead = true;
     };
@@ -630,14 +637,13 @@ function ContactDemo() {
   );
 }
 
-/* ───────────────────────── Row 3: Custom domain (auto-plays) ───────────────────────── */
+/* ───────────────────────── Row 3: Custom domain ───────────────────────── */
 
 function DomainDemo() {
   const reduced = useReducedMotion();
   const { ref, live } = useInView<HTMLDivElement>();
   const [domain, setDomain] = useState(reduced ? DOMAIN : "");
   const [typing, setTyping] = useState(false);
-  // 0 idle · 1 CNAME · 2 DNS · 3 SSL · 4 live
   const [step, setStep] = useState(reduced ? 4 : 0);
 
   useEffect(() => {
@@ -647,13 +653,16 @@ function DomainDemo() {
       return;
     }
     if (!live) return;
+
     let dead = false;
     const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+
     (async () => {
       while (!dead) {
         setStep(0);
         setDomain("");
         await sleep(600);
+
         setTyping(true);
         for (let i = 1; i <= DOMAIN.length; i++) {
           if (dead) return;
@@ -662,6 +671,7 @@ function DomainDemo() {
         }
         setTyping(false);
         await sleep(500);
+
         for (let s = 1; s <= 4; s++) {
           if (dead) return;
           setStep(s);
@@ -669,6 +679,7 @@ function DomainDemo() {
         }
       }
     })();
+
     return () => {
       dead = true;
     };
@@ -793,19 +804,23 @@ function DomainDemo() {
 
 export default function PillarsSection() {
   return (
-    <section id="pillars" className="relative py-14 md:py-20">
+    <section id="pillars" className="relative py-20 md:py-28">
       <div className="mx-auto max-w-6xl px-5">
+        {/* Section Header */}
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-caption mb-3">What you get</p>
-          <h2 className="text-h1 text-balance">
+          <p className="mb-3 text-sm font-medium tracking-wide text-muted-foreground">
+            What you get
+          </p>
+          <h2 className="text-balance text-3xl font-bold tracking-tight text-foreground sm:text-4xl md:text-[2.75rem] md:leading-[1.15]">
             Built for people who are{" "}
-            <span className="text-gradient-ion">
+            <span className="bg-gradient-to-r from-foreground via-foreground/80 to-muted-foreground bg-clip-text text-transparent">
               tired of generic portfolios.
             </span>
           </h2>
         </div>
 
-        <div className="mt-10 grid gap-4 md:gap-5">
+        {/* Panels */}
+        <div className="mt-14 grid gap-5 md:gap-6">
           <Panel
             title="Resume in. Portfolio out."
             sub="Upload your CV. AI fills in your experience, skills and education, then you choose a design. No typing every field."
@@ -813,7 +828,7 @@ export default function PillarsSection() {
             <ResumeFlow />
           </Panel>
 
-          <div className="grid gap-4 md:gap-5 lg:grid-cols-2">
+          <div className="grid gap-5 md:gap-6 lg:grid-cols-2">
             <Panel
               title="See who visited your portfolio."
               sub="Know your views, countries, top projects and where your traffic comes from."
@@ -839,28 +854,30 @@ export default function PillarsSection() {
 
       <style jsx global>{`
         .panel {
-          border: 1px solid rgb(120 120 140 / 0.25);
-          border-radius: 1.1rem;
-          background: rgb(120 120 140 / 0.06);
-          padding: 1.1rem;
+          border: 1px solid rgb(120 120 140 / 0.18);
+          border-radius: 1.25rem;
+          background: rgb(120 120 140 / 0.045);
+          padding: 1.35rem;
           display: flex;
           flex-direction: column;
-          gap: 0.9rem;
+          gap: 1.1rem;
         }
         @media (min-width: 768px) {
           .panel {
-            padding: 1.25rem 1.5rem;
+            padding: 1.6rem 1.75rem;
           }
         }
         .panel-title {
           font-weight: 650;
-          font-size: 1.05rem;
-          line-height: 1.2;
+          font-size: 1.1rem;
+          line-height: 1.25;
+          letter-spacing: -0.01em;
         }
         .panel-sub {
-          font-size: 0.82rem;
-          opacity: 0.65;
-          margin-top: 0.15rem;
+          font-size: 0.875rem;
+          opacity: 0.62;
+          margin-top: 0.25rem;
+          line-height: 1.45;
         }
 
         /* ── Flow ── */
@@ -868,7 +885,7 @@ export default function PillarsSection() {
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 0.4rem;
+          gap: 0.5rem;
         }
         @media (min-width: 900px) {
           .flow {
@@ -885,12 +902,12 @@ export default function PillarsSection() {
           overflow: hidden;
           background: #fff;
           color: #18181b;
-          border-radius: 0.65rem;
-          padding: 0.8rem;
-          box-shadow: 0 14px 30px rgb(0 0 0 / 0.25);
+          border-radius: 0.75rem;
+          padding: 0.85rem;
+          box-shadow: 0 16px 36px rgb(0 0 0 / 0.22);
           display: flex;
           flex-direction: column;
-          gap: 0.45rem;
+          gap: 0.5rem;
         }
         .resume-head {
           display: flex;
@@ -898,24 +915,24 @@ export default function PillarsSection() {
           align-items: center;
         }
         .resume-avatar {
-          width: 1.7rem;
-          height: 1.7rem;
+          width: 1.75rem;
+          height: 1.75rem;
           border-radius: 50%;
           background: linear-gradient(135deg, #6c5cff, #22d3ee);
           flex: none;
         }
         .resume-name {
           font-weight: 700;
-          font-size: 0.72rem;
+          font-size: 0.74rem;
           line-height: 1.1;
         }
         .resume-role {
-          font-size: 0.62rem;
+          font-size: 0.64rem;
           color: #71717a;
         }
         .resume-lines {
           display: grid;
-          gap: 0.28rem;
+          gap: 0.3rem;
         }
         .resume-lines i {
           height: 4px;
@@ -930,18 +947,18 @@ export default function PillarsSection() {
         }
         .resume-chips {
           display: flex;
-          gap: 0.25rem;
+          gap: 0.28rem;
         }
         .resume-chips i {
           font-style: normal;
-          font-size: 0.56rem;
-          padding: 0.08rem 0.4rem;
+          font-size: 0.58rem;
+          padding: 0.1rem 0.42rem;
           border-radius: 999px;
           background: #ede9fe;
           color: #5b21b6;
         }
         .resume-file {
-          font-size: 0.58rem;
+          font-size: 0.6rem;
           color: #a1a1aa;
         }
         .resume-scan {
@@ -979,9 +996,9 @@ export default function PillarsSection() {
 
         .flow-beam {
           position: relative;
-          height: 1.6rem;
+          height: 1.7rem;
           width: 2px;
-          background: rgb(120 120 140 / 0.3);
+          background: rgb(120 120 140 / 0.28);
           overflow: hidden;
           border-radius: 2px;
         }
@@ -1033,7 +1050,7 @@ export default function PillarsSection() {
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 0.6rem;
+          gap: 0.65rem;
           width: 100%;
           min-width: 0;
         }
@@ -1041,28 +1058,28 @@ export default function PillarsSection() {
           display: flex;
           align-items: center;
           gap: 0.45rem;
-          font-size: 0.8rem;
+          font-size: 0.82rem;
           font-weight: 600;
         }
         .flow-step b {
           display: grid;
           place-items: center;
-          width: 1.2rem;
-          height: 1.2rem;
+          width: 1.25rem;
+          height: 1.25rem;
           border-radius: 50%;
-          font-size: 0.66rem;
+          font-size: 0.68rem;
           color: #22d3ee;
-          background: rgb(34 211 238 / 0.16);
+          background: rgb(34 211 238 / 0.15);
         }
         .flow-hint {
-          font-size: 0.7rem;
-          opacity: 0.6;
+          font-size: 0.72rem;
+          opacity: 0.58;
         }
         .rail-pill--more {
           display: inline-flex;
           align-items: center;
           gap: 3px;
-          padding: 0.55rem 0.8rem;
+          padding: 0.55rem 0.85rem;
         }
         .rail-pill--more span {
           width: 4px;
@@ -1107,12 +1124,12 @@ export default function PillarsSection() {
           padding: 0 0.25rem;
         }
         .rail-pill {
-          font-size: 0.78rem;
-          padding: 0.35rem 0.75rem;
+          font-size: 0.8rem;
+          padding: 0.38rem 0.8rem;
           border-radius: 999px;
           white-space: nowrap;
-          border: 1px solid rgb(120 120 140 / 0.3);
-          background: rgb(120 120 140 / 0.08);
+          border: 1px solid rgb(120 120 140 / 0.28);
+          background: rgb(120 120 140 / 0.07);
           cursor: pointer;
           transition:
             transform 0.25s,
@@ -1121,33 +1138,33 @@ export default function PillarsSection() {
             box-shadow 0.25s;
         }
         .rail-pill:hover {
-          border-color: rgb(120 120 140 / 0.6);
+          border-color: rgb(120 120 140 / 0.55);
         }
         .rail-pill:focus-visible {
           outline: 2px solid #22d3ee;
           outline-offset: 2px;
         }
         .rail-pill.is-active {
-          transform: scale(1.06);
+          transform: scale(1.05);
           border-color: #22d3ee;
-          background: rgb(34 211 238 / 0.14);
-          box-shadow: 0 0 18px rgb(34 211 238 / 0.25);
+          background: rgb(34 211 238 / 0.13);
+          box-shadow: 0 0 18px rgb(34 211 238 / 0.22);
         }
 
         .browser {
           width: 100%;
           max-width: 15rem;
-          border-radius: 0.65rem;
+          border-radius: 0.75rem;
           overflow: hidden;
-          border: 1px solid rgb(120 120 140 / 0.35);
+          border: 1px solid rgb(120 120 140 / 0.32);
           background: #0f1116;
-          box-shadow: 0 16px 34px rgb(0 0 0 / 0.3);
+          box-shadow: 0 18px 40px rgb(0 0 0 / 0.28);
         }
         .browser-bar {
           display: flex;
           align-items: center;
           gap: 0.25rem;
-          padding: 0.35rem 0.55rem;
+          padding: 0.38rem 0.6rem;
           background: #171a21;
         }
         .browser-bar i {
@@ -1158,7 +1175,7 @@ export default function PillarsSection() {
         }
         .browser-bar span {
           margin-left: 0.4rem;
-          font-size: 0.58rem;
+          font-size: 0.6rem;
           color: #9aa3b2;
           white-space: nowrap;
           overflow: hidden;
@@ -1178,7 +1195,7 @@ export default function PillarsSection() {
           }
         }
 
-        /* ── Template preview (em-based) ── */
+        /* ── Template preview ── */
         .tp {
           position: relative;
           overflow: hidden;
@@ -1394,13 +1411,13 @@ export default function PillarsSection() {
         .an {
           display: flex;
           flex-direction: column;
-          gap: 0.6rem;
+          gap: 0.7rem;
           flex: 1;
         }
         .an-grid {
           display: grid;
           grid-template-columns: repeat(2, 1fr);
-          gap: 0.5rem;
+          gap: 0.55rem;
         }
         @media (min-width: 560px) {
           .an-grid {
@@ -1408,31 +1425,31 @@ export default function PillarsSection() {
           }
         }
         .an-card {
-          border-radius: 0.7rem;
-          border: 1px solid rgb(120 120 140 / 0.25);
-          background: rgb(120 120 140 / 0.07);
-          padding: 0.55rem 0.7rem;
+          border-radius: 0.8rem;
+          border: 1px solid rgb(120 120 140 / 0.2);
+          background: rgb(120 120 140 / 0.06);
+          padding: 0.6rem 0.75rem;
         }
         .an-label {
-          font-size: 0.68rem;
-          opacity: 0.65;
+          font-size: 0.7rem;
+          opacity: 0.62;
         }
         .an-value {
-          font-size: 1.15rem;
+          font-size: 1.2rem;
           font-weight: 700;
           font-variant-numeric: tabular-nums;
         }
 
         .an-chart {
           flex: 1;
-          min-height: 8rem;
+          min-height: 8.5rem;
           display: flex;
           flex-direction: column;
-          gap: 0.35rem;
-          border-radius: 0.7rem;
-          border: 1px solid rgb(34 211 238 / 0.22);
-          background: rgb(34 211 238 / 0.05);
-          padding: 0.6rem 0.7rem 0.45rem;
+          gap: 0.4rem;
+          border-radius: 0.8rem;
+          border: 1px solid rgb(34 211 238 / 0.2);
+          background: rgb(34 211 238 / 0.045);
+          padding: 0.7rem 0.8rem 0.5rem;
         }
         .an-chart-head {
           display: flex;
@@ -1441,17 +1458,17 @@ export default function PillarsSection() {
           gap: 0.5rem;
         }
         .an-badge {
-          font-size: 0.64rem;
+          font-size: 0.66rem;
           font-weight: 600;
           color: #34d399;
-          background: rgb(52 211 153 / 0.14);
+          background: rgb(52 211 153 / 0.13);
           border-radius: 999px;
-          padding: 0.1rem 0.45rem;
+          padding: 0.12rem 0.5rem;
         }
         .an-chart-body {
           position: relative;
           flex: 1;
-          min-height: 4.5rem;
+          min-height: 4.8rem;
         }
         .an-plot {
           position: absolute;
@@ -1469,7 +1486,7 @@ export default function PillarsSection() {
           display: block;
         }
         .an-grid-line {
-          stroke: rgb(120 120 140 / 0.25);
+          stroke: rgb(120 120 140 / 0.22);
           stroke-width: 1;
           stroke-dasharray: 3 4;
           vector-effect: non-scaling-stroke;
@@ -1505,13 +1522,13 @@ export default function PillarsSection() {
         .an-axis {
           display: flex;
           justify-content: space-between;
-          font-size: 0.58rem;
-          opacity: 0.5;
+          font-size: 0.6rem;
+          opacity: 0.48;
         }
 
         .an-hl {
           display: grid;
-          gap: 0.5rem;
+          gap: 0.55rem;
         }
         @media (min-width: 560px) {
           .an-hl {
@@ -1519,45 +1536,45 @@ export default function PillarsSection() {
           }
         }
         .an-hl-item {
-          border-radius: 0.7rem;
-          padding: 0.55rem 0.7rem;
-          border: 1px solid rgb(251 191 36 / 0.3);
-          background: rgb(251 191 36 / 0.07);
+          border-radius: 0.8rem;
+          padding: 0.6rem 0.75rem;
+          border: 1px solid rgb(251 191 36 / 0.28);
+          background: rgb(251 191 36 / 0.06);
         }
         .an-hl-value {
           font-weight: 600;
-          font-size: 0.85rem;
+          font-size: 0.88rem;
         }
 
         /* ── Contact demo ── */
         .cf {
           display: flex;
           flex-direction: column;
-          gap: 0.55rem;
+          gap: 0.6rem;
           flex: 1;
         }
         .cf-row {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 0.55rem;
+          gap: 0.6rem;
         }
         .cf-field {
           display: flex;
           flex-direction: column;
-          gap: 0.2rem;
+          gap: 0.22rem;
           min-width: 0;
         }
         .cf-label {
-          font-size: 0.68rem;
-          opacity: 0.65;
+          font-size: 0.7rem;
+          opacity: 0.62;
         }
         .cf-box {
-          min-height: 2.05rem;
-          padding: 0.4rem 0.65rem;
-          font-size: 0.82rem;
-          border-radius: 0.55rem;
-          border: 1px solid rgb(120 120 140 / 0.35);
-          background: rgb(120 120 140 / 0.08);
+          min-height: 2.15rem;
+          padding: 0.42rem 0.7rem;
+          font-size: 0.85rem;
+          border-radius: 0.6rem;
+          border: 1px solid rgb(120 120 140 / 0.3);
+          background: rgb(120 120 140 / 0.07);
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
@@ -1566,13 +1583,13 @@ export default function PillarsSection() {
             box-shadow 0.2s;
         }
         .cf-field--msg .cf-box {
-          min-height: 3.7rem;
+          min-height: 3.9rem;
           white-space: normal;
           overflow-wrap: anywhere;
         }
         .cf-field.is-focus .cf-box {
           border-color: #fbbf24;
-          box-shadow: 0 0 0 3px rgb(251 191 36 / 0.18);
+          box-shadow: 0 0 0 3px rgb(251 191 36 / 0.16);
         }
         .cf-caret {
           display: inline-block;
@@ -1594,10 +1611,10 @@ export default function PillarsSection() {
           align-items: center;
           justify-content: center;
           gap: 0.5rem;
-          padding: 0.55rem 1rem;
-          border-radius: 0.65rem;
+          padding: 0.6rem 1rem;
+          border-radius: 0.7rem;
           font-weight: 600;
-          font-size: 0.85rem;
+          font-size: 0.88rem;
           color: #111;
           background: linear-gradient(90deg, #fbbf24, #fb7185);
           transition:
@@ -1625,12 +1642,12 @@ export default function PillarsSection() {
         .cf-ok {
           display: flex;
           align-items: center;
-          gap: 0.7rem;
-          padding: 0.6rem 0.8rem;
-          border-radius: 0.7rem;
+          gap: 0.75rem;
+          padding: 0.65rem 0.85rem;
+          border-radius: 0.8rem;
           color: #34d399;
-          background: rgb(52 211 153 / 0.12);
-          border: 1px solid rgb(52 211 153 / 0.4);
+          background: rgb(52 211 153 / 0.11);
+          border: 1px solid rgb(52 211 153 / 0.38);
           opacity: 0;
           transform: translateY(8px);
           transition:
@@ -1642,8 +1659,8 @@ export default function PillarsSection() {
           transform: none;
         }
         .cf-ok svg {
-          width: 1.7rem;
-          height: 1.7rem;
+          width: 1.75rem;
+          height: 1.75rem;
           flex: none;
         }
         .cf-ring,
@@ -1668,52 +1685,52 @@ export default function PillarsSection() {
         }
         .cf-ok-title {
           font-weight: 650;
-          font-size: 0.85rem;
+          font-size: 0.88rem;
         }
         .cf-ok-sub {
-          font-size: 0.72rem;
+          font-size: 0.74rem;
           opacity: 0.8;
         }
 
-        /* ── Custom domain demo ── */
+        /* ── Custom domain ── */
         .dm {
           display: grid;
-          gap: 1rem;
+          gap: 1.15rem;
           align-items: center;
         }
         @media (min-width: 900px) {
           .dm {
             grid-template-columns: 1fr 1fr 15rem;
-            gap: 1.5rem;
+            gap: 1.6rem;
           }
         }
         .dm-col {
           display: flex;
           flex-direction: column;
-          gap: 0.5rem;
+          gap: 0.55rem;
           min-width: 0;
         }
         .dm-label {
-          font-size: 0.68rem;
-          opacity: 0.65;
+          font-size: 0.7rem;
+          opacity: 0.62;
         }
         .dm-input {
           display: flex;
           align-items: center;
           gap: 0.5rem;
-          min-height: 2.3rem;
-          padding: 0.4rem 0.7rem;
-          border-radius: 0.6rem;
-          font-size: 0.85rem;
-          border: 1px solid rgb(120 120 140 / 0.35);
-          background: rgb(120 120 140 / 0.08);
+          min-height: 2.4rem;
+          padding: 0.42rem 0.75rem;
+          border-radius: 0.65rem;
+          font-size: 0.88rem;
+          border: 1px solid rgb(120 120 140 / 0.3);
+          background: rgb(120 120 140 / 0.07);
           transition:
             border-color 0.2s,
             box-shadow 0.2s;
         }
         .dm-input.is-focus {
           border-color: #22d3ee;
-          box-shadow: 0 0 0 3px rgb(34 211 238 / 0.18);
+          box-shadow: 0 0 0 3px rgb(34 211 238 / 0.16);
         }
         .dm-input svg {
           width: 1rem;
@@ -1736,10 +1753,10 @@ export default function PillarsSection() {
           align-items: center;
           justify-content: center;
           gap: 0.5rem;
-          padding: 0.5rem 1rem;
-          border-radius: 0.65rem;
+          padding: 0.55rem 1rem;
+          border-radius: 0.7rem;
           font-weight: 600;
-          font-size: 0.82rem;
+          font-size: 0.85rem;
           color: #06222a;
           background: linear-gradient(90deg, #22d3ee, #6c5cff);
           transition:
@@ -1757,13 +1774,13 @@ export default function PillarsSection() {
         }
         .dm-rec {
           display: grid;
-          gap: 0.15rem;
+          gap: 0.18rem;
           margin-top: 0.15rem;
-          padding: 0.5rem 0.7rem;
-          border-radius: 0.6rem;
-          border: 1px dashed rgb(120 120 140 / 0.4);
+          padding: 0.55rem 0.75rem;
+          border-radius: 0.65rem;
+          border: 1px dashed rgb(120 120 140 / 0.38);
           font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-          font-size: 0.66rem;
+          font-size: 0.68rem;
         }
         .dm-rec span {
           display: flex;
@@ -1783,17 +1800,17 @@ export default function PillarsSection() {
         .dm-checks {
           display: flex;
           flex-direction: column;
-          gap: 0.55rem;
+          gap: 0.6rem;
         }
         .dm-check {
           display: flex;
           align-items: center;
-          gap: 0.6rem;
-          padding: 0.5rem 0.7rem;
-          border-radius: 0.65rem;
-          font-size: 0.82rem;
-          border: 1px solid rgb(120 120 140 / 0.25);
-          background: rgb(120 120 140 / 0.06);
+          gap: 0.65rem;
+          padding: 0.55rem 0.75rem;
+          border-radius: 0.7rem;
+          font-size: 0.85rem;
+          border: 1px solid rgb(120 120 140 / 0.22);
+          background: rgb(120 120 140 / 0.055);
           opacity: 0.55;
           transition:
             opacity 0.3s,
@@ -1802,21 +1819,21 @@ export default function PillarsSection() {
         }
         .dm-check.is-active {
           opacity: 1;
-          border-color: rgb(34 211 238 / 0.5);
-          background: rgb(34 211 238 / 0.08);
+          border-color: rgb(34 211 238 / 0.48);
+          background: rgb(34 211 238 / 0.075);
         }
         .dm-check.is-done {
           opacity: 1;
           color: #34d399;
-          border-color: rgb(52 211 153 / 0.4);
-          background: rgb(52 211 153 / 0.1);
+          border-color: rgb(52 211 153 / 0.38);
+          background: rgb(52 211 153 / 0.09);
         }
         .dm-check-ico {
           display: grid;
           place-items: center;
           flex: none;
-          width: 1.2rem;
-          height: 1.2rem;
+          width: 1.25rem;
+          height: 1.25rem;
           border-radius: 50%;
           border: 1.5px solid currentColor;
           opacity: 0.9;
@@ -1843,20 +1860,20 @@ export default function PillarsSection() {
           width: 100%;
           max-width: 15rem;
           justify-self: center;
-          border-radius: 0.65rem;
+          border-radius: 0.75rem;
           overflow: hidden;
-          border: 1px solid rgb(120 120 140 / 0.35);
+          border: 1px solid rgb(120 120 140 / 0.32);
           background: #0f1116;
-          box-shadow: 0 16px 34px rgb(0 0 0 / 0.3);
+          box-shadow: 0 18px 40px rgb(0 0 0 / 0.28);
           transition:
             border-color 0.4s,
             box-shadow 0.4s;
         }
         .dm--live .dm-browser {
-          border-color: rgb(52 211 153 / 0.6);
+          border-color: rgb(52 211 153 / 0.55);
           box-shadow:
-            0 16px 34px rgb(0 0 0 / 0.3),
-            0 0 22px rgb(52 211 153 / 0.22);
+            0 18px 40px rgb(0 0 0 / 0.28),
+            0 0 24px rgb(52 211 153 / 0.2);
         }
         .dm-url {
           display: flex;
@@ -1892,10 +1909,10 @@ export default function PillarsSection() {
           right: 0.4rem;
           bottom: 0.4rem;
           z-index: 3;
-          font-size: 0.55rem;
+          font-size: 0.56rem;
           font-weight: 600;
           color: #34d399;
-          padding: 0.15rem 0.4rem;
+          padding: 0.16rem 0.42rem;
           border-radius: 999px;
           background: rgb(0 0 0 / 0.7);
           opacity: 0;

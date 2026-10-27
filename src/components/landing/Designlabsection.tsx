@@ -1,6 +1,6 @@
 /**
  * OrixaAI — Design Lab teaser (compact).
- * Short line + link to the Design Lab + 7 style chips (Server Component, CSS in landing.css).
+ * Short line + link to the Design Lab + 7 style chips (Server Component).
  * Each chip opens the Design Lab filtered to that style.
  */
 
@@ -24,41 +24,59 @@ const STYLES: Style[] = [
 
 export default function DesignLabSection() {
   return (
-    <section id="design-lab" className="relative py-14 md:py-20">
+    <section id="design-lab" className="relative py-20 md:py-28">
       <div className="mx-auto max-w-6xl px-5">
-        <div className="dl-card">
-          <div className="dl-glow" aria-hidden="true" />
+        <div className="dl-card relative overflow-hidden rounded-2xl border border-border/60 bg-surface/60 px-6 py-12 shadow-sm backdrop-blur-sm sm:px-10 sm:py-14 md:px-14">
+          {/* Soft ambient glow */}
+          <div
+            className="pointer-events-none absolute -top-24 left-1/2 h-64 w-[28rem] -translate-x-1/2 rounded-full bg-gradient-to-tr from-primary/15 via-foreground/5 to-transparent blur-3xl"
+            aria-hidden="true"
+          />
 
+          {/* Header */}
           <div className="relative mx-auto max-w-2xl text-center">
-            <p className="text-caption mb-3">Design Lab</p>
-            <h2 className="text-h1 text-balance">
+            <p className="mb-3 text-sm font-medium tracking-wide text-muted-foreground">
+              Design Lab
+            </p>
+            <h2 className="text-balance text-3xl font-bold tracking-tight text-foreground sm:text-4xl md:text-[2.6rem] md:leading-[1.15]">
               Real portfolios.{" "}
-              <span className="text-gradient-ion">Built by real people.</span>
+              <span className="bg-gradient-to-r from-foreground via-foreground/80 to-muted-foreground bg-clip-text text-transparent">
+                Built by real people.
+              </span>
             </h2>
-            <p className="text-body-lg mx-auto mt-4 max-w-md">
+            <p className="mx-auto mt-5 max-w-md text-lg leading-relaxed text-muted-foreground">
               Explore portfolios our users have published, across every design
               style.
             </p>
 
-            <div className="mt-7 flex flex-col items-center gap-3">
+            {/* CTA */}
+            <div className="mt-8 flex flex-col items-center gap-3">
               <Link
                 href={DESIGN_LAB_PATH}
-                className="btn btn-ion w-full sm:w-auto sm:min-w-[12rem]"
+                className="btn btn-ion w-full sm:w-auto sm:min-w-[13rem]"
               >
                 Open Design Lab
               </Link>
-              <p className="dl-url">orixaai.me/design-lab</p>
+              <p className="text-sm text-muted-foreground/70">
+                orixaai.me/design-lab
+              </p>
             </div>
           </div>
 
-          <div className="relative mt-9">
-            <p className="dl-hint">Or pick a style to see it in action</p>
-            <ul className="dl-chips" aria-label="Design styles">
+          {/* Style chips */}
+          <div className="relative mt-12">
+            <p className="mb-5 text-center text-sm text-muted-foreground">
+              Or pick a style to see it in action
+            </p>
+            <ul
+              className="flex flex-wrap items-center justify-center gap-2.5"
+              aria-label="Design styles"
+            >
               {STYLES.map((s) => (
                 <li key={s.id}>
                   <Link
                     href={`${DESIGN_LAB_PATH}?theme=${s.id}`}
-                    className="dl-chip"
+                    className="group inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/50 px-4 py-2 text-sm font-medium text-foreground transition-all duration-200 hover:border-foreground/30 hover:bg-background"
                     style={
                       {
                         "--from": s.from,
@@ -66,7 +84,13 @@ export default function DesignLabSection() {
                       } as CSSProperties
                     }
                   >
-                    <span className="dl-dot" aria-hidden="true" />
+                    <span
+                      className="h-2.5 w-2.5 shrink-0 rounded-full"
+                      style={{
+                        background: `linear-gradient(135deg, ${s.from}, ${s.to})`,
+                      }}
+                      aria-hidden="true"
+                    />
                     {s.name}
                   </Link>
                 </li>
@@ -75,7 +99,6 @@ export default function DesignLabSection() {
           </div>
         </div>
       </div>
-
     </section>
   );
 }
