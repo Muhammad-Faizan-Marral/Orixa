@@ -116,9 +116,6 @@ export function OnboardingForm() {
         // ignore
       }
 
-      if (result.debug) {
-        console.log("[onboarding] referral debug", result.debug);
-      }
 
       router.replace("/dashboard");
       router.refresh();

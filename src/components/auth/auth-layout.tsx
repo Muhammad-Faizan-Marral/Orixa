@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Logo from "../landing/Logo";
 
 const POINTS = [
   "Multiple portfolios from one profile",
@@ -16,7 +17,10 @@ export function AuthLayout({
   subtitle?: string;
 }) {
   return (
-    <div className="grid min-h-screen lg:grid-cols-2"style={{ ["--font-display" as string]: "var(--font-dm), sans-serif" }}>
+    <div
+      className="grid min-h-screen lg:grid-cols-2"
+      style={{ ["--font-display" as string]: "var(--font-dm), sans-serif" }}
+    >
       <div className="relative hidden flex-col justify-between overflow-hidden bg-surface p-10 lg:flex">
         <div
           className="bg-aurora pointer-events-none absolute inset-0"
@@ -27,14 +31,15 @@ export function AuthLayout({
           aria-hidden="true"
         />
 
-        <Link href="/" className="relative z-10 flex items-center gap-2">
-          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-ion text-[0.8rem] font-bold text-white">
-            O
-          </span>
-          <span className="font-display text-[1.05rem] font-semibold tracking-tight text-foreground">
-            Orixa<span className="text-gradient-ion">AI</span>
-          </span>
-        </Link>
+        <div className=" flex">
+          <Link
+            href="/"
+            aria-label="OrixaAI home"
+            className="flex shrink-0 items-center"
+          >
+            <Logo variant="auto" height={100} priority />
+          </Link>
+        </div>
 
         <div className="relative z-10 max-w-sm">
           <p className="text-h2 text-balance">
@@ -62,15 +67,15 @@ export function AuthLayout({
 
       <div className="flex flex-col items-center justify-center bg-background px-6 py-16">
         <div className="w-full max-w-sm">
-          <Link href="/" className="mb-8 flex items-center gap-2 lg:hidden">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-ion text-[0.8rem] font-bold text-white">
-              O
-            </span>
-            <span className="font-display text-[1.05rem] font-semibold tracking-tight text-foreground">
-              Orixa<span className="text-gradient-ion">AI</span>
-            </span>
-          </Link>
-
+          <div className=" flex">
+            <Link
+              href="/"
+              aria-label="OrixaAI home"
+              className="mb-8 flex items-center gap-2 lg:hidden "
+            >
+              <Logo variant="auto" height={100} priority />
+            </Link>
+          </div>
           <h1 className="text-h2">{title}</h1>
           {subtitle && (
             <p className="text-body mt-2 text-muted-foreground">{subtitle}</p>

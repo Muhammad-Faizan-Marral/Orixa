@@ -34,11 +34,7 @@ export async function createProfile(
 
     const referralCode = clientRef || cookieRef;
 
-    console.log("[createProfile] referral sources", {
-      cookieRef,
-      clientRef,
-      used: referralCode,
-    });
+ 
 
     const profile = await profileService.createProfile(user.id, data, {
       referralCode,

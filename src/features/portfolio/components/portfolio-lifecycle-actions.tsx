@@ -79,15 +79,7 @@ export function PortfolioLifecycleActions({
         if (clearUnpublished) setHasUnpublished(false);
         succeeded = true;
 
-        if (key === "publish") {
-          toast({
-            type: "success",
-            title: "Your portfolio has been published!",
-            description:
-              "Cached versions may take a little time to update. If you still see your previous portfolio, please wait a little while and refresh the page. It may take up to 1 minute for the new version to go live.",
-            duration: 0,
-          });
-        }
+       
       } catch (actionError) {
         setError(
           actionError instanceof Error

@@ -318,9 +318,6 @@ export default function RootLayout({
               {/* Referral attribution / referral capture */}
               <ReferralCapture />
 
-              {/* Network/offline state feedback */}
-              <NetworkStatusBanner />
-
               {/* Application content */}
               {children}
               <Analytics />

@@ -36,12 +36,13 @@ export default function SignupPage() {
       >
         <div className="surface-panel space-y-3 p-5 text-sm text-muted-foreground">
           <p>
-            Open the email from <strong className="text-foreground">Orixa AI</strong> and
-            click the confirmation link to activate your account.
+            Open the email from{" "}
+            <strong className="text-foreground">Orixa AI</strong> and click the
+            confirmation link to activate your account.
           </p>
           <p>
-            Didn&apos;t get it? Check spam or promotions. The link expires after a
-            short time for your security.
+            Didn&apos;t get it? Check spam or promotions. The link expires after
+            a short time for your security.
           </p>
         </div>
         <Link href="/auth/login" className="mt-6 block">
@@ -100,11 +101,19 @@ export default function SignupPage() {
             />
             <span>
               I agree to the{" "}
-              <Link href="/terms" target="_blank" className="text-primary hover:underline">
+              <Link
+                href="/terms"
+                target="_blank"
+                className="text-primary hover:underline"
+              >
                 Terms of Service
               </Link>{" "}
               and{" "}
-              <Link href="/privacy" target="_blank" className="text-primary hover:underline">
+              <Link
+                href="/privacy"
+                target="_blank"
+                className="text-primary hover:underline"
+              >
                 Privacy Policy
               </Link>
               .

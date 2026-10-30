@@ -38,11 +38,7 @@ const PREMIUM_FEATURES = [
   "Remove watermark", 
   "Premium template pack",
   "Unlimited create portfolios",
-  "All Premium designs",
-  "Create & publish portfolios",
-  "Resume upload & parsing",
-  "Full analytics",
-  "Public portfolio URL",,
+  "Includes everything in the Free plan"
 ];
 
 export default function PricingPage() {
