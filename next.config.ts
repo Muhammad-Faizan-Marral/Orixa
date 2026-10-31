@@ -13,37 +13,42 @@ const nextConfig: NextConfig = {
   // Disable production browser source maps
   productionBrowserSourceMaps: false,
 
-  images: {
-    // Optimized image format
-    formats: ["image/webp"],
+ images: {
+  // Optimized image format
+  formats: ["image/webp"],
 
-    // Allowed image quality
-    qualities: [75],
+  // Allowed image quality
+  qualities: [75],
 
-    // External image hosts used by Orixa AI
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "encrypted-tbn0.gstatic.com",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "i.ibb.co",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "**.supabase.co",
-        pathname: "/storage/v1/object/public/**",
-      },
-      {
-        protocol: "https",
-        hostname: "i.pinimg.com",
-        pathname: "/**",
-      },
-    ],
-  },
+  // External image hosts used by Orixa AI
+  remotePatterns: [
+    {
+      protocol: "https",
+      hostname: "encrypted-tbn0.gstatic.com",
+      pathname: "/**",
+    },
+    {
+      protocol: "https",
+      hostname: "i.ibb.co",
+      pathname: "/**",
+    },
+    {
+      protocol: "https",
+      hostname: "i.postimg.cc",
+      pathname: "/**",
+    },
+    {
+      protocol: "https",
+      hostname: "*.supabase.co",
+      pathname: "/storage/v1/object/public/**",
+    },
+    {
+      protocol: "https",
+      hostname: "i.pinimg.com",
+      pathname: "/**",
+    },
+  ],
+},
 
   experimental: {
     // Preserve existing resume-upload limit

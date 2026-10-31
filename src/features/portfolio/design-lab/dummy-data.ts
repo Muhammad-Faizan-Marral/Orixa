@@ -18,7 +18,7 @@ export const LAB_CONFIG_BASE: PortfolioRenderConfig = {
   phone: "+92 3498289100",
   linkedinUrl: "https://linkedin.com/in/muhammad-faizan-05093b2a4",
   githubUrl: "https://github.com/Muhammad-Faizan-Marral",
-  avatarUrl: "https://i.ibb.co/tTZGyfTW/profile-removebg-preview.png",
+  avatarUrl: "https://i.postimg.cc/BnMWJBm8/profile-removebg-preview-(1).webp",
   resumeUrl: null,
   animations: true,
   skills: [

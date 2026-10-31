@@ -3,9 +3,13 @@ import { revalidatePath, revalidateTag } from "next/cache";
 
 import { portfolioService } from "@/services/portfolio/portfolio.service";
 
-
-export const PORTFOLIO_REVALIDATE_SECONDS = 3600;
-export const PORTFOLIO_SWR_SECONDS = 86400; 
+/**
+ * On-demand revalidation is the source of truth.
+ * Keep TTL short so even if a tag is missed, content is never stale for long.
+ * CDN still gets SWR for performance between publishes.
+ */
+export const PORTFOLIO_REVALIDATE_SECONDS = 60; // was 3600
+export const PORTFOLIO_SWR_SECONDS = 300; // was 86400 — 5 min background refresh max
 
 export function portfolioCacheTag(username: string, slug: string) {
   return `portfolio:${username}:${slug}`;
@@ -17,7 +21,7 @@ export function userCacheTag(username: string) {
 
 /**
  * Cache ONLY successful published payloads.
- * Null/not-found is not stored as a sticky cache entry.
+ * Null / not-found is never stored as a sticky cache entry.
  */
 export async function getCachedPublishedPortfolio(
   username: string,
@@ -34,7 +38,8 @@ export async function getCachedPublishedPortfolio(
       }
       return result;
     },
-    ["published-portfolio-v4", username, portfolioSlug], // version bump
+    // version bump forces old long-TTL entries to die
+    ["published-portfolio-v5", username, portfolioSlug],
     {
       tags: [
         portfolioCacheTag(username, portfolioSlug),
@@ -47,11 +52,11 @@ export async function getCachedPublishedPortfolio(
   try {
     return await loadCachedHit();
   } catch {
-    // not-found / error — short-circuit, sticky null cache mat banao
     return null;
   }
 }
 
+/** CDN-friendly headers for public portfolio pages */
 export function publicPageCacheHeaders(): Record<string, string> {
   const value = `public, s-maxage=${PORTFOLIO_REVALIDATE_SECONDS}, stale-while-revalidate=${PORTFOLIO_SWR_SECONDS}, stale-if-error=86400`;
   return {
@@ -70,9 +75,16 @@ export function publicErrorCacheHeaders(): Record<string, string> {
   };
 }
 
+/**
+ * Instant purge after publish / unpublish / archive / restore.
+ * Call this from EVERY action that changes public visibility or content.
+ */
 export function revalidatePublicPortfolio(username: string, slug: string) {
+  // Data Cache (unstable_cache tags)
   revalidateTag(portfolioCacheTag(username, slug), "max");
   revalidateTag(userCacheTag(username), "max");
+
+  // Full Route Cache + CDN path purge (Vercel respects these)
   revalidatePath(`/${username}/${slug}`);
   revalidatePath(`/${username}`);
   revalidatePath(`/${username}/${slug}/orixaAi`);

@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { requireProfile } from "@/lib/auth/require-profile";
 import { portfolioService } from "@/services/portfolio/portfolio.service";
+import { revalidatePublicPortfolio } from "@/lib/cache/portfolio-public";
 
 const schema = z.object({
   portfolioId: z.string().uuid(),
@@ -33,10 +34,16 @@ export async function archivePortfolio(
       profile.id,
     );
 
+    // CRITICAL: public link must stop serving immediately
+    if (portfolio?.slug) {
+      revalidatePublicPortfolio(profile.username, portfolio.slug);
+    } else {
+      revalidatePath(`/${profile.username}`);
+    }
+
     revalidatePath("/dashboard");
     revalidatePath("/dashboard/portfolios");
     revalidatePath(`/dashboard/portfolios/${portfolioId}`);
-    revalidatePath(`/${profile.username}`);
     revalidateTag(`portfolios-${profile.id}`, "max");
 
     return { success: true, portfolio };

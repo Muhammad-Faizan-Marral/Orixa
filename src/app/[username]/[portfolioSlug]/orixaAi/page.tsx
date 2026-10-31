@@ -19,7 +19,7 @@ const getCachedPublishedPortfolio = (username: string, portfolioSlug: string) =>
     ["published-portfolio", username, portfolioSlug],
     {
       tags: [`portfolio:${username}:${portfolioSlug}`, `user:${username}`],
-      revalidate: 3600,
+      revalidate: 60,
     },
   )();
 

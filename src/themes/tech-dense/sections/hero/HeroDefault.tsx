@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   motion,
@@ -90,7 +90,10 @@ function getHeroData(config: unknown) {
 
   const sources = [hero, portfolio, nestedContent, configRecord];
 
-  // const name = firstString(sources, ["fullName", "name", "displayName"]);
+  // FIX: this line was commented out but `name` is used below. Without it
+  // `name` resolved to the browser global `window.name` (an empty string).
+  // If you intentionally do NOT want the name here, delete it from `identity`.
+  const name = firstString(sources, ["fullName", "name", "displayName"]);
   const username = firstString(sources, ["username", "handle"]);
 
   const headline =
@@ -178,20 +181,119 @@ function splitHeadline(value: string) {
 }
 
 /* ==========================================================================
-   DESIGN TOKENS
+   DESIGN TOKENS + HOISTED STATIC VALUES
    ========================================================================== */
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 const CUT = "polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%)";
 
+const CANVAS_MASK =
+  "linear-gradient(to bottom, transparent 8%, black 45%, black 88%, transparent)";
+
+const AMBIENT_BG =
+  "radial-gradient(circle, rgba(37,99,235,0.18), rgba(30,64,175,0.06) 40%, transparent 68%)";
+
+/** Same gradient as before (640px circle), but now a fixed bitmap that is MOVED, not repainted. */
+const SPOTLIGHT_BG =
+  "radial-gradient(640px circle at 50% 50%, rgba(37,99,235,0.16), transparent 62%)";
+
+const GRAIN_BG =
+  "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")";
+
+const VIGNETTE_BG =
+  "radial-gradient(ellipse at 50% 45%, transparent 45%, rgba(2,3,6,0.85) 100%)";
+
+const H1_STYLE: React.CSSProperties = {
+  backgroundImage:
+    "linear-gradient(180deg,#fff 0%,#F1F5FF 45%,rgba(147,197,253,0.62) 100%)",
+  WebkitBackgroundClip: "text",
+  backgroundClip: "text",
+};
+
+const CUT_STYLE: React.CSSProperties = { clipPath: CUT };
+
+const PLACEHOLDER_BG: React.CSSProperties = {
+  background:
+    "radial-gradient(circle at 50% 38%, rgba(59,130,246,0.22), transparent 42%), linear-gradient(160deg,#0C1220,#06080D)",
+};
+
+const PORTRAIT_TINT: React.CSSProperties = {
+  background:
+    "linear-gradient(to top, rgba(4,7,14,0.92), rgba(4,7,14,0) 55%), linear-gradient(135deg, rgba(37,99,235,0.14), transparent 45%)",
+};
+
+/**
+ * Infinite loops as pure CSS keyframes: they run on the compositor instead of
+ * the main thread (framer animates `x`/`y` with JS), and can be paused
+ * off-screen with animation-play-state.
+ */
+const KEYFRAMES = `
+@keyframes hero-drift{0%,100%{transform:translateX(-54%);opacity:.8}50%{transform:translateX(-46%);opacity:1}}
+@keyframes hero-scan{0%{transform:translateY(-100%)}100%{transform:translateY(280%)}}
+`;
+
+const rise = (reduced: boolean, delay: number, distance = 24) => ({
+  initial: { opacity: 0, y: reduced ? 0 : distance },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.9, delay, ease: EASE },
+});
+
 /* ==========================================================================
-   ANIMATED BACKGROUND — a perspective field of luminous contour lines.
-   Lines rise from a horizon, swell with layered sine waves, and bend away
-   from / light up around the pointer. Pauses when off-screen or hidden.
+   HOOKS
    ========================================================================== */
 
-function ContourField({ reduced }: { reduced: boolean }) {
+/** True while the element intersects the viewport. */
+function useInView(
+  ref: React.RefObject<HTMLElement | null>,
+  enabled: boolean,
+) {
+  const [inView, setInView] = useState(true);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!enabled || !el || typeof IntersectionObserver === "undefined") return;
+
+    const io = new IntersectionObserver(
+      ([entry]) => setInView(entry.isIntersecting),
+      { threshold: 0 },
+    );
+    io.observe(el);
+
+    return () => io.disconnect();
+  }, [ref, enabled]);
+
+  return inView;
+}
+
+type PointerShared = { x: number; y: number; last: number };
+
+/* ==========================================================================
+   ANIMATED BACKGROUND — perspective field of luminous contour lines.
+
+   Same look as before. What changed under the hood:
+   - sin(a + phase) is expanded (sin·cos + cos·sin) with the x-dependent half
+     precomputed once, so the per-point cost is a few multiplies, no trig.
+   - Pointer falloff (exp) only runs for points near the pointer.
+   - Per-line strokeStyle/lineWidth/baseY/amp are precomputed.
+   - Bloom fills a 520px box instead of the full canvas.
+   - Idle = 30fps (motion is slow), full rate while the pointer is active.
+   - Pointer smoothing is time-based, so it feels the same at any FPS.
+   - Runs only while visible, tab-visible and not reduced-motion.
+   - One shared pointer source (no extra window listener, no rect reads).
+   ========================================================================== */
+
+function ContourField({
+  reduced,
+  active,
+  pointer,
+}: {
+  reduced: boolean;
+  active: boolean;
+  pointer: React.MutableRefObject<PointerShared>;
+}) {
   const ref = useRef<HTMLCanvasElement>(null);
+  const activeRef = useRef(active);
+  const syncRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     const canvas = ref.current;
@@ -199,138 +301,217 @@ function ContourField({ reduced }: { reduced: boolean }) {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const R = 150 * 3.5; // beyond this the bend is < 0.1px
+    const R2 = R * R;
+    const INV = 1 / (2 * 150 * 150);
+
     let w = 0;
     let h = 0;
+    let dpr = 1;
     let raf = 0;
     let running = false;
-    const pointer = { x: -999, y: -999, tx: -999, ty: -999 };
+    let lastDraw = 0;
+    let resizeRaf = 0;
 
-    const resize = () => {
-      const r = canvas.getBoundingClientRect();
-      w = r.width;
-      h = r.height;
-      canvas.width = Math.round(w * dpr);
-      canvas.height = Math.round(h * dpr);
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    };
+    let lines = 0;
+    let step = 8;
+    let cols = 0;
+    let sinA = new Float32Array(0);
+    let cosA = new Float32Array(0);
+    let sinB = new Float32Array(0);
+    let cosB = new Float32Array(0);
+    let phase1 = new Float32Array(0);
+    let phase2 = new Float32Array(0);
+    let baseYs = new Float32Array(0);
+    let amps = new Float32Array(0);
+    let widths = new Float32Array(0);
+    let strokes: string[] = [];
 
-    const draw = (time: number) => {
-      ctx.clearRect(0, 0, w, h);
-      pointer.x += (pointer.tx - pointer.x) * 0.07;
-      pointer.y += (pointer.ty - pointer.y) * 0.07;
+    const smooth = { x: -999, y: -999 };
 
-      const lines = w < 640 ? 24 : 42;
-      const step = w < 640 ? 10 : 8;
-      const t = time * 0.00035;
+    const build = () => {
+      const mobile = w < 640;
+      lines = mobile ? 24 : 42;
+      step = mobile ? 10 : 8;
+      cols = Math.floor((w + step) / step) + 1;
+
+      sinA = new Float32Array(cols);
+      cosA = new Float32Array(cols);
+      sinB = new Float32Array(cols);
+      cosB = new Float32Array(cols);
+
+      for (let k = 0; k < cols; k++) {
+        const nx = (k * step) / w;
+        sinA[k] = Math.sin(nx * 5.2);
+        cosA[k] = Math.cos(nx * 5.2);
+        sinB[k] = Math.sin(nx * 11.5);
+        cosB[k] = Math.cos(nx * 11.5);
+      }
+
+      phase1 = new Float32Array(lines);
+      phase2 = new Float32Array(lines);
+      baseYs = new Float32Array(lines);
+      amps = new Float32Array(lines);
+      widths = new Float32Array(lines);
+      strokes = new Array(lines);
 
       for (let i = 0; i < lines; i++) {
         const p = i / (lines - 1);
         const depth = Math.pow(p, 1.7);
-        const baseY = h * (0.36 + 0.7 * depth);
-        const amp = 4 + 54 * depth;
-        const alpha = 0.03 + 0.2 * depth;
+        phase1[i] = i * 0.16;
+        phase2[i] = -i * 0.28;
+        baseYs[i] = h * (0.36 + 0.7 * depth);
+        amps[i] = 4 + 54 * depth;
+        widths[i] = 0.6 + depth * 0.7;
+        strokes[i] = `rgba(96,165,250,${0.03 + 0.2 * depth})`;
+      }
+    };
+
+    const draw = (time: number) => {
+      ctx.clearRect(0, 0, w, h);
+
+      const t = time * 0.00035;
+      const px = smooth.x;
+      const py = smooth.y;
+      const hasPointer = px > -900;
+
+      for (let i = 0; i < lines; i++) {
+        const ph1 = phase1[i] + t * 1.1;
+        const ph2 = phase2[i] - t * 0.8;
+        const s1 = Math.sin(ph1);
+        const c1 = Math.cos(ph1);
+        const s2 = Math.sin(ph2);
+        const c2 = Math.cos(ph2);
+        const base = baseYs[i];
+        const a1 = amps[i];
+        const a2 = a1 * 0.38;
 
         ctx.beginPath();
-        for (let x = 0; x <= w + step; x += step) {
-          const nx = x / w;
+        for (let k = 0; k < cols; k++) {
+          const x = k * step;
           let y =
-            baseY +
-            Math.sin(nx * 5.2 + i * 0.16 + t * 1.1) * amp +
-            Math.sin(nx * 11.5 - i * 0.28 - t * 0.8) * amp * 0.38;
+            base +
+            (sinA[k] * c1 + cosA[k] * s1) * a1 +
+            (sinB[k] * c2 + cosB[k] * s2) * a2;
 
-          const dx = x - pointer.x;
-          const dy = y - pointer.y;
-          const falloff = Math.exp(-(dx * dx + dy * dy) / (2 * 150 * 150));
-          y -= falloff * 34;
+          if (hasPointer) {
+            const dx = x - px;
+            if (dx < R && dx > -R) {
+              const dy = y - py;
+              const d2 = dx * dx + dy * dy;
+              if (d2 < R2) y -= Math.exp(-d2 * INV) * 34;
+            }
+          }
 
-          if (x === 0) ctx.moveTo(x, y);
+          if (k === 0) ctx.moveTo(x, y);
           else ctx.lineTo(x, y);
         }
-        ctx.strokeStyle = `rgba(96,165,250,${alpha})`;
-        ctx.lineWidth = 0.6 + depth * 0.7;
+        ctx.strokeStyle = strokes[i];
+        ctx.lineWidth = widths[i];
         ctx.stroke();
       }
 
-      // Pointer bloom lives on the canvas so it follows the lines
-      if (pointer.x > -900) {
-        const g = ctx.createRadialGradient(
-          pointer.x,
-          pointer.y,
-          0,
-          pointer.x,
-          pointer.y,
-          260,
-        );
+      if (hasPointer) {
+        const g = ctx.createRadialGradient(px, py, 0, px, py, 260);
         g.addColorStop(0, "rgba(59,130,246,0.10)");
         g.addColorStop(1, "rgba(59,130,246,0)");
         ctx.fillStyle = g;
-        ctx.fillRect(0, 0, w, h);
+        ctx.fillRect(px - 260, py - 260, 520, 520);
       }
     };
 
+    const resize = () => {
+      const cw = canvas.clientWidth;
+      const ch = canvas.clientHeight;
+      if (!cw || !ch) return;
+
+      dpr = Math.min(window.devicePixelRatio || 1, cw < 640 ? 1.5 : 2);
+
+      const bw = Math.round(cw * dpr);
+      const bh = Math.round(ch * dpr);
+
+      /* assigning width/height clears + reallocates: only when it changed */
+      if (bw !== canvas.width || bh !== canvas.height) {
+        canvas.width = bw;
+        canvas.height = bh;
+      }
+
+      w = cw;
+      h = ch;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      build();
+
+      if (!running) draw(0);
+    };
+
     const loop = (time: number) => {
+      if (!running) return;
+      raf = requestAnimationFrame(loop);
+
+      const p = pointer.current;
+      const hot = time - p.last < 700;
+      const minGap = hot ? 14 : 30; // 60fps+ while interacting, ~30fps idle
+
+      if (time - lastDraw < minGap) return;
+
+      const dt = Math.min((time - lastDraw) / 1000, 0.1);
+      const k = 1 - Math.exp(-dt * 4.35); // ≈ old 0.07 per frame at 60fps
+      smooth.x += (p.x - smooth.x) * k;
+      smooth.y += (p.y - smooth.y) * k;
+      lastDraw = time;
+
       draw(time);
-      raf = requestAnimationFrame(loop);
     };
 
-    const start = () => {
-      if (running || reduced) return;
-      running = true;
-      raf = requestAnimationFrame(loop);
-    };
-    const stop = () => {
-      running = false;
-      cancelAnimationFrame(raf);
+    const sync = () => {
+      const shouldRun = activeRef.current && !document.hidden && !reduced;
+
+      if (shouldRun && !running) {
+        running = true;
+        lastDraw = performance.now();
+        raf = requestAnimationFrame(loop);
+      } else if (!shouldRun && running) {
+        running = false;
+        cancelAnimationFrame(raf);
+      }
     };
 
-    const onMove = (e: PointerEvent) => {
-      const r = canvas.getBoundingClientRect();
-      pointer.tx = e.clientX - r.left;
-      pointer.ty = e.clientY - r.top;
-    };
-    const onLeave = () => {
-      pointer.tx = -999;
-      pointer.ty = -999;
-    };
-    const onVisibility = () => (document.hidden ? stop() : start());
+    syncRef.current = sync;
+
+    const ro = new ResizeObserver(() => {
+      cancelAnimationFrame(resizeRaf);
+      resizeRaf = requestAnimationFrame(resize);
+    });
+    ro.observe(canvas);
 
     resize();
     draw(0);
-    if (!reduced) start();
+    sync();
 
-    const io = new IntersectionObserver(
-      ([entry]) => (entry.isIntersecting ? start() : stop()),
-      { threshold: 0 },
-    );
-    io.observe(canvas);
-
-    window.addEventListener("resize", resize);
-    window.addEventListener("pointermove", onMove, { passive: true });
-    document.addEventListener("pointerleave", onLeave);
-    document.addEventListener("visibilitychange", onVisibility);
+    document.addEventListener("visibilitychange", sync);
 
     return () => {
-      stop();
-      io.disconnect();
-      window.removeEventListener("resize", resize);
-      window.removeEventListener("pointermove", onMove);
-      document.removeEventListener("pointerleave", onLeave);
-      document.removeEventListener("visibilitychange", onVisibility);
+      running = false;
+      syncRef.current = null;
+      cancelAnimationFrame(raf);
+      cancelAnimationFrame(resizeRaf);
+      ro.disconnect();
+      document.removeEventListener("visibilitychange", sync);
     };
-  }, [reduced]);
+  }, [reduced, pointer]);
+
+  /* start/stop when the hero enters/leaves the viewport */
+  useEffect(() => {
+    activeRef.current = active;
+    syncRef.current?.();
+  }, [active]);
 
   return (
     <canvas
       ref={ref}
       aria-hidden="true"
       className="absolute inset-0 h-full w-full"
-      style={{
-        maskImage:
-          "linear-gradient(to bottom, transparent 8%, black 45%, black 88%, transparent)",
-        WebkitMaskImage:
-          "linear-gradient(to bottom, transparent 8%, black 45%, black 88%, transparent)",
-      }}
+      style={{ maskImage: CANVAS_MASK, WebkitMaskImage: CANVAS_MASK }}
     />
   );
 }
@@ -403,6 +584,16 @@ function Portrait({
 
   const showImage = Boolean(avatarUrl && validUrl(avatarUrl));
 
+  const plateStyle = useMemo(
+    () => ({
+      rotateX,
+      rotateY,
+      transformStyle: "preserve-3d" as const,
+      clipPath: CUT,
+    }),
+    [rotateX, rotateY],
+  );
+
   return (
     <div className="relative w-full max-w-[400px] [perspective:1200px] lg:justify-self-end">
       <motion.div
@@ -415,16 +606,11 @@ function Portrait({
           mx.set(0.5);
           my.set(0.5);
         }}
-        style={{
-          rotateX,
-          rotateY,
-          transformStyle: "preserve-3d",
-          clipPath: CUT,
-        }}
+        style={plateStyle}
         className="relative bg-gradient-to-b from-blue-300/40 via-white/[0.08] to-blue-500/30 p-px"
       >
         <div
-          style={{ clipPath: CUT }}
+          style={CUT_STYLE}
           className="relative aspect-[4/5] overflow-hidden bg-[#070A10]"
         >
           {showImage ? (
@@ -433,16 +619,15 @@ function Portrait({
               src={avatarUrl as string}
               alt={identity ? `${identity} profile` : "Portfolio profile"}
               loading="eager"
+              decoding="async"
+              fetchPriority="high"
               className="h-full w-full object-cover saturate-[0.85] contrast-[1.05]"
             />
           ) : (
             <div
               aria-hidden="true"
               className="flex h-full w-full items-center justify-center"
-              style={{
-                background:
-                  "radial-gradient(circle at 50% 38%, rgba(59,130,246,0.22), transparent 42%), linear-gradient(160deg,#0C1220,#06080D)",
-              }}
+              style={PLACEHOLDER_BG}
             >
               <span className="font-[var(--font-bricolage)] text-[clamp(4.5rem,9vw,7.5rem)] font-medium tracking-[-0.06em] text-white/85">
                 {initials}
@@ -454,10 +639,7 @@ function Portrait({
           <div
             aria-hidden="true"
             className="absolute inset-0"
-            style={{
-              background:
-                "linear-gradient(to top, rgba(4,7,14,0.92), rgba(4,7,14,0) 55%), linear-gradient(135deg, rgba(37,99,235,0.14), transparent 45%)",
-            }}
+            style={PORTRAIT_TINT}
           />
 
           {/* Cursor-following sheen */}
@@ -508,20 +690,77 @@ export default function HeroDefault({ config }: ThemeSectionProps) {
   const reducedMotion = Boolean(useReducedMotion());
   const data = useMemo(() => getHeroData(config), [config]);
 
-  // Spotlight follows the pointer across the whole section
-  const px = useSpring(useMotionValue(50), { stiffness: 60, damping: 20 });
-  const py = useSpring(useMotionValue(30), { stiffness: 60, damping: 20 });
-  const spotlight = useMotionTemplate`radial-gradient(640px circle at ${px}% ${py}%, rgba(37,99,235,0.16), transparent 62%)`;
+  const shouldRender = Boolean(
+    data.identity ||
+      data.headline ||
+      data.description ||
+      data.avatarUrl ||
+      data.eyebrow,
+  );
 
-  if (
-    !data.identity &&
-    !data.headline &&
-    !data.description &&
-    !data.avatarUrl &&
-    !data.eyebrow
-  ) {
-    return null;
-  }
+  const sectionRef = useRef<HTMLElement>(null);
+  const inView = useInView(sectionRef, shouldRender);
+
+  /* single pointer source shared by the spotlight and the canvas */
+  const pointerRef = useRef<PointerShared>({ x: -999, y: -999, last: 0 });
+
+  /* spotlight = offset from its resting point (50% / 30%), moved via transform */
+  const spotX = useSpring(useMotionValue(0), { stiffness: 60, damping: 20 });
+  const spotY = useSpring(useMotionValue(0), { stiffness: 60, damping: 20 });
+
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!shouldRender || !el) return;
+
+    let rect = el.getBoundingClientRect();
+    let dirty = false;
+
+    const markDirty = () => {
+      dirty = true;
+    };
+
+    const onMove = (e: PointerEvent) => {
+      if (e.pointerType === "touch") return;
+
+      /* rect only re-read after scroll/resize, not on every move */
+      if (dirty) {
+        rect = el.getBoundingClientRect();
+        dirty = false;
+      }
+
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const p = pointerRef.current;
+
+      p.x = x;
+      p.y = y;
+      p.last = performance.now();
+
+      spotX.set(x - rect.width * 0.5);
+      spotY.set(y - rect.height * 0.3);
+    };
+
+    const onLeave = () => {
+      pointerRef.current.x = -999;
+      pointerRef.current.y = -999;
+    };
+
+    el.addEventListener("pointerenter", markDirty, { passive: true });
+    el.addEventListener("pointermove", onMove, { passive: true });
+    el.addEventListener("pointerleave", onLeave, { passive: true });
+    window.addEventListener("scroll", markDirty, { passive: true });
+    window.addEventListener("resize", markDirty, { passive: true });
+
+    return () => {
+      el.removeEventListener("pointerenter", markDirty);
+      el.removeEventListener("pointermove", onMove);
+      el.removeEventListener("pointerleave", onLeave);
+      window.removeEventListener("scroll", markDirty);
+      window.removeEventListener("resize", markDirty);
+    };
+  }, [shouldRender, spotX, spotY]);
+
+  if (!shouldRender) return null;
 
   const primaryLink =
     data.primaryLabel && data.primaryHref && validUrl(data.primaryHref)
@@ -538,104 +777,76 @@ export default function HeroDefault({ config }: ThemeSectionProps) {
     Boolean(data.avatarUrl && validUrl(data.avatarUrl)) ||
     Boolean(data.initials);
 
-  const rise = (delay: number, distance = 24) => ({
-    initial: { opacity: 0, y: reducedMotion ? 0 : distance },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.9, delay, ease: EASE },
-  });
+  const playState = inView ? "running" : "paused";
 
   return (
     <section
+      ref={sectionRef}
       aria-label={
         data.identity
           ? `${data.identity} portfolio introduction`
           : "Portfolio introduction"
       }
-      onPointerMove={(e) => {
-        const r = e.currentTarget.getBoundingClientRect();
-        px.set(((e.clientX - r.left) / r.width) * 100);
-        py.set(((e.clientY - r.top) / r.height) * 100);
-      }}
       className="relative isolate min-h-[100svh] overflow-hidden bg-[#04060B] text-white"
     >
+      <style>{KEYFRAMES}</style>
+
       {/* ------------------------------ BACKGROUND ------------------------------ */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-        {/* Slow ambient light, drifting on its own clock */}
-        <motion.div
-          className="absolute -top-[30rem] left-1/2 h-[60rem] w-[60rem] -translate-x-1/2 rounded-full blur-[140px]"
+        {/* Slow ambient light (CSS keyframes, paused off-screen).
+            The old 140px blur was redundant: the gradient already fades to
+            transparent before the circle's edge. */}
+        <div
+          className="absolute -top-[30rem] left-1/2 h-[60rem] w-[60rem] rounded-full"
           style={{
-            background:
-              "radial-gradient(circle, rgba(37,99,235,0.18), rgba(30,64,175,0.06) 40%, transparent 68%)",
-          }}
-          animate={
-            reducedMotion
+            background: AMBIENT_BG,
+            transform: "translateX(-50%)",
+            willChange: reducedMotion ? undefined : "transform, opacity",
+            animation: reducedMotion
               ? undefined
-              : { x: ["-54%", "-46%", "-54%"], opacity: [0.8, 1, 0.8] }
-          }
-          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+              : "hero-drift 18s ease-in-out infinite",
+            animationPlayState: playState,
+          }}
         />
 
-        <ContourField reduced={reducedMotion} />
+        <ContourField
+          reduced={reducedMotion}
+          active={inView}
+          pointer={pointerRef}
+        />
 
+        {/* Spotlight: fixed 1280px gradient bitmap, moved with a transform */}
         <motion.div
-          className="absolute inset-0"
-          style={{ background: spotlight }}
+          className="absolute"
+          style={{
+            left: "50%",
+            top: "30%",
+            width: 1280,
+            height: 1280,
+            marginLeft: -640,
+            marginTop: -640,
+            background: SPOTLIGHT_BG,
+            x: spotX,
+            y: spotY,
+            willChange: "transform",
+          }}
         />
 
         {/* Film grain keeps the black from banding and reads as material */}
         <div
           className="absolute inset-0 opacity-[0.07] mix-blend-overlay"
-          style={{
-            backgroundImage:
-              "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")",
-          }}
+          style={{ backgroundImage: GRAIN_BG }}
         />
 
         {/* Edge vignette */}
         <div
           className="absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(ellipse at 50% 45%, transparent 45%, rgba(2,3,6,0.85) 100%)",
-          }}
+          style={{ background: VIGNETTE_BG }}
         />
       </div>
 
       {/* -------------------------------- CONTENT -------------------------------- */}
       <div className="relative mx-auto flex min-h-[100svh] w-full max-w-[1480px] flex-col px-5 pb-8 pt-5 sm:px-8 lg:px-12 xl:px-16">
-        {/* Header */}
-        {/* <motion.header
-          {...rise(0, -10)}
-          className="flex h-14 items-center justify-between gap-4 border-b border-white/[0.07]"
-        >
-          <div className="flex min-w-0 items-center gap-3">
-            <span
-              aria-hidden="true"
-              className="relative flex h-7 w-7 shrink-0 items-center justify-center border border-blue-400/30 bg-blue-500/[0.06]"
-              style={{ clipPath: CUT }}
-            >
-              <span className="h-1.5 w-1.5 rounded-full bg-blue-400 shadow-[0_0_12px_3px_rgba(59,130,246,0.8)]" />
-            </span>
-            {data.identity && (
-              <span className="truncate font-[var(--font-inter)] text-[13px] font-medium text-white/75">
-                {data.identity}
-              </span>
-            )}
-          </div>
-
-          {data.eyebrow && (
-            <span className="inline-flex max-w-[60%] items-center gap-2.5 truncate rounded-full border border-white/10 bg-white/[0.03] py-1.5 pl-2.5 pr-3.5 font-[var(--font-inter)] text-xs text-white/65 backdrop-blur-sm">
-              <span className="relative flex h-1.5 w-1.5">
-                {!reducedMotion && (
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400/60" />
-                )}
-                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-blue-400" />
-              </span>
-              <span className="truncate">{data.eyebrow}</span>
-            </span>
-          )}
-        </motion.header> */}
-
         {/* Composition */}
         <div className="flex flex-1 items-center">
           <div className="grid w-full gap-12 py-14 sm:py-16 lg:grid-cols-12 lg:items-end lg:gap-8 lg:py-20">
@@ -644,12 +855,7 @@ export default function HeroDefault({ config }: ThemeSectionProps) {
               {hasHeadline && (
                 <h1
                   className="max-w-[1100px] font-[var(--font-bricolage)] text-[clamp(2.9rem,7.4vw,8.25rem)] font-medium leading-[0.9] tracking-[-0.055em] text-transparent"
-                  style={{
-                    backgroundImage:
-                      "linear-gradient(180deg,#fff 0%,#F1F5FF 45%,rgba(147,197,253,0.62) 100%)",
-                    WebkitBackgroundClip: "text",
-                    backgroundClip: "text",
-                  }}
+                  style={H1_STYLE}
                 >
                   {headlineLines.map((line, index) => (
                     <span
@@ -675,7 +881,7 @@ export default function HeroDefault({ config }: ThemeSectionProps) {
 
               {(data.description || primaryLink || secondaryLink) && (
                 <motion.div
-                  {...rise(0.45, 18)}
+                  {...rise(reducedMotion, 0.45, 18)}
                   className="mt-10 flex flex-col gap-9 sm:mt-12 sm:flex-row sm:items-center sm:gap-14"
                 >
                   {data.description && (
@@ -690,11 +896,11 @@ export default function HeroDefault({ config }: ThemeSectionProps) {
                         <Magnetic disabled={reducedMotion}>
                           <Link
                             href={primaryLink.href}
-                            style={{ clipPath: CUT }}
+                            style={CUT_STYLE}
                             className="group relative inline-flex bg-gradient-to-br from-blue-300/70 via-blue-500/40 to-blue-600/70 p-px outline-none transition-shadow duration-500 hover:shadow-[0_0_44px_-6px_rgba(59,130,246,0.65)] focus-visible:ring-2 focus-visible:ring-blue-300"
                           >
                             <span
-                              style={{ clipPath: CUT }}
+                              style={CUT_STYLE}
                               className="relative flex min-h-12 items-center gap-4 overflow-hidden bg-[#070B14] px-6 font-[var(--font-inter)] text-sm font-medium text-white"
                             >
                               <span
@@ -740,7 +946,7 @@ export default function HeroDefault({ config }: ThemeSectionProps) {
             {/* Visual column */}
             {hasVisual && (
               <motion.div
-                {...rise(0.3, 30)}
+                {...rise(reducedMotion, 0.3, 30)}
                 className="relative lg:col-span-4 lg:pb-2"
               >
                 <Portrait
@@ -764,14 +970,14 @@ export default function HeroDefault({ config }: ThemeSectionProps) {
           className="flex items-center gap-4 border-t border-white/[0.07] pt-5"
         >
           <span className="relative h-8 w-px overflow-hidden bg-white/10">
-            <motion.span
+            <span
               aria-hidden="true"
               className="absolute inset-x-0 top-0 h-3 bg-blue-400"
-              animate={reducedMotion ? undefined : { y: ["-100%", "280%"] }}
-              transition={{
-                duration: 2.2,
-                repeat: Infinity,
-                ease: "easeInOut",
+              style={{
+                animation: reducedMotion
+                  ? undefined
+                  : "hero-scan 2.2s ease-in-out infinite",
+                animationPlayState: playState,
               }}
             />
           </span>

@@ -9,20 +9,6 @@ import {
 } from "react";
 import type { ThemeId } from "../types";
 
-/* ═══════════════════════════════════════════════════════════
-   Per-theme full-page loaders (assets / fonts ready hone tak)
-
-   PERFORMANCE RULES (is file mein follow kiye gaye):
-   1. Sirf `transform` aur `opacity` animate hote hain (GPU/compositor,
-      main thread block nahi hota). background-position, mask-position,
-      top/left animations hata di gayi hain.
-   2. Koi `filter: blur()` / `backdrop-filter` / `mix-blend-mode`
-      full-screen layers par nahi. Blur ki jagah radial-gradient.
-   3. Grain tiles fixed 256px size par raster hoti hain (pehle poori
-      screen ke size par feTurbulence raster hota tha — sab se bara lag).
-   4. SVG ke andar ke elements ko animate karne ke bajaye poora HTML
-      wrapper animate hota hai (SVG children compositor par nahi chalte).
-   ═══════════════════════════════════════════════════════════ */
 
 type LoaderProps = { themeName?: string };
 
@@ -34,7 +20,6 @@ const A11Y = {
   "aria-label": "Loading portfolio",
 } as const;
 
-/* film-grain tiles — hamesha backgroundSize 256px ke saath use karo */
 const GRAIN =
   "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' width='256' height='256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")";
 
@@ -48,7 +33,7 @@ const MA_INK = "#120d0b";
 const MA_BARS = [0.74, 0.58, 0.8, 0.52, 0.7, 0.62]; // giant "letters" (em)
 
 export function MinimalAiryLoader(_props: LoaderProps) {
-  // backdrop-filter hata diya (bohat mehnga) — translucent fill kaafi hai
+ 
   const glass: CSSProperties = {
     border: "1px solid rgba(255,255,255,0.28)",
     background: "rgba(255,255,255,0.14)",
@@ -233,24 +218,37 @@ export function MinimalAiryLoader(_props: LoaderProps) {
 const CUT_TD = "polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%)";
 
 /* Wavelength = 400 units. SVG viewBox 1600 wide ⇒ 400 units = 25% of width,
-   so translateX(-25%) loops seamlessly. */
-const TD_LINES = Array.from({ length: 16 }, (_, i) => {
-  const p = i / 15;
-  const depth = Math.pow(p, 1.7);
-  const base = 40 + 330 * depth;
-  const amp = 3 + 34 * depth;
-  let d = "";
-  for (let x = -400; x <= 1200; x += 20) {
-    const y =
-      base +
-      Math.sin(x * 0.015708 + i * 0.5) * amp +
-      Math.sin(x * 0.031416 - i * 0.9) * amp * 0.38;
-    d += `${d ? "L" : "M"}${x} ${y.toFixed(1)} `;
-  }
-  return { d, o: 0.06 + 0.5 * depth, w: 0.6 + depth * 0.9 };
-});
+   so translateX(-25%) loops seamlessly.
+   Lazy + cached: sirf tech-dense theme par ek baar compute hota hai
+   (pehle module load par har theme ke liye chalta tha). */
+type TdLine = { d: string; o: number; w: number };
+let TD_LINES_CACHE: TdLine[] | null = null;
+
+function getTdLines(): TdLine[] {
+  if (TD_LINES_CACHE) return TD_LINES_CACHE;
+
+  TD_LINES_CACHE = Array.from({ length: 16 }, (_, i) => {
+    const p = i / 15;
+    const depth = Math.pow(p, 1.7);
+    const base = 40 + 330 * depth;
+    const amp = 3 + 34 * depth;
+    let d = "";
+    for (let x = -400; x <= 1200; x += 20) {
+      const y =
+        base +
+        Math.sin(x * 0.015708 + i * 0.5) * amp +
+        Math.sin(x * 0.031416 - i * 0.9) * amp * 0.38;
+      d += `${d ? "L" : "M"}${x} ${y.toFixed(1)} `;
+    }
+    return { d, o: 0.06 + 0.5 * depth, w: 0.6 + depth * 0.9 };
+  });
+
+  return TD_LINES_CACHE;
+}
 
 export function TechDenseLoader(_props: LoaderProps) {
+  const lines = getTdLines();
+
   return (
     <div
       className={`${ROOT} flex flex-col items-center justify-center`}
@@ -283,7 +281,7 @@ export function TechDenseLoader(_props: LoaderProps) {
         }}
       >
         <svg viewBox="-400 0 1600 400" className="block h-full w-full">
-          {TD_LINES.map((l, i) => (
+          {lines.map((l, i) => (
             <path
               key={i}
               d={l.d}
@@ -589,12 +587,12 @@ export function EditorialLoader(_props: LoaderProps) {
           className="relative"
           style={{ width: "min(78vw, 440px)", aspectRatio: "1 / 1" }}
         >
+          {/* Solid circular rings ko ghumana invisible hota hai (circle
+              outline rotate karke bhi same dikhta hai) → static, 2 animated
+              layers kam. Sirf dashed ring + dot visibly ghumte hain. */}
           <div
             className="absolute inset-0 rounded-full"
-            style={{
-              border: "1px solid rgba(246,242,231,0.12)",
-              animation: "tl-spin 22s linear infinite",
-            }}
+            style={{ border: "1px solid rgba(246,242,231,0.12)" }}
           />
           <div
             className="absolute rounded-full"
@@ -609,7 +607,6 @@ export function EditorialLoader(_props: LoaderProps) {
             style={{
               inset: "23%",
               border: "1px solid rgba(246,242,231,0.12)",
-              animation: "tl-spin 12s linear infinite",
             }}
           />
           <span className="absolute inset-0" style={{ animation: "tl-spin 6s linear infinite" }}>
@@ -1699,12 +1696,15 @@ export function ThemeLoader({ themeId }: { themeId: ThemeId }) {
   return <Loader themeName={THEME_NAMES[themeId] ?? themeId} />;
 }
 
-/* ── Boot gate: fonts + paint ready, then fade in portfolio ─ */
+/* ── Boot gate: fonts + paint ready, then reveal portfolio ─ */
 
 const MIN_MS = 400; // minimum time so loader is visible (pehle 600)
 const MAX_MS = 3000; // hard timeout so it never hangs (pehle 4000)
 const FONT_WAIT_MS = 1500; // fonts ka max intezar (pehle 2500)
 const FADE_MS = 350;
+
+/* loading → reveal (loader fade out, portfolio already visible) → done */
+type BootPhase = "loading" | "reveal" | "done";
 
 export function ThemeBootGate({
   themeId,
@@ -1713,8 +1713,7 @@ export function ThemeBootGate({
   themeId: ThemeId;
   children: ReactNode;
 }) {
-  const [ready, setReady] = useState(false);
-  const [fadeOut, setFadeOut] = useState(false);
+  const [phase, setPhase] = useState<BootPhase>("loading");
 
   useEffect(() => {
     let cancelled = false;
@@ -1724,13 +1723,15 @@ export function ThemeBootGate({
       timers.push(setTimeout(fn, ms));
     };
 
-    // idempotent: normal path aur hard timeout dono safe
+    // idempotent: normal path aur hard timeout dono safe.
+    // Functional updates: themeId badalne par effect dobara chale to
+    // "done" se wapas loader nahi dikhega.
     const finish = () => {
       if (cancelled || finished) return;
       finished = true;
-      setFadeOut(true);
+      setPhase((p) => (p === "loading" ? "reveal" : p));
       later(() => {
-        if (!cancelled) setReady(true);
+        if (!cancelled) setPhase((p) => (p === "reveal" ? "done" : p));
       }, FADE_MS);
     };
 
@@ -1774,23 +1775,27 @@ export function ThemeBootGate({
 
   return (
     <>
-      {/* Portfolio always in DOM so fonts/layout start loading */}
-      <div
-        style={{
-          opacity: ready ? 1 : 0,
-          transition: "opacity 0.4s ease",
-          visibility: ready ? "visible" : "hidden",
-        }}
-      >
+      {/*
+        Portfolio always in DOM so fonts/layout start loading.
+
+        Pehle yahan opacity 0→1 transition tha. Poore page par opacity
+        lagane se (1) browser puri page ko ek offscreen surface mein render
+        karta hai (canvas/WebGL/blend-mode wale heroes ke saath mehenga), aur
+        (2) wo ek stacking context bana deta hai jo mix-blend-mode wale
+        elements ka look fade ke dauraan badal deta hai. Ab sirf visibility
+        use hoti hai; fade loader overlay par hota hai.
+      */}
+      <div style={{ visibility: phase === "loading" ? "hidden" : "visible" }}>
         {children}
       </div>
 
-      {!ready && (
+      {phase !== "done" && (
         <div
           style={{
-            opacity: fadeOut ? 0 : 1,
+            opacity: phase === "reveal" ? 0 : 1,
             transition: `opacity ${FADE_MS}ms ease`,
-            pointerEvents: fadeOut ? "none" : "auto",
+            pointerEvents: phase === "reveal" ? "none" : "auto",
+            willChange: phase === "reveal" ? "opacity" : undefined,
           }}
         >
           <ThemeLoader themeId={themeId} />

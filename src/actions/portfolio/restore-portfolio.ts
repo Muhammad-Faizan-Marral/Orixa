@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { requireProfile } from "@/lib/auth/require-profile";
 import { portfolioService } from "@/services/portfolio/portfolio.service";
+import { revalidatePublicPortfolio } from "@/lib/cache/portfolio-public";
 
 const schema = z.object({
   portfolioId: z.string().uuid(),
@@ -33,10 +34,16 @@ export async function restorePortfolio(
       profile.id,
     );
 
+    // After restore user still needs to publish, but if slug was cached as 404/old, clear it
+    if (portfolio?.slug) {
+      revalidatePublicPortfolio(profile.username, portfolio.slug);
+    }
+
     revalidatePath("/dashboard");
     revalidatePath("/dashboard/portfolios");
     revalidatePath(`/dashboard/portfolios/${portfolioId}`);
-revalidateTag(`portfolios-${profile.id}`, "max");
+    revalidateTag(`portfolios-${profile.id}`, "max");
+
     return { success: true, portfolio };
   } catch (error) {
     console.error("[restorePortfolio] Error:", error);
