@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Suspense, useActionState } from "react";
 import { useSearchParams } from "next/navigation";
 
-import { AuthLayout } from "@/components/auth/auth-layout";
+import { AUTH_LINK, AuthLayout } from "@/components/auth/auth-layout";
 import { FormAlert } from "@/components/auth/form-alert";
 import { OAuthButtons } from "@/components/auth/oauth-buttons";
 import { Input } from "@/components/UI/Input";
@@ -56,21 +56,31 @@ function LoginForm() {
           required
         />
 
-        <Input
-          id="password"
-          name="password"
-          type="password"
-          label="Password"
-          autoComplete="current-password"
-          required
-        />
+        <div className="space-y-2">
+          <Input
+            id="password"
+            name="password"
+            type="password"
+            label="Password"
+            autoComplete="current-password"
+            required
+          />
+          <div className="text-right">
+            <Link
+              href="/auth/forgot-password"
+              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Forgot password?
+            </Link>
+          </div>
+        </div>
 
         {state.error && <FormAlert>{state.error}</FormAlert>}
 
         <Button
           type="submit"
           variant="gradient"
-          className="w-full"
+          className="w-full rounded-full"
           loading={pending}
         >
           {pending ? "Logging in..." : "Log in"}
@@ -79,27 +89,17 @@ function LoginForm() {
 
       <div className="my-6 flex items-center gap-3">
         <Separator className="flex-1" />
-        <span className="text-caption">OR</span>
+        <span className="text-xs font-semibold tracking-wider text-muted-foreground">
+          OR
+        </span>
         <Separator className="flex-1" />
       </div>
 
       <OAuthButtons />
 
-      <div className="mt-6 text-center">
-        <Link
-          href="/auth/forgot-password"
-          className="text-small hover:text-foreground"
-        >
-          Forgot password?
-        </Link>
-      </div>
-
-      <p className="text-small mt-8 text-center">
+      <p className="mt-8 text-center text-sm text-muted-foreground">
         Don&apos;t have an account?{" "}
-        <Link
-          href="/auth/signup"
-          className="font-medium text-primary hover:text-primary-hover"
-        >
+        <Link href="/auth/signup" className={AUTH_LINK}>
           Create account
         </Link>
       </p>

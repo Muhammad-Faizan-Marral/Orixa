@@ -42,44 +42,23 @@ const faqs = [
 
 export default function FAQSection() {
   return (
-    <section className="py-24 md:py-32">
-      <div className="mx-auto grid max-w-6xl gap-12 px-5 md:grid-cols-[0.75fr_1.25fr] md:gap-16">
-        {/* Left column */}
-        <div className="max-w-sm">
-          <p className="mb-3 text-sm font-medium tracking-wide text-muted-foreground">
-            FAQ
-          </p>
-          <h2 className="text-balance text-3xl font-bold tracking-tight text-foreground sm:text-4xl md:text-[2.6rem] md:leading-[1.15]">
-            Questions,{" "}
-            <span className="bg-gradient-to-r from-foreground via-foreground/80 to-muted-foreground bg-clip-text text-transparent">
-              answered.
-            </span>
-          </h2>
+    <section id="faq" className="lp">
+      <div className="lp-container">
+        <div className="lp-head">
+          <h2 className="lp-title">Questions, answered.</h2>
+          <p className="lp-lead">Everything you need to know about OrixaAI.</p>
         </div>
 
-        {/* Accordion */}
-        <div className="space-y-2.5">
+        <div className="lp-faq-list">
           {faqs.map((faq, i) => (
-            <details
-              key={faq.q}
-              name="faq"
-              open={i === 0}
-              className="group overflow-hidden rounded-xl border border-border/60 bg-background/40 transition-colors open:bg-background/60"
-            >
-              <summary className="flex min-h-[3.5rem] w-full cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-left">
-                <h3 className="text-[15px] font-medium text-foreground">
-                  {faq.q}
-                </h3>
-                <span
-                  className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border/70 text-sm text-muted-foreground transition-transform duration-200 group-open:rotate-45 group-open:border-foreground/30 group-open:text-foreground"
-                  aria-hidden="true"
-                >
-                  +
-                </span>
+            <details key={faq.q} name="faq" open={i === 0} className="lp-faq">
+              <summary>
+                <h3 style={{ fontSize: "inherit", fontWeight: "inherit" }}>{faq.q}</h3>
+                <svg className="lp-faq-icon" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
               </summary>
-              <div className="px-5 pb-5 text-[15px] leading-relaxed text-muted-foreground">
-                {faq.a}
-              </div>
+              <div className="lp-faq-body">{faq.a}</div>
             </details>
           ))}
         </div>

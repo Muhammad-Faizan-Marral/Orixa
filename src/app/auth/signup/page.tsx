@@ -1,16 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useEffect, useState } from "react";
 
-import { AuthLayout } from "@/components/auth/auth-layout";
+import {
+  AUTH_LINK,
+  AuthLayout,
+  AuthNotice,
+} from "@/components/auth/auth-layout";
 import { FormAlert } from "@/components/auth/form-alert";
 import { OAuthButtons } from "@/components/auth/oauth-buttons";
 import { Input } from "@/components/UI/Input";
 import { Button } from "@/components/UI/Button";
 import { Separator } from "@/components/UI/Separator";
 import { signup, type SignupState } from "@/actions/auth/signup";
-import { useEffect, useState } from "react";
+
 const initialState: SignupState = {};
 
 export default function SignupPage() {
@@ -34,7 +38,7 @@ export default function SignupPage() {
         title="Confirm your email"
         subtitle="We sent a secure link to your inbox."
       >
-        <div className="surface-panel space-y-3 p-5 text-sm text-muted-foreground">
+        <AuthNotice>
           <p>
             Open the email from{" "}
             <strong className="text-foreground">Orixa AI</strong> and click the
@@ -44,7 +48,7 @@ export default function SignupPage() {
             Didn&apos;t get it? Check spam or promotions. The link expires after
             a short time for your security.
           </p>
-        </div>
+        </AuthNotice>
         <Link href="/auth/login" className="mt-6 block">
           <Button variant="secondary" className="w-full">
             Back to login
@@ -89,37 +93,29 @@ export default function SignupPage() {
           required
         />
 
-        <div className="space-y-2">
-          <label className="flex items-start gap-2 text-sm text-foreground">
+        <div className="space-y-2 rounded-2xl border border-border bg-surface p-4">
+          <label className="flex cursor-pointer items-start gap-3 text-sm text-foreground">
             <input
               type="checkbox"
               name="agreedToTerms"
               required
               checked={agreedToTerms}
               onChange={(event) => setAgreedToTerms(event.target.checked)}
-              className="mt-1 h-4 w-4 shrink-0 accent-primary"
+              className="mt-0.5 h-4 w-4 shrink-0 accent-[#1E6BFF]"
             />
             <span>
               I agree to the{" "}
-              <Link
-                href="/terms"
-                target="_blank"
-                className="text-primary hover:underline"
-              >
+              <Link href="/terms" target="_blank" className={AUTH_LINK}>
                 Terms of Service
               </Link>{" "}
               and{" "}
-              <Link
-                href="/privacy"
-                target="_blank"
-                className="text-primary hover:underline"
-              >
+              <Link href="/privacy" target="_blank" className={AUTH_LINK}>
                 Privacy Policy
               </Link>
               .
             </span>
           </label>
-          <p className="pl-6 text-xs leading-5 text-muted-foreground">
+          <p className="pl-7 text-xs leading-5 text-muted-foreground">
             We use your account and portfolio data (including any resume you
             upload) to build, host, and show analytics for your portfolio.
           </p>
@@ -130,7 +126,7 @@ export default function SignupPage() {
         <Button
           type="submit"
           variant="gradient"
-          className="w-full"
+          className="w-full rounded-full"
           loading={pending}
         >
           {pending ? "Creating account..." : "Create account"}
@@ -139,7 +135,9 @@ export default function SignupPage() {
 
       <div className="my-6 flex items-center gap-3">
         <Separator className="flex-1" />
-        <span className="text-caption">OR</span>
+        <span className="text-xs font-semibold tracking-wider text-muted-foreground">
+          OR
+        </span>
         <Separator className="flex-1" />
       </div>
 
@@ -148,12 +146,9 @@ export default function SignupPage() {
       </p>
       <OAuthButtons disabled={!agreedToTerms} />
 
-      <p className="text-small mt-8 text-center">
+      <p className="mt-8 text-center text-sm text-muted-foreground">
         Already have an account?{" "}
-        <Link
-          href="/auth/login"
-          className="font-medium text-primary hover:text-primary-hover"
-        >
+        <Link href="/auth/login" className={AUTH_LINK}>
           Log in
         </Link>
       </p>

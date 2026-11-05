@@ -23,85 +23,46 @@ const ROWS = [
 
 export default function DifferenceSection() {
   return (
-    <section className="relative bg-surface py-24 [clip-path:polygon(0_2.5rem,100%_0,100%_100%,0_100%)] md:py-36">
-      {/* Background effects */}
-      <div className="bg-aurora absolute inset-0 opacity-50" aria-hidden="true" />
-      <div className="bg-grain absolute inset-0 opacity-40" aria-hidden="true" />
-
-      <div className="relative mx-auto grid max-w-6xl gap-14 px-5 md:grid-cols-[0.85fr_1.15fr] md:gap-16">
-        {/* Left column — Text */}
-        <div className="max-w-md">
-          <p className="mb-3 text-sm font-medium tracking-wide text-muted-foreground">
-            Why OrixaAI
-          </p>
-          <h2 className="text-balance text-3xl font-bold tracking-tight text-foreground sm:text-4xl md:text-[2.75rem] md:leading-[1.15]">
-            Not another{" "}
-            <span className="bg-gradient-to-r from-foreground via-foreground/80 to-muted-foreground bg-clip-text text-transparent">
-              website builder.
-            </span>
-          </h2>
-          <p className="mt-5 text-lg leading-relaxed text-muted-foreground">
-            Most tools help you make a site. OrixaAI helps you get noticed —
-            with the right structure, design, and a way for people to contact you.
+    <section className="lp" aria-labelledby="why-heading">
+      <div className="lp-container">
+        <div className="lp-head">
+          <h2 id="why-heading" className="lp-title">Not another website builder.</h2>
+          <p className="lp-lead">
+            Most tools help you make a site. OrixaAI helps you get noticed — with the right
+            structure, design, and a way for people to contact you.
           </p>
         </div>
 
-        {/* Right column — Comparison table */}
-        <div className="space-y-3">
-          <div
-            role="table"
-            aria-label="What changes with OrixaAI"
-            className="space-y-2.5"
-          >
-            {/* Header */}
-            <div
-              role="row"
-              className="grid grid-cols-[1fr_1.55fr] gap-5 px-5 text-xs font-medium uppercase tracking-wider text-muted-foreground/80"
-            >
-              <span role="columnheader">Instead of</span>
-              <span role="columnheader">OrixaAI gives you</span>
-            </div>
-
-            {/* Rows */}
-            {ROWS.map((r) => (
-              <div
-                role="row"
-                key={r.from}
-                className="grid grid-cols-[1fr_1.55fr] gap-5 rounded-xl border border-border/60 bg-background/40 px-5 py-4 transition-all duration-200 hover:border-primary/40 hover:bg-background/60"
-              >
-                <span
-                  role="cell"
-                  className="text-[15px] text-muted-foreground line-through decoration-error/60"
-                >
-                  {r.from}
-                </span>
-                <span role="cell" className="text-[15px] font-medium text-foreground">
-                  {r.to}
-                </span>
+        <div className="lp-compare" role="table" aria-label="What changes with OrixaAI">
+          {ROWS.map((r) => (
+            <div role="row" key={r.from} className="lp-compare-row">
+              <div role="cell" className="lp-instead">{r.from}</div>
+              <div role="cell" className="lp-gives">
+                <svg width="18" height="18" fill="none" stroke="#1E6BFF" strokeWidth="2.5" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M5 13l4 4L19 7" />
+                </svg>
+                <span>{r.to}</span>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
 
           {/* Easter egg Relic */}
           <Relic
             id="decoder"
             label="A corrupted row, inspect it"
-            className="relative grid w-full grid-cols-[1fr_1.55fr] gap-5 rounded-xl border border-dashed border-border-strong/70 px-5 py-4 text-left transition-all duration-200 hover:border-accent/70"
+            className="lp-compare-relic"
           >
             {({ solved }) => (
               <>
                 <span
-                  className={`font-mono text-[15px] ${
-                    solved ? "text-success" : "anim-glitch text-error/70"
-                  }`}
+                  className={solved ? "" : "anim-glitch"}
+                  style={{ display: "block", fontSize: 13, color: solved ? "#10B981" : "#EF4444", opacity: solved ? 1 : 0.7 }}
                   aria-hidden="true"
                 >
                   {solved ? "restored" : "▒▒▒▒▒▒"}
                 </span>
                 <span
-                  className={`font-mono text-[15px] ${
-                    solved ? "text-muted-foreground" : "text-border-strong"
-                  }`}
+                  style={{ display: "block", fontSize: 15, marginTop: 4, color: solved ? "#7A86A1" : "#AFC4E8" }}
                   aria-hidden="true"
                 >
                   {solved ? "signal recovered" : "▒▒▒ ▒▒▒▒▒▒▒▒ ▒▒"}

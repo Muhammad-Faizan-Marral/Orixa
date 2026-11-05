@@ -34,14 +34,14 @@ const PRO = [
   "Public portfolio URL",
 ];
 
-function Checks({ items }: { items: string[] }) {
+function Checks({ items, color = "#10B981" }: { items: string[]; color?: string }) {
   return (
-    <ul className="relative flex-1 space-y-3">
+    <ul className="lp-list">
       {items.map((t) => (
-        <li key={t} className="flex items-start gap-3 text-[15px] text-muted-foreground">
-          <span className="mt-0.5 font-mono text-success" aria-hidden="true">
-            ✓
-          </span>
+        <li key={t}>
+          <svg width="16" height="16" fill="none" stroke={color} strokeWidth="2.5" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M5 13l4 4L19 7" />
+          </svg>
           <span>{t}</span>
         </li>
       ))}
@@ -94,229 +94,158 @@ export default function PricingSection() {
   );
 
   return (
-    <section
-      id="pricing"
-      className="relative bg-surface py-24 [clip-path:polygon(0_0,100%_2.5rem,100%_100%,0_100%)] md:py-36"
-    >
-      <div className="bg-grain absolute inset-0 opacity-40" aria-hidden="true" />
-
-      <div className="relative mx-auto max-w-6xl px-5">
-        {/* Header */}
-        <div className="max-w-2xl">
-          <p className="mb-3 text-sm font-medium tracking-wide text-muted-foreground">
-            Pricing
-          </p>
-          <h2 className="text-balance text-3xl font-bold tracking-tight text-foreground sm:text-4xl md:text-[2.75rem] md:leading-[1.15]">
-            Simple,{" "}
-            <span className="bg-gradient-to-r from-foreground via-foreground/80 to-muted-foreground bg-clip-text text-transparent">
-              transparent pricing.
-            </span>
-          </h2>
-          <p className="mt-5 text-lg leading-relaxed text-muted-foreground">
-            Start free. Upgrade when you’re ready.
-          </p>
+    <section id="pricing" className="lp">
+      <div className="lp-container">
+        <div className="lp-head">
+          <h2 className="lp-title">Simple, transparent pricing.</h2>
+          <p className="lp-lead">Start free. Upgrade when you’re ready.</p>
         </div>
 
-        {/* Plans */}
-        <div className="mt-14 grid items-stretch gap-6 md:grid-cols-[0.9fr_1.1fr]">
-          {/* Free Plan */}
-          <div className="flex flex-col rounded-2xl border border-border/60 bg-background/40 p-8 shadow-sm">
-            <h3 className="text-xl font-semibold tracking-tight text-foreground">
-              Free
-            </h3>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Perfect to get started
-            </p>
+        {/* Billing toggle */}
+        <div className="lp-toggle">
+          <span style={{ opacity: yearly ? 0.55 : 1 }}>Monthly</span>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={yearly}
+            aria-label="Bill yearly"
+            className="lp-switch"
+            onClick={() => setBilling(yearly ? "monthly" : "yearly")}
+          >
+            <span className="lp-switch-dot" />
+          </button>
+          <span style={{ opacity: yearly ? 1 : 0.55 }}>Yearly</span>
+          <span className="lp-save">Save {vsMonthly}%</span>
+        </div>
 
-            <p className="mb-8 mt-7">
-              <span className="font-display text-5xl font-semibold tracking-tight">
-                $0
-              </span>{" "}
-              <span className="text-muted-foreground">forever</span>
+        <div className="lp-prices">
+          {/* Free Plan */}
+          <div className="lp-price">
+            <h3>Free</h3>
+            <p className="lp-price-sub">Perfect to get started</p>
+
+            <p className="lp-price-val">
+              $0 <span>forever</span>
             </p>
 
             <Checks items={FREE} />
 
-            <Link
-              href="/auth/signup"
-              className="btn btn-ghost mt-10 w-full"
-            >
+            <Link href="/auth/signup" className="lp-btn lp-btn-glass lp-btn-block">
               Start free
             </Link>
           </div>
 
           {/* Pro Plan */}
-          <div className="relative flex flex-col overflow-hidden rounded-2xl border border-primary/30 bg-background/50 p-8 shadow-[0_0_40px_-12px_rgba(108,92,255,0.25)]">
-            <div
-              className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/5 opacity-80"
-              aria-hidden="true"
-            />
+          <div className="lp-price lp-price-pro">
+            {yearly && <span className="lp-badge">MOST CHOSEN</span>}
+            <h3>Pro</h3>
+            <p className="lp-price-sub">For people who want a custom domain and every design</p>
 
-            <div className="relative">
-              <h3 className="text-xl font-semibold tracking-tight text-foreground">
-                Pro
-              </h3>
+            <div style={{ position: "relative" }} aria-live="polite">
+              {yearly && discount.applied && <p className="lp-old">${PRICING.yearly}</p>}
 
-              {/* Billing Switcher */}
-              <div
-                role="group"
-                aria-label="Billing period"
-                className="mt-5 grid grid-cols-2 gap-1 rounded-xl bg-background/70 p-1"
-              >
-                {(["monthly", "yearly"] as const).map((b) => (
-                  <button
-                    key={b}
-                    type="button"
-                    aria-pressed={billing === b}
-                    onClick={() => setBilling(b)}
-                    className={`min-h-11 rounded-lg text-sm font-medium capitalize transition-all ${
-                      billing === b
-                        ? "bg-surface text-foreground shadow-sm"
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {b}
-                  </button>
+              <p className={`lp-price-val ${celebrate ? "anim-pop" : ""}`}>
+                ${price} <span>/ {yearly ? "year" : "month"}</span>
+              </p>
+
+              {celebrate &&
+                SPARKS.map((sp, i) => (
+                  <span
+                    key={i}
+                    className="lp-spark"
+                    aria-hidden="true"
+                    style={{
+                      ["--dx" as string]: `${sp.dx}px`,
+                      ["--dy" as string]: `${sp.dy}px`,
+                    }}
+                  />
                 ))}
-              </div>
 
-              {/* Price */}
-              <div className="relative mt-7" aria-live="polite">
-                {yearly && discount.applied && (
-                  <p className="font-mono text-sm text-muted-foreground line-through">
-                    ${PRICING.yearly}
-                  </p>
-                )}
-
-                <p className={celebrate ? "anim-pop" : ""}>
-                  <span className="bg-gradient-to-r from-foreground via-foreground/90 to-muted-foreground bg-clip-text font-display text-6xl font-semibold tracking-tight text-transparent">
-                    ${price}
-                  </span>{" "}
-                  <span className="text-muted-foreground">
-                    / {yearly ? "year" : "month"}
-                  </span>
-                </p>
-
-                {yearly && (
-                  <span className="absolute -right-1 -top-3 z-10 rotate-[6deg] rounded-md bg-gradient-to-r from-accent via-indigo-500 to-accent px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-white shadow-md ring-1 ring-white/20">
-                    Most Chosen
-                  </span>
-                )}
-
-                {celebrate &&
-                  SPARKS.map((s, i) => (
-                    <span
-                      key={i}
-                      className="spark left-24 top-16"
-                      aria-hidden="true"
-                      style={{
-                        ["--dx" as string]: `${s.dx}px`,
-                        ["--dy" as string]: `${s.dy}px`,
-                      }}
-                    />
-                  ))}
-
-                {yearly && !discount.applied && (
-                  <p className="mt-1.5 text-sm text-success">
-                    Already {vsMonthly}% off vs monthly
-                  </p>
-                )}
-                {yearly && discount.applied && (
-                  <p className="mt-1.5 text-sm text-success">
-                    ${discount.amountOff} off applied · first year only
-                  </p>
-                )}
-              </div>
-
-              {/* Secret Code */}
-              {yearly && (
-                <div className="relative mt-7 rounded-xl border border-dashed border-border-strong/70 bg-background/50 p-4">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <p className="text-sm font-medium text-foreground">
-                      {discount.applied
-                        ? "Secret code unlocked"
-                        : "A secret is hidden on this page"}
-                    </p>
-                    <DigitRail digits={digits} size="sm" />
-                  </div>
-
-                  {!discount.applied ? (
-                    <>
-                      <div
-                        className={`mt-3 flex gap-2 ${shake ? "anim-shake" : ""}`}
-                        onAnimationEnd={() => setShake(false)}
-                      >
-                        <label className="sr-only" htmlFor="secret-code">
-                          Secret code
-                        </label>
-                        <input
-                          id="secret-code"
-                          value={code}
-                          onChange={(e) => {
-                            setCode(e.target.value.replace(/\D/g, ""));
-                            if (status !== "checking") setStatus("idle");
-                          }}
-                          onKeyDown={(e) => e.key === "Enter" && apply()}
-                          inputMode="numeric"
-                          autoComplete="off"
-                          maxLength={5}
-                          placeholder="· · · · ·"
-                          aria-describedby="code-msg"
-                          className="min-h-12 min-w-0 flex-1 rounded-lg border border-border-strong bg-surface px-4 text-center font-mono text-lg tracking-[0.5em] placeholder:tracking-[0.5em]"
-                        />
-                        <button
-                          type="button"
-                          onClick={apply}
-                          disabled={status === "checking" || code.length === 0}
-                          className="btn btn-ion !px-5"
-                        >
-                          {status === "checking" ? "Checking" : "Apply"}
-                        </button>
-                      </div>
-
-                      {complete && (
-                        <button
-                          type="button"
-                          onClick={() => setCode(digits.join(""))}
-                          className="mt-2 font-mono text-xs text-accent underline underline-offset-4"
-                        >
-                          Insert my collected digits
-                        </button>
-                      )}
-                    </>
-                  ) : (
-                    <p className="mt-3 font-mono text-sm text-success">
-                      ✓ ${discount.amountOff} off your first year is applied.
-                    </p>
-                  )}
-
-                  <p id="code-msg" role="status" className="mt-2 min-h-5 text-sm">
-                    {status === "invalid" && (
-                      <span className="text-error">
-                        That code doesn’t match. The digits are earned inside
-                        the page. Keep exploring.
-                      </span>
-                    )}
-                    {status === "valid" && celebrate && (
-                      <span className="text-success">
-                        Code accepted. Nicely played.
-                      </span>
-                    )}
-                  </p>
-                </div>
+              {yearly && !discount.applied && (
+                <p className="lp-note-ok">Already {vsMonthly}% off vs monthly</p>
               )}
-
-              <div className="relative mt-7">
-                <Checks items={PRO} />
-              </div>
-
-              <Link
-                href="/auth/signup"
-                className="btn btn-ion relative mt-10 w-full"
-              >
-                Get Pro · ${price}/{yearly ? "year" : "month"}
-              </Link>
+              {yearly && discount.applied && (
+                <p className="lp-note-ok">${discount.amountOff} off applied · first year only</p>
+              )}
             </div>
+
+            <Checks items={PRO} color="#1E6BFF" />
+
+            <Link href="/auth/signup" className="lp-btn lp-btn-primary lp-btn-block">
+              Get Pro · ${price}/{yearly ? "year" : "month"}
+            </Link>
+
+            {/* Secret Code */}
+            {yearly && (
+              <div className="lp-promo">
+                <div className="lp-promo-top">
+                  <span>
+                    {discount.applied ? "Secret code unlocked" : "A secret is hidden on this page"}
+                  </span>
+                  <DigitRail digits={digits} size="sm" />
+                </div>
+
+                {!discount.applied ? (
+                  <>
+                    <div
+                      className={`lp-promo-row ${shake ? "anim-shake" : ""}`}
+                      onAnimationEnd={() => setShake(false)}
+                    >
+                      <label className="sr-only" htmlFor="secret-code">
+                        Secret code
+                      </label>
+                      <input
+                        id="secret-code"
+                        value={code}
+                        onChange={(e) => {
+                          setCode(e.target.value.replace(/\D/g, ""));
+                          if (status !== "checking") setStatus("idle");
+                        }}
+                        onKeyDown={(e) => e.key === "Enter" && apply()}
+                        inputMode="numeric"
+                        autoComplete="off"
+                        maxLength={5}
+                        placeholder="· · · · ·"
+                        aria-describedby="code-msg"
+                      />
+                      <button
+                        type="button"
+                        onClick={apply}
+                        disabled={status === "checking" || code.length === 0}
+                        className="lp-btn lp-btn-glass lp-btn-sm"
+                      >
+                        {status === "checking" ? "Checking" : "Apply"}
+                      </button>
+                    </div>
+
+                    {complete && (
+                      <button
+                        type="button"
+                        onClick={() => setCode(digits.join(""))}
+                        className="lp-promo-link"
+                      >
+                        Insert my collected digits
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  <p className="lp-promo-msg" style={{ color: "#10B981" }}>
+                    ✓ ${discount.amountOff} off your first year is applied.
+                  </p>
+                )}
+
+                <p id="code-msg" role="status" className="lp-promo-msg">
+                  {status === "invalid" && (
+                    <span style={{ color: "#EF4444" }}>
+                      That code doesn’t match. The digits are earned inside the page. Keep exploring.
+                    </span>
+                  )}
+                  {status === "valid" && celebrate && (
+                    <span style={{ color: "#10B981" }}>Code accepted. Nicely played.</span>
+                  )}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>

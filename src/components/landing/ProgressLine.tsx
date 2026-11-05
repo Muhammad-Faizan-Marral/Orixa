@@ -72,7 +72,7 @@ export default function ProgressLine() {
       ref={ref}
       aria-hidden="true"
       style={{ transform: "scaleX(0)" }}
-      className="bg-gradient-ion absolute left-0 right-0 top-8 hidden h-px origin-left shadow-[0_0_12px_var(--accent)] will-change-transform md:block"
+      className="lp-progress"
     />
   );
 }

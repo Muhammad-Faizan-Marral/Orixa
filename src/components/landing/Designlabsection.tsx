@@ -1,7 +1,6 @@
 /**
- * OrixaAI — Design Lab teaser (compact).
- * Short line + link to the Design Lab + 7 style chips (Server Component).
- * Each chip opens the Design Lab filtered to that style.
+ * OrixaAI — Design Lab teaser (Server Component).
+ * Style chips + showcase gallery. Every chip / card opens the Design Lab.
  */
 
 import Link from "next/link";
@@ -22,81 +21,68 @@ const STYLES: Style[] = [
   { id: "cinematic", name: "Cinematic", from: "#07060b", to: "#fb7185" },
 ];
 
+const SHOWCASE = [
+  { img: "/lp/tpl-glass.webp", tag: "Glassmorphism", name: "Neo Glass", theme: "neo-glass" },
+  { img: "/lp/tpl-editorial.webp", tag: "Typography led", name: "Editorial", theme: "editorial" },
+  { img: "/lp/tpl-sport.webp", tag: "High energy", name: "Cinematic", theme: "cinematic" },
+  { img: "/lp/tpl-playful.webp", tag: "Character & clay", name: "Minimal Airy", theme: "minimal-airy" },
+];
+
 export default function DesignLabSection() {
   return (
-    <section id="design-lab" className="relative py-20 md:py-28">
-      <div className="mx-auto max-w-6xl px-5">
-        <div className="dl-card relative overflow-hidden rounded-2xl border border-border/60 bg-surface/60 px-6 py-12 shadow-sm backdrop-blur-sm sm:px-10 sm:py-14 md:px-14">
-          {/* Soft ambient glow */}
-          <div
-            className="pointer-events-none absolute -top-24 left-1/2 h-64 w-[28rem] -translate-x-1/2 rounded-full bg-gradient-to-tr from-primary/15 via-foreground/5 to-transparent blur-3xl"
-            aria-hidden="true"
-          />
+    <section id="design-lab" className="lp">
+      <div className="lp-container">
+        <div className="lp-head">
+          <h2 className="lp-title">Real portfolios. Built by real people.</h2>
+          <p className="lp-lead">
+            Explore portfolios our users have published, across every design style.
+          </p>
+        </div>
 
-          {/* Header */}
-          <div className="relative mx-auto max-w-2xl text-center">
-            <p className="mb-3 text-sm font-medium tracking-wide text-muted-foreground">
-              Design Lab
-            </p>
-            <h2 className="text-balance text-3xl font-bold tracking-tight text-foreground sm:text-4xl md:text-[2.6rem] md:leading-[1.15]">
-              Real portfolios.{" "}
-              <span className="bg-gradient-to-r from-foreground via-foreground/80 to-muted-foreground bg-clip-text text-transparent">
-                Built by real people.
-              </span>
-            </h2>
-            <p className="mx-auto mt-5 max-w-md text-lg leading-relaxed text-muted-foreground">
-              Explore portfolios our users have published, across every design
-              style.
-            </p>
-
-            {/* CTA */}
-            <div className="mt-8 flex flex-col items-center gap-3">
+        {/* Style chips */}
+        <ul className="lp-filter" aria-label="Design styles">
+          {STYLES.map((s) => (
+            <li key={s.id}>
               <Link
-                href={DESIGN_LAB_PATH}
-                className="btn btn-ion w-full sm:w-auto sm:min-w-[13rem]"
+                href={`${DESIGN_LAB_PATH}?theme=${s.id}`}
+                className="lp-filter-chip"
+                style={{ "--from": s.from, "--to": s.to } as CSSProperties}
               >
-                Open Design Lab
+                <span
+                  className="lp-swatch"
+                  style={{ background: `linear-gradient(135deg, ${s.from}, ${s.to})` }}
+                  aria-hidden="true"
+                />
+                {s.name}
               </Link>
-              <p className="text-sm text-muted-foreground/70">
-                orixaai.me/design-lab
-              </p>
-            </div>
-          </div>
+            </li>
+          ))}
+        </ul>
 
-          {/* Style chips */}
-          <div className="relative mt-12">
-            <p className="mb-5 text-center text-sm text-muted-foreground">
-              Or pick a style to see it in action
-            </p>
-            <ul
-              className="flex flex-wrap items-center justify-center gap-2.5"
-              aria-label="Design styles"
+        {/* Gallery */}
+        <div className="lp-gallery">
+          {SHOWCASE.map((t) => (
+            <Link
+              key={t.name}
+              href={`${DESIGN_LAB_PATH}?theme=${t.theme}`}
+              className="lp-template"
+              aria-label={`Open ${t.name} in the Design Lab`}
             >
-              {STYLES.map((s) => (
-                <li key={s.id}>
-                  <Link
-                    href={`${DESIGN_LAB_PATH}?theme=${s.id}`}
-                    className="group inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/50 px-4 py-2 text-sm font-medium text-foreground transition-all duration-200 hover:border-foreground/30 hover:bg-background"
-                    style={
-                      {
-                        "--from": s.from,
-                        "--to": s.to,
-                      } as CSSProperties
-                    }
-                  >
-                    <span
-                      className="h-2.5 w-2.5 shrink-0 rounded-full"
-                      style={{
-                        background: `linear-gradient(135deg, ${s.from}, ${s.to})`,
-                      }}
-                      aria-hidden="true"
-                    />
-                    {s.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={t.img} alt="" width={280} height={440} loading="lazy" decoding="async" />
+              <div className="lp-template-overlay">
+                <span className="lp-template-tag">{t.tag}</span>
+                <span className="lp-template-name">{t.name}</span>
+              </div>
+            </Link>
+          ))}
+        </div>
+
+        <div className="lp-center">
+          <Link href={DESIGN_LAB_PATH} className="lp-btn lp-btn-glass">
+            Open Design Lab
+          </Link>
+          <p className="lp-url">orixaai.me/design-lab</p>
         </div>
       </div>
     </section>

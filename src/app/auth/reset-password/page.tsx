@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useActionState } from "react";
 
-import { AuthLayout } from "@/components/auth/auth-layout";
+import { AUTH_LINK, AuthLayout } from "@/components/auth/auth-layout";
 import { FormAlert } from "@/components/auth/form-alert";
 import { Input } from "@/components/UI/Input";
 import { Button } from "@/components/UI/Button";
@@ -15,10 +15,16 @@ import {
 const initialState: ResetPasswordState = {};
 
 export default function ResetPasswordPage() {
-  const [state, formAction, pending] = useActionState(resetPassword, initialState);
+  const [state, formAction, pending] = useActionState(
+    resetPassword,
+    initialState,
+  );
 
   return (
-    <AuthLayout title="Set a new password" subtitle="Choose a strong password for your account.">
+    <AuthLayout
+      title="Set a new password"
+      subtitle="Choose a strong password for your account."
+    >
       <form action={formAction} className="space-y-4">
         <Input
           id="password"
@@ -43,14 +49,19 @@ export default function ResetPasswordPage() {
 
         {state.error && <FormAlert>{state.error}</FormAlert>}
 
-        <Button type="submit" variant="gradient" className="w-full" loading={pending}>
+        <Button
+          type="submit"
+          variant="gradient"
+          className="w-full rounded-full"
+          loading={pending}
+        >
           {pending ? "Updating..." : "Update password"}
         </Button>
       </form>
 
-      <p className="text-small mt-8 text-center">
-        <Link href="/auth/login" className="font-medium text-primary hover:text-primary-hover">
-          Back to login
+      <p className="mt-8 text-center text-sm">
+        <Link href="/auth/login" className={AUTH_LINK}>
+          ← Back to login
         </Link>
       </p>
     </AuthLayout>

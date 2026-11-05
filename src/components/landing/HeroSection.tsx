@@ -1,103 +1,113 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+import CountUp from "./CountUp";
 
-const TRUST = [
-  "Free to start",
-  "No credit card",
-  "No design or coding skills",
-];
+const TRUST = ["Free to start", "No credit card", "No design or coding skills"];
+
+const Arrow = () => (
+  <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M5 12h14M12 5l7 7-7 7" />
+  </svg>
+);
 
 export default function HeroSection() {
+  const hero = useRef<HTMLElement>(null);
+  const [past, setPast] = useState(false);
+
+  // Sticky mobile CTA appears once the hero is scrolled past
+  useEffect(() => {
+    const el = hero.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(([e]) => setPast(!e.isIntersecting && e.boundingClientRect.top < 0));
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
   return (
-    <section
-      aria-labelledby="hero-heading"
-      className="relative isolate overflow-hidden bg-background py-17 sm:py-19 lg:py-20"
-    >
-      {/* Soft ambient glow */}
-      <div
-        className="absolute top-0 left-1/2 -z-10 h-[480px] w-[900px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-tr from-primary/12 via-foreground/5 to-transparent blur-3xl pointer-events-none"
-        aria-hidden="true"
-      />
+    <>
+      <section ref={hero} aria-labelledby="hero-heading" className="lp lp-hero">
+        <div className="lp-hero-frame">
+          <div className="lp-hero-scrim">
+            <div className="lp-hero-content">
+              <h1 id="hero-heading" className="lp-hero-title">
+                Build a portfolio
+                <span className="lp-sub">that gets you noticed.</span>
+              </h1>
 
-      {/* Subtle grid */}
-      <div
-        className="absolute inset-0 -z-10 bg-[linear-gradient(to_right,rgb(var(--border-rgb),0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgb(var(--border-rgb),0.04)_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_70%_50%_at_50%_0%,#000_60%,transparent_100%)] pointer-events-none opacity-50"
-        aria-hidden="true"
-      />
+              <p className="lp-hero-text">
+                Turn your resume into a polished professional portfolio with Orixa AI. Choose your
+                design, showcase your work, and share your website in minutes.
+              </p>
 
-      <div className="mx-auto max-w-5xl px-4 text-center sm:px-6">
-        {/* Main Headline */}
-        <h1
-          id="hero-heading"
-          className="mx-auto max-w-4xl text-balance text-[clamp(2.9rem,7.5vw,5.5rem)] font-bold tracking-[-0.045em] leading-[1.05] text-foreground"
-        >
-          Build a portfolio
-          <span className="block mt-2 bg-gradient-to-r from-foreground via-foreground/85 to-muted-foreground bg-clip-text text-transparent">
-            that gets you noticed.
-          </span>
-        </h1>
+              <div className="lp-hero-ctas">
+                <Link href="/auth/signup" className="lp-btn lp-btn-primary">
+                  <span>Create my portfolio</span>
+                  <span className="lp-btn-icon"><Arrow /></span>
+                </Link>
+                <Link href="#pillars" className="lp-btn lp-btn-glass-hero">
+                  See how it works
+                </Link>
+              </div>
 
-        {/* Supporting text — tighter & stronger */}
-        <p className="mx-auto mt-8 max-w-2xl text-pretty text-lg leading-relaxed text-muted-foreground sm:text-xl sm:leading-8">
-          Turn your resume into a polished professional portfolio with Orixa AI.
-          Choose your design, showcase your work, and share your website in minutes.
-        </p>
+              {/* Floating UI cards */}
+              <div className="lp-strip" aria-hidden="true">
+                <div className="lp-strip-row">
+                  <div className="lp-float lp-float-1">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/lp/tpl-glass.webp" alt="" className="lp-avatar" />
+                    <div>
+                      <b>Ayesha Khan</b>
+                      <small>Product Designer</small>
+                    </div>
+                  </div>
 
-        {/* CTAs */}
-        <div className="mt-12 flex flex-col items-stretch justify-center gap-4 sm:flex-row sm:items-center">
-          <Link
-            href="/auth/signup"
-            className="group relative inline-flex min-h-[54px] items-center justify-center gap-2.5 rounded-full bg-foreground px-9 py-3.5 text-sm font-semibold text-background shadow-[0_1px_2px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.18)] transition-all duration-300 hover:opacity-90 hover:shadow-[0_10px_28px_-8px_rgba(0,0,0,0.28)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.98] sm:min-w-[15rem]"
-          >
-            <span>Create my portfolio</span>
-            <svg
-              viewBox="0 0 20 20"
-              fill="none"
-              className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1"
-              aria-hidden="true"
-            >
-              <path
-                d="M4.5 10h11m-4.5-4.5L15.5 10 11 14.5"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </Link>
+                  <div className="lp-float lp-float-2">
+                    <div>
+                      <small style={{ fontWeight: 600 }}>VISITORS</small>
+                      <b style={{ fontSize: 15, fontWeight: 700 }}><CountUp to={2847} /></b>
+                    </div>
+                    <svg width="60" height="24" viewBox="0 0 60 24" fill="none">
+                      <path d="M2 20 Q 15 18, 25 10 T 45 12 T 58 4" stroke="#1E6BFF" strokeWidth="2.5" strokeLinecap="round" />
+                    </svg>
+                  </div>
 
-          <Link
-            href="#pillars"
-            className="inline-flex min-h-[54px] items-center justify-center rounded-full border border-border-strong/60 bg-surface/40 px-8 py-3.5 text-sm font-medium text-foreground backdrop-blur-sm transition-all duration-200 hover:bg-surface hover:border-foreground/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:min-w-[13rem]"
-          >
-            See how it works
-          </Link>
+                  <div className="lp-float lp-float-3">
+                    <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#1E6BFF" }} />
+                    <div>
+                      <b>Messages</b>
+                      <small><CountUp to={31} /> new inquiries</small>
+                    </div>
+                  </div>
+
+                  <div className="lp-float lp-float-4">
+                    <svg width="14" height="14" fill="none" stroke="#10B981" strokeWidth="2" viewBox="0 0 24 24">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    </svg>
+                    <div>
+                      <b>ayeshakhan.com</b>
+                      <small style={{ color: "#10B981", fontWeight: 600 }}>● SSL Active</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="lp-trust">
+                {TRUST.map((t) => (
+                  <span key={t}>{t}</span>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
+      </section>
 
-        {/* Trust indicators — cleaner & tighter */}
-        <ul className="mt-14 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm text-muted-foreground font-medium">
-          {TRUST.map((item) => (
-            <li key={item} className="flex items-center gap-2.5">
-              <svg
-                viewBox="0 0 16 16"
-                className="h-4 w-4 shrink-0 text-success"
-                aria-hidden="true"
-              >
-                <path
-                  d="M3 8.5l3.2 3L13 4.5"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              <span>{item}</span>
-            </li>
-          ))}
-        </ul>
+      <div className={`lp-sticky-cta ${past ? "is-visible" : ""}`} aria-hidden={!past}>
+        <Link href="/auth/signup" className="lp-btn lp-btn-primary" tabIndex={past ? 0 : -1}>
+          Create my portfolio — free
+        </Link>
       </div>
-    </section>
+    </>
   );
 }

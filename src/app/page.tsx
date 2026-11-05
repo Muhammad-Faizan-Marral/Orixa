@@ -160,7 +160,7 @@ export default function HomePage() {
         }}
       />
       <div
-        className="relative overflow-x-clip bg-background text-foreground"
+        className="bg-white"
         style={{ ["--font-display" as string]: "var(--font-dm), sans-serif" }}
       >
         <Navbar />
