@@ -3,7 +3,7 @@
 import { useFrame } from "@react-three/fiber";
 import { useMemo } from "react";
 import { Vector3 } from "three";
-import { damp } from "../../shared/math";
+import { damp, MAX_FRAME_DT } from "../../shared/math";
 import { CAMERA_BASE } from "../lib/world";
 import { useScene } from "../state/scene-context";
 
@@ -13,7 +13,7 @@ export function CameraRig() {
   const look = useMemo(() => new Vector3(), []);
 
   useFrame(({ camera, clock }, rawDt) => {
-    const dt = Math.min(rawDt, 0.05);
+    const dt = Math.min(rawDt, MAX_FRAME_DT);
     const k = state.motion;
     const t = clock.elapsedTime;
     const p = state.progress;

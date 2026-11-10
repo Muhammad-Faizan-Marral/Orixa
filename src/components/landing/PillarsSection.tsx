@@ -1,10 +1,9 @@
-"use client";
-
 /**
  * OrixaAI — "What you get" bento.
  * Four tiles: resume → portfolio, custom domain, visitor analytics, contact.
  */
 
+import Image from "next/image";
 import CountUp from "./CountUp";
 
 const DOMAIN = "ayeshakhan.com";
@@ -121,8 +120,15 @@ export default function PillarsSection() {
               </p>
             </div>
             <div className="lp-bubble">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/lp/tpl-glass.webp" alt="" className="lp-avatar" style={{ width: 40, height: 40 }} />
+              <Image
+                src="/lp/tpl-glass.webp"
+                alt=""
+                width={40}
+                height={40}
+                sizes="40px"
+                className="lp-avatar"
+                style={{ width: 40, height: 40 }}
+              />
               <div>
                 <q>Hi Ayesha, loved your work. Are you free for a project next month?</q>
                 <span className="lp-delivered">✓ Message delivered</span>

@@ -4,6 +4,7 @@
  */
 
 import Link from "next/link";
+import Image from "next/image";
 import type { CSSProperties } from "react";
 
 /** Internal route: works on previews/localhost too, and keeps visitors in the app. */
@@ -68,8 +69,13 @@ export default function DesignLabSection() {
               className="lp-template"
               aria-label={`Open ${t.name} in the Design Lab`}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={t.img} alt="" width={280} height={440} loading="lazy" decoding="async" />
+              <Image
+                src={t.img}
+                alt=""
+                width={280}
+                height={440}
+                sizes="(min-width: 1240px) 275px, (min-width: 1024px) calc((100vw - 100px) / 4), 230px"
+              />
               <div className="lp-template-overlay">
                 <span className="lp-template-tag">{t.tag}</span>
                 <span className="lp-template-name">{t.name}</span>

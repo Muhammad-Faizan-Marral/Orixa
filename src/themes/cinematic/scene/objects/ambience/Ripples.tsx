@@ -4,6 +4,7 @@ import { useFrame } from "@react-three/fiber";
 import { useLayoutEffect, useMemo, useRef } from "react";
 import { AdditiveBlending, Color, InstancedMesh, Object3D, RingGeometry } from "three";
 import type { RipplePool } from "../../lib/ripples";
+import { MAX_FRAME_DT } from "../../../shared/math";
 import { WATER_Y } from "../../lib/world";
 import { useScene } from "../../state/scene-context";
 
@@ -29,7 +30,7 @@ export function Ripples({ pool }: { pool: RipplePool }) {
   useFrame((_, rawDt) => {
     const m = mesh.current;
     if (!m) return;
-    pool.update(Math.min(rawDt, 0.05));
+    pool.update(Math.min(rawDt, MAX_FRAME_DT));
 
     pool.items.forEach((r, i) => {
       if (!r.active) {

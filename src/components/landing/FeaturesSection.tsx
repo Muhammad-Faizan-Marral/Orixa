@@ -57,11 +57,31 @@ const FEATURES: { title: string; desc: string; icon: Icon }[] = [
 ];
 
 type Corner = "tl" | "tr" | "bl" | "br";
-const CORNERS: { id: Corner; pos: React.CSSProperties; edge: React.CSSProperties }[] = [
-  { id: "tl", pos: { left: 12, top: 12 }, edge: { borderLeftWidth: 2, borderTopWidth: 2 } },
-  { id: "tr", pos: { right: 12, top: 12 }, edge: { borderRightWidth: 2, borderTopWidth: 2 } },
-  { id: "bl", pos: { left: 12, bottom: 12 }, edge: { borderLeftWidth: 2, borderBottomWidth: 2 } },
-  { id: "br", pos: { right: 12, bottom: 12 }, edge: { borderRightWidth: 2, borderBottomWidth: 2 } },
+const CORNERS: {
+  id: Corner;
+  pos: React.CSSProperties;
+  edge: React.CSSProperties;
+}[] = [
+  {
+    id: "tl",
+    pos: { left: 12, top: 12 },
+    edge: { borderLeftWidth: 2, borderTopWidth: 2 },
+  },
+  {
+    id: "tr",
+    pos: { right: 12, top: 12 },
+    edge: { borderRightWidth: 2, borderTopWidth: 2 },
+  },
+  {
+    id: "bl",
+    pos: { left: 12, bottom: 12 },
+    edge: { borderLeftWidth: 2, borderBottomWidth: 2 },
+  },
+  {
+    id: "br",
+    pos: { right: 12, bottom: 12 },
+    edge: { borderRightWidth: 2, borderBottomWidth: 2 },
+  },
 ];
 const ODD: Corner = "tr"; // the one with the tiny pulsing pip
 
@@ -74,17 +94,12 @@ export default function FeaturesSection() {
       {CORNERS.map((c) => {
         const mark: ReactNode = (
           <i aria-hidden="true" style={c.edge}>
-            {c.id === ODD && <span className="lp-mark-pip anim-beacon" />}
+            {c.id === ODD && <span className="lp-mark-pip anim-beacon " />}
           </i>
         );
 
-        return c.id === ODD ? (
-          <Relic
-            key={c.id}
-            id="pads"
-            label="Frame mark"
-            className="lp-mark"
-          >
+        return true ? (
+          <Relic key={c.id} id="pads" label="Frame mark" className="lp-mark">
             {() => mark}
           </Relic>
         ) : (
@@ -128,7 +143,17 @@ export default function FeaturesSection() {
           {FEATURES.map((f) => (
             <li key={f.title} className="lp-feature">
               <div className="lp-feature-ico">
-                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+                <svg
+                  width="20"
+                  height="20"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
                   <path d={ICONS[f.icon]} />
                 </svg>
               </div>
@@ -144,7 +169,7 @@ export default function FeaturesSection() {
             <Relic
               id="alchemy"
               label="An empty slot with a keyhole"
-              className="lp-feature-relic"
+              className="lp-feature-relic "
             >
               {({ solved, sealed }) => (
                 <svg
@@ -153,7 +178,9 @@ export default function FeaturesSection() {
                   height="36"
                   shapeRendering="crispEdges"
                   aria-hidden="true"
-                  className={sealed ? "opacity-40" : solved ? "" : "anim-beacon"}
+                  className={
+                    sealed ? "opacity-40" : solved ? "" : "anim-beacon"
+                  }
                 >
                   <path
                     d="M3 1h4v1h1v4H7v1h1v6H2V7h1V6H2V2h1z"

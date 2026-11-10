@@ -9,6 +9,7 @@ import {
 import { mulberry32 } from "../lib/journey-math";
 import { useScene } from "../state/scene-context";
 
+const WHITE = new Color("#ffffff");
 const SKY_VERT = /* glsl */ `
   varying float vY;
   void main() {
@@ -94,7 +95,7 @@ export function Atmosphere() {
       hemi.current.intensity = 1.4 - atmo.stars * 0.6;
     }
     if (dir.current) {
-      dir.current.color.copy(atmo.sun).lerp(new Color("#ffffff"), 0.5);
+      dir.current.color.copy(atmo.sun).lerp(WHITE, 0.5);
       dir.current.intensity = 2.2 - atmo.stars * 1.6;
     }
   });

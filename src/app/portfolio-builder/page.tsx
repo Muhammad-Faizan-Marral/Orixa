@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     siteName: "Orixa AI",
     images: [
       {
-        url: "/logowithBGandText.png",
+        url: "/neworixaaiimg.png",
         alt: "Orixa AI portfolio builder",
       },
     ],
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: TITLE,
     description: DESCRIPTION,
-    images: ["/logowithBGandText.png"],
+    images: ["/neworixaaiimg.png"],
   },
 };
 

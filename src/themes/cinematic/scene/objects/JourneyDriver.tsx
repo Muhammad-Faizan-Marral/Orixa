@@ -2,7 +2,7 @@
 
 import { useFrame } from "@react-three/fiber";
 import { AMBIENCE_IDS, MOODS } from "../../data/mood.config";
-import { actIndexAt, damp, localProgress, smoothstep } from "../../shared/math";
+import { actIndexAt, damp, localProgress, MAX_FRAME_DT, smoothstep } from "../../shared/math";
 import { blendMoods } from "../lib/mood-blend";
 import { useScene } from "../state/scene-context";
 
@@ -13,7 +13,7 @@ export function JourneyDriver() {
   const { state } = useScene();
 
   useFrame((_, rawDt) => {
-    const dt = Math.min(rawDt, 0.05); // tab-switch spikes shouldn't teleport the camera
+    const dt = Math.min(rawDt, MAX_FRAME_DT); // tab-switch spikes shouldn't teleport the camera
     const { acts } = state.journey;
 
     const prev = state.progress;

@@ -7,6 +7,7 @@ import Navbar from "@/components/landing/Navbar";
 import HeroSection from "@/components/landing/HeroSection";
 import DeferredGameRoot from "@/components/landing/DeferredGameRoot";
 // Server components (no client JS): static imports. next/dynamic around them only added chunk indirection.
+import PillarsSection from "@/components/landing/PillarsSection";
 import DesignLabSection from "@/components/landing/Designlabsection";
 import FinalCTA from "@/components/landing/FinalCTA";
 import Footer from "@/components/landing/Footer";
@@ -14,10 +15,6 @@ import { CookieNotice } from "@/components/legal/legal-notices";
 import { BILLING } from "@/constants/billing";
 
 // Client sections stay code-split.
-const PillarsSection = dynamic(
-  () => import("@/components/landing/PillarsSection"),
-  { loading: () => null },
-);
 const WorkflowSection = dynamic(
   () => import("@/components/landing/WorkflowSection"),
   { loading: () => null },
@@ -67,7 +64,7 @@ export const metadata: Metadata = {
     description: HOME_DESCRIPTION,
     images: [
       {
-        url: "/logowithBGandText.png",
+        url: "/neworixaaiimg.png",
         alt: "Orixa AI — AI portfolio builder",
       },
     ],
@@ -76,7 +73,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: HOME_TITLE,
     description: HOME_DESCRIPTION,
-    images: ["/logowithBGandText.png"],
+    images: ["/neworixaaiimg.png"],
   },
 };
 

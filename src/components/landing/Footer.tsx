@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Logo from "./Logo";
+import NewLogo from "../NewLogo";
 
 const PRODUCT = [
   { href: "/#how", label: "How it works" },
@@ -45,7 +46,7 @@ export default function Footer() {
         <div className="lp-footer-grid">
           <div>
             <Link href="/" aria-label="OrixaAI home" className="lp-brand">
-              <Logo variant="darkwordmark" height={28} />
+              <NewLogo  theme="light"  height={38} priority />
             </Link>
             <p className="lp-footer-note">Portfolio that represents your work.</p>
             <a href="mailto:contact@orixaai.me" className="lp-footer-mail">

@@ -37,6 +37,8 @@ export function StationFrame({ id, center, halfWidth, edge, align = "left", vali
       el.style.opacity = String(v);
       el.style.transform = `translate3d(0, ${(1 - v) * 34 * dir}px, 0) scale(${0.97 + 0.03 * v})`;
       el.style.visibility = v <= 0.01 ? "hidden" : "visible";
+      // hidden panel ka full-viewport compositor layer free karo (8 layers hamesha alive thay)
+      el.style.willChange = v <= 0.01 ? "auto" : "opacity, transform";
       el.style.pointerEvents = v > 0.6 ? "auto" : "none";
     },
     [center, halfWidth, edge],

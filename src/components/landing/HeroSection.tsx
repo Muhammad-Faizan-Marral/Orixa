@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import CountUp from "./CountUp";
 
@@ -55,8 +56,14 @@ export default function HeroSection() {
               <div className="lp-strip" aria-hidden="true">
                 <div className="lp-strip-row">
                   <div className="lp-float lp-float-1">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src="/lp/tpl-glass.webp" alt="" className="lp-avatar" />
+                    <Image
+                      src="/lp/tpl-glass.webp"
+                      alt=""
+                      width={32}
+                      height={32}
+                      sizes="32px"
+                      className="lp-avatar"
+                    />
                     <div>
                       <b>Ayesha Khan</b>
                       <small>Product Designer</small>

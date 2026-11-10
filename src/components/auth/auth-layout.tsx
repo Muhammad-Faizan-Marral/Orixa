@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import Logo from "../landing/Logo";
+import NewLogo from "../NewLogo";
 
 const POINTS = [
   "Multiple portfolios from one profile",
@@ -35,7 +36,7 @@ export function AuthLayout({
             aria-label="OrixaAI home"
             className="flex h-14 w-fit items-center rounded-full border border-white/60 bg-white/85 px-5 backdrop-blur-xl"
           >
-            <Logo variant="darkwordmark" height={100} priority />
+              <NewLogo  height={38} priority />
           </Link>
 
           <div className="max-w-md">
@@ -100,7 +101,7 @@ export function AuthLayout({
             aria-label="OrixaAI home"
             className="flex h-14 min-w-0 items-center lg:hidden"
           >
-            <Logo variant="auto" height={100} priority />
+             <NewLogo  height={38} priority />
           </Link>
 
           <Link

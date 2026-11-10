@@ -1,10 +1,10 @@
 "use client";
 
 import { useFrame } from "@react-three/fiber";
-import { useLayoutEffect, useMemo, useRef } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { Color, DoubleSide, InstancedMesh, MeshBasicMaterial, Object3D, Shape, ShapeGeometry } from "three";
 import { QUALITY_BUDGETS } from "../../../data/mood.config";
-import { clamp, smoothstep } from "../../../shared/math";
+import { clamp, MAX_FRAME_DT, smoothstep } from "../../../shared/math";
 import { PETAL_BOUNDS, WATER_Y } from "../../lib/world";
 import { useScene } from "../../state/scene-context";
 
@@ -53,6 +53,14 @@ export function Petals({ onLand }: { onLand: (x: number, z: number) => void }) {
     [],
   );
 
+  useEffect(
+    () => () => {
+      geometry.dispose();
+      material.dispose();
+    },
+    [geometry, material],
+  );
+
   const count = QUALITY_BUDGETS[state.quality].petals;
   const petals = useMemo(() => {
     const list = Array.from({ length: count }, () => ({}) as Petal);
@@ -70,7 +78,7 @@ export function Petals({ onLand }: { onLand: (x: number, z: number) => void }) {
   useFrame(({ clock }, rawDt) => {
     const m = mesh.current;
     if (!m) return;
-    const dt = Math.min(rawDt, 0.05) * state.motion;
+    const dt = Math.min(rawDt, MAX_FRAME_DT) * state.motion;
     const t = clock.elapsedTime;
     const rush = 1 + clamp(Math.abs(state.velocity) * 6, 0, 2); // scrolling fast = petals stream faster
     const active = Math.floor(count * (0.35 + 0.65 * state.mood.intensity));

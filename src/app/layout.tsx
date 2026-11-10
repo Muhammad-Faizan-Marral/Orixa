@@ -6,6 +6,7 @@ import {
   Geist,
   Instrument_Serif,
   Inter,
+  Inter_Tight,
   JetBrains_Mono,
   Schibsted_Grotesk,
 } from "next/font/google";
@@ -38,6 +39,14 @@ const inter = Inter({
   display: "swap",
   // Only the fallback in --font-sans (DM Sans is primary), so don't preload it
   // on every route; the file is still fetched on demand when actually used.
+  preload: false,
+  adjustFontFallback: true,
+});
+
+const interTight = Inter_Tight({
+  variable: "--font-inter-tight",
+  subsets: ["latin"],
+  display: "swap",
   preload: false,
   adjustFontFallback: true,
 });
@@ -152,7 +161,9 @@ export const metadata: Metadata = {
     // Optional Bing Webmaster Tools HTML-meta verification. Set this only if
     // you choose manual meta-tag verification instead of importing from GSC.
     ...(process.env.BING_SITE_VERIFICATION?.trim()
-      ? { other: { "msvalidate.01": process.env.BING_SITE_VERIFICATION.trim() } }
+      ? {
+          other: { "msvalidate.01": process.env.BING_SITE_VERIFICATION.trim() },
+        }
       : {}),
   },
   authors: [
@@ -176,23 +187,19 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       {
-        url: "/justLogoWihoutText.png",
-        type: "image/png",
-      },
-      {
-        url: "/justLogo-removebg-preview.png",
+        url: "/neworixaaiimg.png",
         type: "image/png",
       },
     ],
 
     apple: [
       {
-        url: "/justLogoWihoutText.png",
+        url: "/neworixaaiimg.png",
         type: "image/png",
       },
     ],
 
-    shortcut: ["/justLogoWihoutText.png"],
+    shortcut: ["/neworixaaiimg.png"],
   },
 
   openGraph: {
@@ -208,7 +215,7 @@ export const metadata: Metadata = {
 
     images: [
       {
-        url: "/logowithBGandText.png",
+        url: "/neworixaaiimg.png",
         alt: "OrixaAI",
       },
     ],
@@ -222,7 +229,7 @@ export const metadata: Metadata = {
     description:
       "Create a polished portfolio with AI, explore premium designs, track portfolio visits, and let visitors contact you directly.",
 
-    images: ["/logowithBGandText.png"],
+    images: ["/neworixaaiimg.png"],
   },
 
   /**
@@ -270,6 +277,7 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`
         ${inter.variable}
+        ${interTight.variable}
         ${dmSans.variable}
         ${bricolage.variable}
         ${jetbrainsMono.variable}

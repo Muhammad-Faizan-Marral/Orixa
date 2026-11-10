@@ -1,12 +1,13 @@
 import Link from "next/link";
 import Logo from "@/components/landing/Logo";
+import NewLogo from "../NewLogo";
 
 export function BlogHeader() {
   return (
     <header className="border-b border-border bg-background/90">
       <div className="mx-auto flex min-h-16 max-w-6xl items-center justify-between gap-4 px-5 sm:px-6">
         <Link href="/" aria-label="OrixaAI home" className="shrink-0">
-          <Logo variant="wordmark" height={30} />
+           <NewLogo   height={38} priority />
         </Link>
         <nav aria-label="Blog navigation" className="flex items-center gap-4 text-sm sm:gap-6">
           <Link href="/portfolio-builder" className="hidden text-muted-foreground transition hover:text-foreground sm:inline">

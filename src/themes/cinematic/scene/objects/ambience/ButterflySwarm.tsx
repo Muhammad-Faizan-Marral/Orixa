@@ -1,10 +1,10 @@
 "use client";
 
 import { useFrame } from "@react-three/fiber";
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Color, DoubleSide, InstancedBufferAttribute, InstancedMesh, Object3D, PlaneGeometry, ShaderMaterial } from "three";
 import { QUALITY_BUDGETS } from "../../../data/mood.config";
-import { clamp } from "../../../shared/math";
+import { clamp, MAX_FRAME_DT } from "../../../shared/math";
 import { useScene } from "../../state/scene-context";
 
 /**
@@ -111,12 +111,21 @@ export function ButterflySwarm() {
     [],
   );
 
+  // geometry/material are created by hand (not by JSX), so R3F will not free them on unmount
+  useEffect(
+    () => () => {
+      geometry.dispose();
+      material.dispose();
+    },
+    [geometry, material],
+  );
+
   const clock = useRef({ path: 0, flap: 0 });
 
   useFrame((_, rawDt) => {
     const m = mesh.current;
     if (!m) return;
-    const dt = Math.min(rawDt, 0.05) * state.motion;
+    const dt = Math.min(rawDt, MAX_FRAME_DT) * state.motion;
     const rush = 1 + clamp(Math.abs(state.velocity) * 4, 0, 1.5); // scrolling stirs the swarm
     clock.current.path += dt * rush;
     clock.current.flap += dt * (1 + (rush - 1) * 0.5);

@@ -1,9 +1,10 @@
 "use client";
 
 import { useFrame, useThree } from "@react-three/fiber";
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, DoubleSide, ShaderMaterial } from "three";
 import { QUALITY_BUDGETS } from "../../../data/mood.config";
+import { MAX_FRAME_DT } from "../../../shared/math";
 import { useScene } from "../../state/scene-context";
 
 /**
@@ -117,10 +118,19 @@ export function LanternDust() {
     [],
   );
 
+  useEffect(
+    () => () => {
+      geometry.dispose();
+      dust.dispose();
+      beams.forEach((m) => m.dispose());
+    },
+    [geometry, dust, beams],
+  );
+
   const time = useRef(0);
 
   useFrame((_, rawDt) => {
-    time.current += Math.min(rawDt, 0.05) * state.motion;
+    time.current += Math.min(rawDt, MAX_FRAME_DT) * state.motion;
     const pres = state.presence.dust;
     dust.uniforms.uTime.value = time.current;
     dust.uniforms.uPresence.value = pres;

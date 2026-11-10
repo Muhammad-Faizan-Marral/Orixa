@@ -4,7 +4,7 @@ export const LOGOS = {
   wordmark: "/LogowithTextbutWithoutBG.png", // logo + text, transparent background for dark backgrounds
   mark: "/justLogoWihoutText.png", // symbol only
   markCutout: "/justLogo-removebg-preview.png", // symbol only, background removed
-  badge: "/logowithBGandText.png", // logo + text on its own background
+  badge: "/neworixaaiimg.png", // logo + text on its own background
 } as const;
 
 interface Props {

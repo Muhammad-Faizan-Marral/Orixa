@@ -10,6 +10,7 @@ import { LogoutButton } from "@/components/dashboard/logout-button";
 import { useDashboardStore } from "@/stores/dashboard.store";
 import { cn } from "@/lib/utils";
 import Logo from "../landing/Logo";
+import NewLogo from "../NewLogo";
 
 type Profile = {
   username: string;
@@ -148,7 +149,7 @@ export function Sidebar({ profile }: { profile: Profile }) {
             className={cn("flex min-w-0 items-center", FOCUS)}
           >
             {/* Keep the logo compact; the auto variant should use its mark at narrow sizes. */}
-            <Logo variant="auto" height={80} priority />
+            <NewLogo  height={38} priority />
           </Link>
 
           <button

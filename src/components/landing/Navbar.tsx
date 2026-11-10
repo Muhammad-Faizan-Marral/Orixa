@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import Logo from "./Logo";
+import NewLogo from "../NewLogo";
 
 const LINKS = [
   { href: "/#how", label: "How it works" },
@@ -20,37 +21,7 @@ export default function Navbar() {
   const [active, setActive] = useState<string | null>(null);
   const bar = useRef<HTMLDivElement>(null);
 
-  // Scroll progress + scrolled state
-  useEffect(() => {
-    const el = bar.current;
-    const reduced = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-    let raf = 0;
 
-    const update = () => {
-      raf = 0;
-      setScrolled(window.scrollY > 12);
-      if (window.scrollY < 100) setActive(null);
-      if (el && !reduced) {
-        const max = document.documentElement.scrollHeight - window.innerHeight;
-        const p = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
-        el.style.transform = `scaleX(${p})`;
-      }
-    };
-    const onScroll = () => {
-      if (!raf) raf = requestAnimationFrame(update);
-    };
-
-    update();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-      if (raf) cancelAnimationFrame(raf);
-    };
-  }, []);
 
   // Active section highlighting (home only)
   useEffect(() => {
@@ -97,7 +68,7 @@ export default function Navbar() {
         <div className="lp-container ">
           <div className="lp-header-bar" data-scrolled={scrolled}>
             <Link href="/" aria-label="OrixaAI home" className="lp-brand">
-              <Logo variant="darkwordmark" height={100} priority />
+              <NewLogo theme="light"  height={38} priority />
             </Link>
 
             <nav aria-label="Main" className="lp-nav">
